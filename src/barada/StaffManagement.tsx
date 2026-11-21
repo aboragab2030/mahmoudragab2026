@@ -365,8 +365,8 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
 
   const getRoleColor = (role: 'admin' | 'staff') => {
     return role === 'admin' 
-      ? 'bg-purple-100 text-purple-700' 
-      : 'bg-blue-100 text-blue-700';
+      ? 'bg-[#1769AA]/10 text-[#1769AA] border border-[#1769AA]/20' 
+      : 'bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20';
   };
 
   const getRoleIcon = (role: 'admin' | 'staff') => {
@@ -435,15 +435,15 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
   return (
     <div className="space-y-6">
       <div className={cardClass}>
-        <div className="flex justify-between items-center mb-6">
+        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
           <div className="flex items-center gap-3">
-            <UserCog className="w-6 h-6 text-blue-600" />
-            <h3 className="text-xl font-bold">إدارة الموظفين المسجلين</h3>
+            <UserCog className="w-6 h-6 text-[#087F8C]" />
+            <h3 className="text-xl font-black text-[#172B3A]">إدارة الموظفين المسجلين</h3>
           </div>
           <div className="flex gap-2">
             <button
               onClick={() => setShowAddUser(!showAddUser)}
-              className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+              className="flex items-center gap-2 fv-btn-primary text-white px-4 py-2 rounded-xl text-sm font-bold cursor-pointer"
             >
               <User size={16} />
               إضافة مستخدم
@@ -451,9 +451,9 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
             <button
               onClick={fetchStaffMembers}
               disabled={loading}
-              className="flex items-center gap-2 bg-gray-100 hover:bg-gray-200 text-gray-700 px-4 py-2 rounded-xl text-sm font-bold transition-colors"
+              className="flex items-center gap-2 bg-[#F5FAFC] border border-[#DFEAF0] hover:border-[#087F8C] text-[#172B3A] px-4 py-2 rounded-xl text-sm font-bold transition-colors cursor-pointer"
             >
-              <RefreshCw size={16} className={loading ? 'animate-spin' : ''} />
+              <RefreshCw size={16} className={loading ? 'animate-spin text-[#087F8C]' : 'text-[#087F8C]'} />
               تحديث
             </button>
           </div>
@@ -461,14 +461,14 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
 
         {/* Add User Form */}
         {showAddUser && (
-          <div className="mb-6 p-6 bg-gray-50 rounded-2xl border border-blue-100 space-y-4">
-            <h4 className="font-bold text-gray-900 flex items-center gap-2">
-              <User size={18} className="text-blue-600" />
+          <div className="mb-6 p-6 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0] space-y-4">
+            <h4 className="font-black text-[#172B3A] flex items-center gap-2">
+              <User size={18} className="text-[#087F8C]" />
               إضافة مستخدم جديد
             </h4>
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">الاسم الكامل *</label>
+                <label className="text-xs font-bold text-[#718394] mb-1.5 block">الاسم الكامل *</label>
                 <input
                   type="text"
                   value={addUserForm.name}
@@ -478,18 +478,18 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">البريد الإلكتروني *</label>
+                <label className="text-xs font-bold text-[#718394] mb-1.5 block">البريد الإلكتروني *</label>
                 <input
                   type="email"
                   value={addUserForm.email}
                   onChange={e => setAddUserForm({ ...addUserForm, email: e.target.value })}
-                  className={inputClass}
+                  className={`${inputClass} fv-mono`}
                   placeholder="example@email.com"
                   dir="ltr"
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">كلمة المرور *</label>
+                <label className="text-xs font-bold text-[#718394] mb-1.5 block">كلمة المرور *</label>
                 <input
                   type="password"
                   value={addUserForm.password}
@@ -499,25 +499,25 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-1 block">اسم المستخدم للدخول (اختياري)</label>
+                <label className="text-xs font-bold text-[#718394] mb-1.5 block">اسم المستخدم للدخول (اختياري)</label>
                 <input
                   type="text"
                   value={addUserForm.loginUsername}
                   onChange={e => setAddUserForm({ ...addUserForm, loginUsername: e.target.value })}
-                  className={inputClass}
+                  className={`${inputClass} fv-mono`}
                   placeholder="اسم مختصر لتسجيل الدخول"
                   dir="ltr"
                 />
               </div>
             </div>
             <div>
-              <label className="text-xs font-bold text-gray-500 mb-2 block">الدور الوظيفي</label>
+              <label className="text-xs font-bold text-[#718394] mb-2 block">الدور الوظيفي</label>
               <div className="grid grid-cols-2 gap-2 max-w-xs">
                 <button
                   type="button"
                   onClick={() => setAddUserForm({ ...addUserForm, role: 'staff' })}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
-                    addUserForm.role === 'staff' ? 'bg-blue-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                    addUserForm.role === 'staff' ? 'bg-[#087F8C] text-white' : 'bg-white border border-[#DFEAF0] text-[#718394] hover:text-[#172B3A]'
                   }`}
                 >
                   <UserCheck size={16} /> موظف
@@ -525,8 +525,8 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                 <button
                   type="button"
                   onClick={() => setAddUserForm({ ...addUserForm, role: 'admin' })}
-                  className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
-                    addUserForm.role === 'admin' ? 'bg-purple-600 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                  className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                    addUserForm.role === 'admin' ? 'bg-[#1769AA] text-white' : 'bg-white border border-[#DFEAF0] text-[#718394] hover:text-[#172B3A]'
                   }`}
                 >
                   <Crown size={16} /> مدير
@@ -535,17 +535,17 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
             </div>
             {addUserForm.role === 'staff' && (
               <div>
-                <label className="text-xs font-bold text-gray-500 mb-2 block">الصلاحيات</label>
-                <div className="max-h-48 overflow-y-auto bg-white rounded-xl p-3 border border-gray-200 space-y-2">
+                <label className="text-xs font-bold text-[#718394] mb-2 block">الصلاحيات</label>
+                <div className="max-h-48 overflow-y-auto bg-white rounded-xl p-3 border border-[#DFEAF0] space-y-1.5">
                   {AVAILABLE_PERMISSIONS.map(perm => (
-                    <label key={perm.id} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 p-2 rounded-lg transition-colors">
+                    <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
                       <input
                         type="checkbox"
                         checked={addUserForm.permissions.includes(perm.id)}
                         onChange={() => handleToggleAddPermission(perm.id)}
-                        className="w-4 h-4 text-blue-600 rounded-sm border-gray-300 focus:ring-blue-500"
+                        className="w-4 h-4 text-[#087F8C] rounded-sm border-[#DFEAF0] focus:ring-[#087F8C]"
                       />
-                      <span className="text-sm font-bold text-gray-700">{perm.label}</span>
+                      <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
                     </label>
                   ))}
                 </div>
@@ -555,14 +555,14 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
               <button
                 onClick={handleAddUser}
                 disabled={addingUser}
-                className="flex items-center gap-2 bg-blue-600 text-white py-2.5 px-6 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                className="flex items-center gap-2 fv-btn-primary text-white py-2.5 px-6 rounded-xl text-sm font-bold disabled:opacity-50 cursor-pointer"
               >
                 <Save size={16} />
                 {addingUser ? 'جاري الإضافة...' : 'إضافة المستخدم'}
               </button>
               <button
                 onClick={() => setShowAddUser(false)}
-                className="flex items-center gap-2 bg-gray-200 text-gray-700 py-2.5 px-6 rounded-xl text-sm font-bold hover:bg-gray-300 transition-colors"
+                className="flex items-center gap-2 bg-white border border-[#DFEAF0] text-[#718394] py-2.5 px-6 rounded-xl text-sm font-bold hover:text-[#172B3A] transition-colors cursor-pointer"
               >
                 <X size={16} /> إلغاء
               </button>
@@ -572,12 +572,12 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
 
         {loading ? (
           <div className="flex items-center justify-center py-12">
-            <RefreshCw className="w-8 h-8 animate-spin text-blue-600" />
+            <RefreshCw className="w-8 h-8 animate-spin text-[#087F8C]" />
           </div>
         ) : staffMembers.length === 0 ? (
-          <div className="text-center py-12 text-gray-500">
-            <User className="w-16 h-16 mx-auto mb-4 opacity-50" />
-            <p className="font-bold">لا يوجد موظفين مسجلين</p>
+          <div className="text-center py-12 text-[#718394]">
+            <User className="w-16 h-16 mx-auto mb-4 opacity-40 text-[#087F8C]" />
+            <p className="font-bold text-[#172B3A]">لا يوجد موظفين مسجلين</p>
             <p className="text-sm mt-1">سيظهر الموظفون هنا بعد تسجيل حساباتهم</p>
           </div>
         ) : (
@@ -590,8 +590,8 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
               return (
                 <div
                   key={member.user_id}
-                  className={`bg-gray-50 rounded-2xl p-5 border transition-all ${
-                    isCurrentUser ? 'border-blue-200 bg-blue-50/30' : 'border-gray-100 hover:shadow-md'
+                  className={`bg-[#F5FAFC] rounded-2xl p-5 border transition-all ${
+                    isCurrentUser ? 'border-[#087F8C]/40 bg-[#087F8C]/[0.04]' : 'border-[#DFEAF0] hover:border-[#25B8C7]/50'
                   }`}
                 >
                   {isDeleting ? (
@@ -599,18 +599,18 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                     <div className="space-y-4">
                       <div className="flex items-center gap-3 text-red-600">
                         <AlertTriangle className="w-6 h-6" />
-                        <span className="font-bold">تأكيد الحذف</span>
+                        <span className="font-black">تأكيد الحذف</span>
                       </div>
-                      <p className="text-sm text-gray-600">
-                        هل أنت متأكد من حذف الموظف <strong>{member.name}</strong>؟
+                      <p className="text-sm text-[#718394]">
+                        هل أنت متأكد من حذف الموظف <strong className="text-[#172B3A]">{member.name}</strong>؟
                         <br />
-                        <span className="text-red-500">هذا الإجراء لا يمكن التراجع عنه.</span>
+                        <span className="text-red-600 font-bold">هذا الإجراء لا يمكن التراجع عنه.</span>
                       </p>
                       <div className="flex gap-2">
                         <button
                           onClick={() => handleDelete(member.user_id)}
                           disabled={deleting}
-                          className="flex-1 flex items-center justify-center gap-2 bg-red-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-50"
+                          className="flex-1 flex items-center justify-center gap-2 bg-red-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-red-700 transition-colors disabled:opacity-50 cursor-pointer"
                         >
                           <Trash2 size={16} />
                           {deleting ? 'جاري الحذف...' : 'تأكيد الحذف'}
@@ -618,7 +618,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                         <button
                           onClick={handleDeleteCancel}
                           disabled={deleting}
-                          className="flex-1 flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-300 transition-colors"
+                          className="flex-1 flex items-center justify-center gap-2 bg-white border border-[#DFEAF0] text-[#718394] py-2.5 rounded-xl text-sm font-bold hover:text-[#172B3A] transition-colors cursor-pointer"
                         >
                           <X size={16} />
                           إلغاء
@@ -629,7 +629,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                     // Edit Mode
                     <div className="space-y-4">
                       <div>
-                        <label className="text-xs font-bold text-gray-500 mb-1 block">
+                        <label className="text-xs font-bold text-[#718394] mb-1.5 block">
                           اسم الموظف
                         </label>
                         <input
@@ -641,34 +641,34 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-gray-500 mb-1 block">
+                        <label className="text-xs font-bold text-[#718394] mb-1.5 block">
                           اسم المستخدم (للعرض)
                         </label>
                         <input
                           type="text"
                           value={editForm.username}
                           onChange={e => setEditForm({ ...editForm, username: e.target.value })}
-                          className={inputClass}
+                          className={`${inputClass} fv-mono`}
                           placeholder="أدخل اسم المستخدم للعرض (اختياري)"
                           dir="ltr"
                         />
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-gray-500 mb-1 block">
+                        <label className="text-xs font-bold text-[#718394] mb-1.5 block">
                           اسم المستخدم للدخول
                         </label>
                         <input
                           type="text"
                           value={editForm.loginUsername}
                           onChange={e => setEditForm({ ...editForm, loginUsername: e.target.value })}
-                          className={inputClass}
+                          className={`${inputClass} fv-mono`}
                           placeholder="أدخل اسم المستخدم لتسجيل الدخول"
                           dir="ltr"
                         />
-                        <p className="text-xs text-gray-400 mt-1">يُستخدم بدلاً من البريد الإلكتروني عند تسجيل الدخول</p>
+                        <p className="text-xs text-[#718394] mt-1">يُستخدم بدلاً من البريد الإلكتروني عند تسجيل الدخول</p>
                       </div>
                       <div>
-                        <label className="text-xs font-bold text-gray-500 mb-1 block">
+                        <label className="text-xs font-bold text-[#718394] mb-1.5 block">
                           الدور الوظيفي
                         </label>
                         <div className="grid grid-cols-2 gap-2">
@@ -676,10 +676,10 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                             type="button"
                             onClick={() => setEditForm({ ...editForm, role: 'staff' })}
                             disabled={isCurrentUser}
-                            className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+                            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                               editForm.role === 'staff'
-                                ? 'bg-blue-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-[#087F8C] text-white'
+                                : 'bg-white border border-[#DFEAF0] text-[#718394] hover:text-[#172B3A]'
                             } ${isCurrentUser ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             <UserCheck size={16} />
@@ -689,10 +689,10 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                             type="button"
                             onClick={() => setEditForm({ ...editForm, role: 'admin' })}
                             disabled={isCurrentUser}
-                            className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+                            className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                               editForm.role === 'admin'
-                                ? 'bg-purple-600 text-white'
-                                : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                ? 'bg-[#1769AA] text-white'
+                                : 'bg-white border border-[#DFEAF0] text-[#718394] hover:text-[#172B3A]'
                             } ${isCurrentUser ? 'opacity-50 cursor-not-allowed' : ''}`}
                           >
                             <Crown size={16} />
@@ -709,40 +709,40 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                       {/* Permissions Section - Only for staff role */}
                       {editForm.role === 'staff' && (
                         <div>
-                          <label className="text-xs font-bold text-gray-500 mb-2 block">
+                          <label className="text-xs font-bold text-[#718394] mb-2 block">
                             الصلاحيات (للموظفين فقط)
                           </label>
-                          <div className="max-h-48 overflow-y-auto bg-gray-50 rounded-xl p-3 border border-gray-200 space-y-2">
+                          <div className="max-h-48 overflow-y-auto bg-white rounded-xl p-3 border border-[#DFEAF0] space-y-1.5">
                             {AVAILABLE_PERMISSIONS.map(perm => (
-                              <label key={perm.id} className="flex items-center gap-2 cursor-pointer hover:bg-white p-2 rounded-lg transition-colors">
+                              <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
                                 <input
                                   type="checkbox"
                                   checked={editForm.permissions.includes(perm.id)}
                                   onChange={() => handleTogglePermission(perm.id)}
-                                  className="w-4 h-4 text-blue-600 rounded-sm border-gray-300 focus:ring-blue-500"
+                                  className="w-4 h-4 text-[#087F8C] rounded-sm border-[#DFEAF0] focus:ring-[#087F8C]"
                                 />
-                                <span className="text-sm font-bold text-gray-700">{perm.label}</span>
+                                <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
                               </label>
                             ))}
                           </div>
-                          <p className="text-xs text-gray-400 mt-2">المدير يملك كل الصلاحيات تلقائياً</p>
+                          <p className="text-xs text-[#718394] mt-2">المدير يملك كل الصلاحيات تلقائياً</p>
                         </div>
                       )}
                       
                       {/* Active Status Toggle */}
                       {!isCurrentUser && (
                         <div>
-                          <label className="text-xs font-bold text-gray-500 mb-1 block">
+                          <label className="text-xs font-bold text-[#718394] mb-1.5 block">
                             حالة الحساب
                           </label>
                           <div className="grid grid-cols-2 gap-2">
                             <button
                               type="button"
                               onClick={() => setEditForm({ ...editForm, isActive: true })}
-                              className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+                              className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                                 editForm.isActive
-                                  ? 'bg-green-600 text-white'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  ? 'bg-emerald-600 text-white'
+                                  : 'bg-white border border-[#DFEAF0] text-[#718394] hover:text-[#172B3A]'
                               }`}
                             >
                               <Power size={16} />
@@ -751,10 +751,10 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                             <button
                               type="button"
                               onClick={() => setEditForm({ ...editForm, isActive: false })}
-                              className={`flex items-center justify-center gap-2 py-3 px-4 rounded-xl text-sm font-bold transition-all ${
+                              className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition-all cursor-pointer ${
                                 !editForm.isActive
                                   ? 'bg-red-600 text-white'
-                                  : 'bg-gray-100 text-gray-600 hover:bg-gray-200'
+                                  : 'bg-white border border-[#DFEAF0] text-[#718394] hover:text-[#172B3A]'
                               }`}
                             >
                               <Power size={16} />
@@ -767,7 +767,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                         <button
                           onClick={() => handleSave(member.user_id)}
                           disabled={saving}
-                          className="flex-1 flex items-center justify-center gap-2 bg-blue-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-colors disabled:opacity-50"
+                          className="flex-1 flex items-center justify-center gap-2 fv-btn-primary text-white py-2.5 rounded-xl text-sm font-bold disabled:opacity-50 cursor-pointer"
                         >
                           <Save size={16} />
                           {saving ? 'جاري الحفظ...' : 'حفظ'}
@@ -775,7 +775,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                         <button
                           onClick={handleCancel}
                           disabled={saving}
-                          className="flex-1 flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-2.5 rounded-xl text-sm font-bold hover:bg-gray-300 transition-colors"
+                          className="flex-1 flex items-center justify-center gap-2 bg-white border border-[#DFEAF0] text-[#718394] py-2.5 rounded-xl text-sm font-bold hover:text-[#172B3A] transition-colors cursor-pointer"
                         >
                           <X size={16} />
                           إلغاء
@@ -787,22 +787,22 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                     <>
                       <div className="flex items-start justify-between mb-4">
                         <div className="flex items-center gap-3">
-                          <div className={`w-12 h-12 rounded-full flex items-center justify-center font-black text-xl ${
-                            member.role === 'admin' ? 'bg-purple-100 text-purple-600' : 'bg-blue-100 text-blue-600'
+                          <div className={`w-12 h-12 rounded-2xl flex items-center justify-center font-black text-xl ${
+                            member.role === 'admin' ? 'bg-[#1769AA]/10 text-[#1769AA] border border-[#1769AA]/20' : 'bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20'
                           }`}>
                             {member.name.charAt(0)}
                           </div>
                           <div>
-                            <h4 className="font-bold text-gray-900 flex items-center gap-2">
+                            <h4 className="font-black text-[#172B3A] flex items-center gap-2">
                               {member.name}
                               {isCurrentUser && (
-                                <span className="text-xs bg-blue-100 text-blue-600 px-2 py-0.5 rounded-full">
+                                <span className="text-[11px] bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20 px-2 py-0.5 rounded-full font-bold">
                                   أنت
                                 </span>
                               )}
                             </h4>
                             {member.username && (
-                              <p className="text-sm text-gray-500 flex items-center gap-1" dir="ltr">
+                              <p className="text-xs text-[#718394] fv-mono flex items-center gap-1 mt-0.5" dir="ltr">
                                 @{member.username}
                               </p>
                             )}
@@ -811,23 +811,23 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                       </div>
                       
                       <div className="space-y-2 mb-4">
-                        <div className={`flex items-center gap-2 text-sm font-bold px-3 py-2 rounded-xl ${getRoleColor(member.role)}`}>
-                          <RoleIcon size={16} />
+                        <div className={`flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl ${getRoleColor(member.role)}`}>
+                          <RoleIcon size={15} />
                           <span>{getRoleLabel(member.role)}</span>
                         </div>
-                        <div className="flex items-center gap-2 text-sm text-gray-600">
-                          <Shield size={14} className="text-gray-400" />
-                          <span>{member.role === 'admin' ? 'جميع الصلاحيات' : `${member.permissions?.length || 0} صلاحيات`}</span>
+                        <div className="flex items-center gap-2 text-xs text-[#718394] font-bold px-1">
+                          <Shield size={14} className="text-[#087F8C]" />
+                          <span className="fv-num">{member.role === 'admin' ? 'جميع الصلاحيات' : `${member.permissions?.length || 0} صلاحيات`}</span>
                         </div>
                         {/* Active Status Indicator */}
-                        <div className={`flex items-center gap-2 text-sm font-bold px-3 py-2 rounded-xl ${
-                          member.is_active ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'
+                        <div className={`flex items-center gap-2 text-xs font-bold px-3 py-2 rounded-xl border ${
+                          member.is_active ? 'bg-emerald-50 text-emerald-700 border-emerald-200/80' : 'bg-red-50 text-red-700 border-red-200/80'
                         }`}>
                           <Power size={14} />
                           <span>{member.is_active ? 'نشط' : 'معطل'}</span>
                         </div>
                         {!member.username && (
-                          <p className="text-xs text-amber-600 bg-amber-50 px-2 py-1 rounded-lg">
+                          <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200/70 px-2.5 py-1.5 rounded-lg font-medium">
                             لم يتم تعيين اسم مستخدم
                           </p>
                         )}
@@ -836,36 +836,36 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                       <div className="flex flex-wrap gap-2">
                         <button
                           onClick={() => handleEdit(member)}
-                          className="flex-1 flex items-center justify-center gap-2 bg-blue-50 text-blue-600 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-100 transition-colors"
+                          className="flex-1 flex items-center justify-center gap-2 bg-white border border-[#DFEAF0] text-[#087F8C] py-2.5 rounded-xl text-xs font-bold hover:border-[#087F8C] hover:bg-[#087F8C]/5 transition-colors cursor-pointer"
                         >
-                          <Edit2 size={16} />
+                          <Edit2 size={15} />
                           تعديل
                         </button>
                         <button
                           onClick={() => handlePasswordChangeStart(member.user_id)}
-                          className="flex items-center justify-center gap-2 bg-purple-50 text-purple-600 py-2.5 px-4 rounded-xl text-sm font-bold hover:bg-purple-100 transition-colors"
+                          className="flex items-center justify-center gap-2 bg-white border border-[#DFEAF0] text-[#1769AA] py-2.5 px-3.5 rounded-xl text-xs font-bold hover:border-[#1769AA] hover:bg-[#1769AA]/5 transition-colors cursor-pointer"
                           title="تغيير كلمة المرور"
                         >
-                          <Key size={16} />
+                          <Key size={15} />
                         </button>
                         {!isCurrentUser && (
                           <>
                             <button
                               onClick={() => handleToggleActive(member)}
-                              className={`flex items-center justify-center gap-2 py-2.5 px-4 rounded-xl text-sm font-bold transition-colors ${
+                              className={`flex items-center justify-center gap-2 py-2.5 px-3.5 rounded-xl text-xs font-bold border transition-colors cursor-pointer ${
                                 member.is_active 
-                                  ? 'bg-amber-50 text-amber-600 hover:bg-amber-100' 
-                                  : 'bg-green-50 text-green-600 hover:bg-green-100'
+                                  ? 'bg-amber-50 border-amber-200/80 text-amber-700 hover:bg-amber-100' 
+                                  : 'bg-emerald-50 border-emerald-200/80 text-emerald-700 hover:bg-emerald-100'
                               }`}
                               title={member.is_active ? 'تعطيل الحساب' : 'تفعيل الحساب'}
                             >
-                              <Power size={16} />
+                              <Power size={15} />
                             </button>
                             <button
                               onClick={() => handleDeleteConfirm(member.user_id)}
-                              className="flex items-center justify-center gap-2 bg-red-50 text-red-600 py-2.5 px-4 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors"
+                              className="flex items-center justify-center gap-2 bg-red-50 border border-red-200/80 text-red-600 py-2.5 px-3.5 rounded-xl text-xs font-bold hover:bg-red-100 transition-colors cursor-pointer"
                             >
-                              <Trash2 size={16} />
+                              <Trash2 size={15} />
                             </button>
                           </>
                         )}
@@ -873,13 +873,13 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                       
                       {/* Password Change Modal */}
                       {passwordChangeId === member.user_id && (
-                        <div className="mt-4 p-4 bg-purple-50 rounded-xl border border-purple-200 space-y-3">
-                          <div className="flex items-center gap-2 text-purple-700 font-bold">
-                            <Lock size={18} />
+                        <div className="mt-4 p-4 bg-white rounded-xl border border-[#DFEAF0] space-y-3 shadow-xs">
+                          <div className="flex items-center gap-2 text-[#1769AA] font-black text-sm">
+                            <Lock size={16} />
                             <span>تغيير كلمة المرور</span>
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-gray-500 mb-1 block">كلمة المرور الجديدة</label>
+                            <label className="text-xs font-bold text-[#718394] mb-1 block">كلمة المرور الجديدة</label>
                             <input
                               type="password"
                               value={newPassword}
@@ -889,7 +889,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                             />
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-gray-500 mb-1 block">تأكيد كلمة المرور</label>
+                            <label className="text-xs font-bold text-[#718394] mb-1 block">تأكيد كلمة المرور</label>
                             <input
                               type="password"
                               value={confirmPassword}
@@ -902,17 +902,17 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                             <button
                               onClick={() => handlePasswordChange(member.user_id)}
                               disabled={changingPassword}
-                              className="flex-1 flex items-center justify-center gap-2 bg-purple-600 text-white py-2.5 rounded-xl text-sm font-bold hover:bg-purple-700 transition-colors disabled:opacity-50"
+                              className="flex-1 flex items-center justify-center gap-2 fv-btn-primary text-white py-2.5 rounded-xl text-xs font-bold disabled:opacity-50 cursor-pointer"
                             >
-                              <Key size={16} />
+                              <Key size={15} />
                               {changingPassword ? 'جاري التغيير...' : 'تغيير كلمة المرور'}
                             </button>
                             <button
                               onClick={handlePasswordChangeCancel}
                               disabled={changingPassword}
-                              className="flex items-center justify-center gap-2 bg-gray-200 text-gray-700 py-2.5 px-4 rounded-xl text-sm font-bold hover:bg-gray-300 transition-colors"
+                              className="flex items-center justify-center gap-2 bg-[#F5FAFC] border border-[#DFEAF0] text-[#718394] py-2.5 px-4 rounded-xl text-xs font-bold hover:text-[#172B3A] transition-colors cursor-pointer"
                             >
-                              <X size={16} />
+                              <X size={15} />
                             </button>
                           </div>
                         </div>

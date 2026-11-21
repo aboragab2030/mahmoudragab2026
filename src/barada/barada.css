@@ -1,124 +1,227 @@
-/* --- Base Styles --- */
+/* --- Future Vision Ophthalmology Design System --- */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@500;600;700&family=Plus+Jakarta+Sans:wght@500;600;700;800&display=swap');
+
 :root {
   --print-font-size: 10pt;
   --print-margin: 15mm;
-}
-
-@font-face {
-  font-family: 'Cairo';
-  font-style: normal;
-  font-weight: 400;
-  src: url('https://fonts.gstatic.com/s/cairo/v28/SLXGc1jYS7i8UUDI2eXm7_K2Hw.woff2') format('woff2');
+  --fv-teal: #087F8C;
+  --fv-blue: #1769AA;
+  --fv-cyan: #25B8C7;
+  --fv-ice: #F5FAFC;
+  --fv-white: #FFFFFF;
+  --fv-ink: #172B3A;
+  --fv-muted: #718394;
+  --fv-border: #DFEAF0;
+  --fv-navy: #0B1F35;
+  --fv-navy-2: #102C48;
 }
 
 body {
   margin: 0;
   padding: 0;
+  font-family: 'Cairo', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
   -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  background-color: var(--fv-ice);
+  color: var(--fv-ink);
+  overflow-x: hidden;
 }
 
-/* --- Glassmorphism Design System --- */
+.font-cairo {
+  font-family: 'Cairo', 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+}
 
-/* Main page background gradient */
+.fv-num {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" 1;
+}
+
+.fv-mono {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-variant-numeric: tabular-nums;
+}
+
+/* Main page background canvas */
 .barada-app-bg {
-  background: linear-gradient(135deg, #e0f2f1 0%, #b2dfdb 50%, #80cbc4 100%);
-  background-attachment: fixed;
+  background-color: var(--fv-ice);
+  background-image:
+    radial-gradient(60% 40% at 8% 0%, rgba(37, 184, 199, 0.08) 0px, transparent 65%),
+    radial-gradient(50% 35% at 92% 12%, rgba(23, 105, 170, 0.06) 0px, transparent 60%);
   min-height: 100vh;
+  color: var(--fv-ink);
+  overflow-x: hidden;
 }
 
-/* Glass card effect */
+/* Futuristic dark navy architectural surfaces (selective hero & tech showcase) */
+.fv-hero-stage {
+  background-color: var(--fv-navy);
+  background-image:
+    radial-gradient(60% 70% at 75% 30%, rgba(37, 184, 199, 0.18) 0%, transparent 70%),
+    radial-gradient(55% 65% at 20% 80%, rgba(23, 105, 170, 0.28) 0%, transparent 65%),
+    linear-gradient(135deg, #0B1F35 0%, #102C48 58%, #091B2E 100%);
+}
+
+.fv-dark-surface {
+  background-color: var(--fv-navy);
+  background-image:
+    radial-gradient(50% 60% at 90% 10%, rgba(37, 184, 199, 0.12) 0%, transparent 65%),
+    linear-gradient(160deg, #0B1F35 0%, #102C48 100%);
+}
+
+/* Subtle medical grid texture */
+.fv-grid-pattern {
+  background-image:
+    linear-gradient(to right, rgba(37, 184, 199, 0.06) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(37, 184, 199, 0.06) 1px, transparent 1px);
+  background-size: 40px 40px;
+}
+
+/* Elevated clean white card surface */
 .glass-card {
-  background: rgba(255, 255, 255, 0.15) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.3) !important;
-  border-radius: 20px !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
+  background: #ffffff;
+  border: 1px solid #DFEAF0;
+  border-radius: 1.5rem;
+  box-shadow: 0 10px 28px -16px rgba(11, 31, 53, 0.1);
 }
 
-/* Glass navbar */
+/* Top navigation bar */
 .glass-navbar {
-  background: rgba(255, 255, 255, 0.25) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border-bottom: 2px solid rgba(255, 255, 255, 0.3) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.1) !important;
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border-bottom: 1px solid #DFEAF0;
+  box-shadow: 0 6px 24px -14px rgba(11, 31, 53, 0.1);
 }
 
-/* Home page: transparent top bar until the page is scrolled */
+/* Home page: refined dark frosted header over dark navy Hero */
 .glass-navbar.navbar-clear {
-  background: transparent !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  border-bottom-color: transparent !important;
-  box-shadow: none !important;
+  background: linear-gradient(to bottom, rgba(11, 31, 53, 0.82), rgba(11, 31, 53, 0.35));
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom-color: rgba(223, 234, 240, 0.14);
+  box-shadow: none;
 }
 
-/* Logo glass container */
+.glass-navbar.navbar-clear .fv-nav-brand,
+.glass-navbar.navbar-clear .fv-nav-link,
+.glass-navbar.navbar-clear .fv-nav-icon {
+  color: #FFFFFF;
+}
+
+.glass-navbar.navbar-clear .fv-nav-link:hover {
+  color: #25B8C7;
+  background-color: rgba(255, 255, 255, 0.08);
+}
+
+/* Logo lockup */
 .glass-logo {
-  background: rgba(255, 255, 255, 0.2);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
-  border-radius: 16px;
-  padding: 0.5rem 1rem;
-  border: 2px solid rgba(255, 255, 255, 0.4);
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  background: transparent;
+  padding: 0.25rem 0;
+  border: none;
+  box-shadow: none;
 }
 
-/* Section glass background */
+/* Section surface */
 .glass-section {
-  background: rgba(255, 255, 255, 0.1) !important;
-  backdrop-filter: blur(8px) !important;
-  -webkit-backdrop-filter: blur(8px) !important;
+  background: transparent;
 }
 
-/* Service & partner cards glass */
+/* Service & partner cards (Glassmorphism) */
 .glass-service-card {
-  background: rgba(255, 255, 255, 0.65) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.04) !important;
-  transition: all 0.3s ease !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.78) 0%, rgba(245, 250, 252, 0.64) 100%);
+  backdrop-filter: blur(18px) saturate(145%);
+  -webkit-backdrop-filter: blur(18px) saturate(145%);
+  border: 1px solid rgba(205, 226, 236, 0.85);
+  box-shadow:
+    0 8px 28px -12px rgba(11, 31, 53, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.92);
+  transition:
+    transform 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 220ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 220ms ease,
+    background 220ms ease;
 }
 
 .glass-service-card:hover {
-  background: rgba(255, 255, 255, 0.8) !important;
-  transform: translateY(-4px) !important;
-  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.08) !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.9) 0%, rgba(245, 250, 252, 0.78) 100%);
+  border-color: rgba(8, 127, 140, 0.38);
+  transform: translateY(-4px);
+  box-shadow:
+    0 16px 36px -14px rgba(8, 127, 140, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98);
 }
 
-/* Doctor cards glass */
+/* Doctor cards (Glassmorphism) */
 .glass-doctor-card {
-  background: rgba(255, 255, 255, 0.55) !important;
-  backdrop-filter: blur(12px) !important;
-  -webkit-backdrop-filter: blur(12px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05) !important;
-  transition: all 0.3s ease !important;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.8) 0%, rgba(245, 250, 252, 0.66) 100%);
+  backdrop-filter: blur(20px) saturate(150%);
+  -webkit-backdrop-filter: blur(20px) saturate(150%);
+  border: 1px solid rgba(205, 226, 236, 0.88);
+  box-shadow:
+    0 10px 32px -14px rgba(11, 31, 53, 0.09),
+    inset 0 1px 0 rgba(255, 255, 255, 0.94);
+  transition:
+    transform 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 240ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 240ms ease,
+    background 240ms ease;
 }
 
 .glass-doctor-card:hover {
-  background: rgba(255, 255, 255, 0.7) !important;
-  transform: translateY(-8px) !important;
-  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1) !important;
+  background: linear-gradient(155deg, rgba(255, 255, 255, 0.92) 0%, rgba(245, 250, 252, 0.8) 100%);
+  border-color: rgba(37, 184, 199, 0.52);
+  transform: translateY(-4px);
+  box-shadow:
+    0 20px 42px -16px rgba(23, 105, 170, 0.16),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98);
 }
 
-/* Stats bar glass */
+/* Stats bar */
 .glass-stats {
-  background: rgba(255, 255, 255, 0.5) !important;
-  backdrop-filter: blur(16px) !important;
-  -webkit-backdrop-filter: blur(16px) !important;
-  border: 1px solid rgba(255, 255, 255, 0.4) !important;
-  box-shadow: 0 16px 48px rgba(0, 0, 0, 0.06) !important;
+  background: rgba(255, 255, 255, 0.96);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid #DFEAF0;
+  box-shadow: 0 20px 48px -18px rgba(11, 31, 53, 0.14);
 }
 
-/* Smooth hover for buttons */
+/* Smooth hover for interactive links/buttons */
 .glass-btn-hover {
-  transition: all 0.3s ease !important;
+  transition: color 160ms ease, background-color 160ms ease, border-color 160ms ease, opacity 160ms ease, transform 160ms cubic-bezier(0.16, 1, 0.3, 1);
 }
-.glass-btn-hover:hover {
-  transform: translateY(-2px);
+
+/* Primary futuristic CTA gradient */
+.fv-btn-primary {
+  background: linear-gradient(135deg, #087F8C 0%, #1769AA 100%);
+  color: #FFFFFF;
+  box-shadow: 0 10px 24px -8px rgba(8, 127, 140, 0.42);
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms ease, filter 180ms ease;
+}
+
+.fv-btn-primary:hover {
+  filter: brightness(1.06);
+  box-shadow: 0 14px 28px -8px rgba(23, 105, 170, 0.45);
+  transform: translateY(-1px);
+}
+
+.fv-btn-primary:active {
+  transform: scale(0.98);
+}
+
+/* Balanced headline wrapping */
+.fv-balance {
+  text-wrap: balance;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-service-card,
+  .glass-doctor-card,
+  .glass-btn-hover,
+  .fv-btn-primary,
+  .animate-bounce {
+    animation: none !important;
+    transition: none !important;
+  }
 }
 
 /* --- Print Strategy --- */
@@ -134,9 +237,9 @@ body {
   }
 
   /* 2. Remove Non-Essential UI Elements */
-  nav, 
-  footer, 
-  aside, 
+  nav,
+  footer,
+  aside,
   button,
   .no-print,
   #ai-assistant,
@@ -154,7 +257,7 @@ body {
     line-height: 1.4;
   }
 
-  main, 
+  main,
   .max-w-7xl,
   #admin,
   #home {

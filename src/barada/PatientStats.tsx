@@ -32,23 +32,23 @@ const AGE_GROUPS = [
 ];
 
 const StatCard = ({ label, value, icon: Icon, color, sub }: { label: string; value: string | number; icon: any; color: string; sub?: string }) => (
-  <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+  <div className="bg-white p-5 rounded-2xl border border-[#DFEAF0] shadow-[0_10px_28px_-18px_rgba(11,31,53,0.18)] hover:border-[#25B8C7]/50 transition-all">
     <div className="flex items-center gap-3 mb-3">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}><Icon size={20} /></div>
-      <span className="text-xs font-bold text-gray-400">{label}</span>
+      <span className="text-xs font-bold text-[#718394]">{label}</span>
     </div>
-    <h3 className="text-2xl font-black text-gray-900">{value}</h3>
-    {sub && <p className="text-[10px] text-gray-400 font-bold mt-1">{sub}</p>}
+    <h3 className="text-2xl font-black text-[#172B3A] fv-num">{value}</h3>
+    {sub && <p className="text-[11px] text-[#718394] font-bold mt-1 fv-num">{sub}</p>}
   </div>
 );
 
 const MiniBar = ({ data, maxVal }: { data: { label: string; value: number }[]; maxVal: number }) => (
-  <div className="flex items-end gap-1 h-24">
+  <div className="flex items-end gap-1.5 h-24">
     {data.map((d, i) => (
       <div key={i} className="flex-1 flex flex-col items-center gap-1">
-        <span className="text-[8px] text-gray-400 font-bold">{d.value || ''}</span>
-        <div className="w-full bg-blue-500 rounded-t-md min-h-[2px] transition-all" style={{ height: `${maxVal > 0 ? (d.value / maxVal) * 100 : 0}%` }} />
-        <span className="text-[7px] text-gray-400 font-bold truncate w-full text-center">{d.label}</span>
+        <span className="text-[9px] text-[#718394] font-bold fv-num">{d.value || ''}</span>
+        <div className="w-full bg-gradient-to-t from-[#087F8C] to-[#25B8C7] rounded-t-md min-h-[3px] transition-all" style={{ height: `${maxVal > 0 ? (d.value / maxVal) * 100 : 0}%` }} />
+        <span className="text-[8px] text-[#718394] font-bold truncate w-full text-center fv-num">{d.label}</span>
       </div>
     ))}
   </div>
@@ -234,10 +234,10 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2"><PieChart size={28} className="text-blue-600" /> إحصائيات المرضى</h2>
-          <p className="text-xs text-gray-400 font-bold mt-1">بيانات حقيقية من قاعدة البيانات</p>
+          <h2 className="text-2xl font-black text-[#172B3A] flex items-center gap-2.5"><PieChart size={26} className="text-[#087F8C]" /> إحصائيات المرضى</h2>
+          <p className="text-xs text-[#718394] font-bold mt-1">بيانات حقيقية من قاعدة البيانات</p>
         </div>
-        <button onClick={handlePrintStats} className="bg-gray-50 text-gray-600 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-gray-100 transition-all"><Printer size={14} /> طباعة / PDF</button>
+        <button onClick={handlePrintStats} className="bg-white text-[#172B3A] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#F5FAFC] transition-all cursor-pointer"><Printer size={14} className="text-[#1769AA]" /> طباعة / PDF</button>
       </div>
 
       {/* Filters */}
@@ -246,11 +246,11 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
           <option value="">كل الأطباء</option>
           {doctors.map(d => <option key={d} value={d}>{d}</option>)}
         </select>
-        <input type="date" value={filterDateStart} onChange={e => setFilterDateStart(e.target.value)} className={inputClass + " w-auto text-xs"} />
-        <span className="text-gray-400 text-xs font-bold">إلى</span>
-        <input type="date" value={filterDateEnd} onChange={e => setFilterDateEnd(e.target.value)} className={inputClass + " w-auto text-xs"} />
+        <input type="date" value={filterDateStart} onChange={e => setFilterDateStart(e.target.value)} className={inputClass + " w-auto text-xs fv-num"} />
+        <span className="text-[#718394] text-xs font-bold">إلى</span>
+        <input type="date" value={filterDateEnd} onChange={e => setFilterDateEnd(e.target.value)} className={inputClass + " w-auto text-xs fv-num"} />
         {(filterDoctor || filterDateStart || filterDateEnd) && (
-          <button onClick={() => { setFilterDoctor(''); setFilterDateStart(''); setFilterDateEnd(''); }} className="text-red-500 text-xs font-bold hover:underline">مسح الفلاتر</button>
+          <button onClick={() => { setFilterDoctor(''); setFilterDateStart(''); setFilterDateEnd(''); }} className="text-red-600 text-xs font-bold hover:underline cursor-pointer">مسح الفلاتر</button>
         )}
       </div>
 
@@ -258,7 +258,7 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
       <div className="flex flex-wrap gap-2">
         {sections.map(s => (
           <button key={s.id} onClick={() => setActiveSection(s.id as any)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${activeSection === s.id ? 'bg-blue-600 text-white shadow-lg shadow-blue-200' : 'bg-white text-gray-500 border border-gray-100 hover:bg-blue-50 hover:text-blue-600'}`}>
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeSection === s.id ? 'fv-btn-primary text-white' : 'bg-white text-[#718394] border border-[#DFEAF0] hover:bg-[#F5FAFC] hover:text-[#087F8C]'}`}>
             <s.icon size={16} /> {s.label}
           </button>
         ))}
@@ -268,32 +268,32 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
       {activeSection === 'overview' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <StatCard label="إجمالي المرضى" value={overview.total} icon={Users} color="bg-blue-100 text-blue-600" />
-            <StatCard label="مرضى جدد" value={overview.newPatients} icon={TrendingUp} color="bg-emerald-100 text-emerald-600" />
-            <StatCard label="مرضى متكررون" value={overview.repeatPatients} icon={UserCheck} color="bg-purple-100 text-purple-600" />
-            <StatCard label="أجروا عمليات" value={overview.patientsWithOps} icon={Scissors} color="bg-red-100 text-red-600" />
+            <StatCard label="إجمالي المرضى" value={overview.total} icon={Users} color="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20" />
+            <StatCard label="مرضى جدد" value={overview.newPatients} icon={TrendingUp} color="bg-emerald-50 text-emerald-600 border border-emerald-200/70" />
+            <StatCard label="مرضى متكررون" value={overview.repeatPatients} icon={UserCheck} color="bg-[#1769AA]/10 text-[#1769AA] border border-[#1769AA]/20" />
+            <StatCard label="أجروا عمليات" value={overview.patientsWithOps} icon={Scissors} color="bg-red-50 text-red-600 border border-red-200/70" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><Building2 size={16} className="text-blue-600" /> توزيع نقدي / تعاقد</h3>
-              <div className="space-y-3">
-                <div className="flex justify-between items-center p-3 bg-green-50 rounded-xl"><span className="text-xs font-bold text-green-700">نقدي</span><span className="font-black text-green-600">{contractingStats.cash.bookings} كشف</span></div>
+              <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><Building2 size={16} className="text-[#087F8C]" /> توزيع نقدي / تعاقد</h3>
+              <div className="space-y-2.5">
+                <div className="flex justify-between items-center p-3 bg-emerald-50 border border-emerald-200/70 rounded-xl"><span className="text-xs font-bold text-emerald-700">نقدي</span><span className="font-black text-emerald-700 fv-num">{contractingStats.cash.bookings} كشف</span></div>
                 {contractingStats.companies.slice(0, 5).map(c => (
-                  <div key={c.id} className="flex justify-between items-center p-3 bg-blue-50 rounded-xl">
-                    <span className="text-xs font-bold text-blue-700">{c.name}</span>
-                    <span className="font-black text-blue-600">{c.bookings} كشف</span>
+                  <div key={c.id} className="flex justify-between items-center p-3 bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl">
+                    <span className="text-xs font-bold text-[#172B3A]">{c.name}</span>
+                    <span className="font-black text-[#087F8C] fv-num">{c.bookings} كشف</span>
                   </div>
                 ))}
               </div>
             </div>
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><MapPin size={16} className="text-blue-600" /> أعلى 5 محافظات</h3>
-              <div className="space-y-2">
+              <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><MapPin size={16} className="text-[#087F8C]" /> أعلى 5 محافظات</h3>
+              <div className="space-y-2.5">
                 {geoStats.byGovernorate.slice(0, 5).map((g, i) => (
-                  <div key={g.name} className="flex items-center gap-3">
-                    <span className="text-xs font-black text-gray-400 w-4">{i + 1}</span>
-                    <span className="text-xs font-bold text-gray-700 flex-1">{g.name}</span>
-                    <span className="text-xs font-black text-blue-600">{g.patients} مريض</span>
+                  <div key={g.name} className="flex items-center gap-3 p-2.5 bg-[#F5FAFC] rounded-xl border border-[#DFEAF0]/80">
+                    <span className="text-xs font-black text-[#718394] w-4 fv-num">{i + 1}</span>
+                    <span className="text-xs font-bold text-[#172B3A] flex-1">{g.name}</span>
+                    <span className="text-xs font-black text-[#087F8C] fv-num">{g.patients} مريض</span>
                   </div>
                 ))}
               </div>
@@ -306,33 +306,33 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
       {activeSection === 'contracting' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <StatCard label="نقدي - مرضى" value={contractingStats.cash.patients} icon={Users} color="bg-green-100 text-green-600" sub={`${contractingStats.cash.bookings} كشف / ${contractingStats.cash.operations} عملية`} />
+            <StatCard label="نقدي - مرضى" value={contractingStats.cash.patients} icon={Users} color="bg-emerald-50 text-emerald-600 border border-emerald-200/70" sub={`${contractingStats.cash.bookings} كشف / ${contractingStats.cash.operations} عملية`} />
             {contractingStats.companies.slice(0, 5).map(c => (
-              <StatCard key={c.id} label={c.name} value={c.patients} icon={Building2} color="bg-blue-100 text-blue-600" sub={`${c.bookings} كشف / ${c.operations} عملية (${c.patientPct}%)`} />
+              <StatCard key={c.id} label={c.name} value={c.patients} icon={Building2} color="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20" sub={`${c.bookings} كشف / ${c.operations} عملية (${c.patientPct}%)`} />
             ))}
           </div>
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4">جدول التعاقدات التفصيلي</h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <h3 className="text-sm font-black text-[#172B3A] mb-4">جدول التعاقدات التفصيلي</h3>
+            <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
               <table className="w-full text-sm">
-                <thead><tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                <thead><tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                   <th className="p-3 text-right">الجهة</th><th className="p-3 text-right">المرضى</th>
                   <th className="p-3 text-right">الكشوفات</th><th className="p-3 text-right">العمليات</th>
                   <th className="p-3 text-right">% مرضى</th><th className="p-3 text-right">% كشوفات</th><th className="p-3 text-right">% عمليات</th>
                 </tr></thead>
-                <tbody>
-                  <tr className="border-t border-gray-50 bg-green-50/30">
-                    <td className="p-3 font-bold text-green-700">نقدي</td>
-                    <td className="p-3">{contractingStats.cash.patients}</td><td className="p-3">{contractingStats.cash.bookings}</td><td className="p-3">{contractingStats.cash.operations}</td>
-                    <td className="p-3">-</td><td className="p-3">-</td><td className="p-3">-</td>
+                <tbody className="divide-y divide-[#DFEAF0]/70">
+                  <tr className="bg-emerald-50/40">
+                    <td className="p-3 font-bold text-emerald-700">نقدي</td>
+                    <td className="p-3 fv-num">{contractingStats.cash.patients}</td><td className="p-3 fv-num">{contractingStats.cash.bookings}</td><td className="p-3 fv-num">{contractingStats.cash.operations}</td>
+                    <td className="p-3 text-[#718394]">-</td><td className="p-3 text-[#718394]">-</td><td className="p-3 text-[#718394]">-</td>
                   </tr>
                   {contractingStats.companies.map(c => (
-                    <tr key={c.id} className="border-t border-gray-50">
-                      <td className="p-3 font-bold">{c.name}</td>
-                      <td className="p-3">{c.patients}</td><td className="p-3">{c.bookings}</td><td className="p-3">{c.operations}</td>
-                      <td className="p-3 text-blue-600 font-bold">{c.patientPct}%</td>
-                      <td className="p-3 text-blue-600 font-bold">{c.bookingPct}%</td>
-                      <td className="p-3 text-blue-600 font-bold">{c.opPct}%</td>
+                    <tr key={c.id} className="hover:bg-[#F5FAFC]">
+                      <td className="p-3 font-bold text-[#172B3A]">{c.name}</td>
+                      <td className="p-3 fv-num">{c.patients}</td><td className="p-3 fv-num">{c.bookings}</td><td className="p-3 fv-num">{c.operations}</td>
+                      <td className="p-3 text-[#087F8C] font-bold fv-num">{c.patientPct}%</td>
+                      <td className="p-3 text-[#087F8C] font-bold fv-num">{c.bookingPct}%</td>
+                      <td className="p-3 text-[#087F8C] font-bold fv-num">{c.opPct}%</td>
                     </tr>
                   ))}
                 </tbody>
@@ -341,12 +341,12 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
           </div>
           {/* Pie chart visualization */}
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><PieChart size={16} className="text-blue-600" /> توزيع المرضى حسب التعاقد</h3>
-            <div className="flex flex-wrap gap-4">
-              <div className="flex items-center gap-2"><div className="w-4 h-4 bg-green-500 rounded-full" /><span className="text-xs font-bold">نقدي: {contractingStats.cash.patients}</span></div>
+            <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><PieChart size={16} className="text-[#087F8C]" /> توزيع المرضى حسب التعاقد</h3>
+            <div className="flex flex-wrap gap-4 fv-num">
+              <div className="flex items-center gap-2"><div className="w-3.5 h-3.5 bg-emerald-500 rounded-full" /><span className="text-xs font-bold text-[#172B3A]">نقدي: {contractingStats.cash.patients}</span></div>
               {contractingStats.companies.map((c, i) => {
-                const colors = ['bg-blue-500', 'bg-purple-500', 'bg-amber-500', 'bg-red-500', 'bg-cyan-500'];
-                return <div key={c.id} className="flex items-center gap-2"><div className={`w-4 h-4 ${colors[i % colors.length]} rounded-full`} /><span className="text-xs font-bold">{c.name}: {c.patients} ({c.patientPct}%)</span></div>;
+                const colors = ['bg-[#087F8C]', 'bg-[#1769AA]', 'bg-amber-500', 'bg-red-500', 'bg-[#25B8C7]'];
+                return <div key={c.id} className="flex items-center gap-2"><div className={`w-3.5 h-3.5 ${colors[i % colors.length]} rounded-full`} /><span className="text-xs font-bold text-[#172B3A]">{c.name}: {c.patients} ({c.patientPct}%)</span></div>;
               })}
             </div>
           </div>
@@ -357,19 +357,19 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
       {activeSection === 'geography' && (
         <div className="space-y-6">
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><MapPin size={16} className="text-blue-600" /> المرضى حسب المحافظة</h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><MapPin size={16} className="text-[#087F8C]" /> المرضى حسب المحافظة</h3>
+            <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
               <table className="w-full text-sm">
-                <thead><tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                <thead><tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                   <th className="p-3 text-right">#</th><th className="p-3 text-right">المحافظة</th><th className="p-3 text-right">المرضى</th><th className="p-3 text-right">الحجوزات</th><th className="p-3 text-right">نسبة الإلغاء</th>
                 </tr></thead>
-                <tbody>
+                <tbody className="divide-y divide-[#DFEAF0]/70">
                   {geoStats.byGovernorate.map((g, i) => (
-                    <tr key={g.name} className="border-t border-gray-50">
-                      <td className="p-3 text-xs font-black text-gray-400">{i + 1}</td>
-                      <td className="p-3 font-bold">{g.name}</td>
-                      <td className="p-3">{g.patients}</td><td className="p-3">{g.bookings}</td>
-                      <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-xs font-bold ${g.cancelRate > 20 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>{g.cancelRate}%</span></td>
+                    <tr key={g.name} className="hover:bg-[#F5FAFC]">
+                      <td className="p-3 text-xs font-black text-[#718394] fv-num">{i + 1}</td>
+                      <td className="p-3 font-bold text-[#172B3A]">{g.name}</td>
+                      <td className="p-3 fv-num">{g.patients}</td><td className="p-3 fv-num">{g.bookings}</td>
+                      <td className="p-3"><span className={`px-2.5 py-0.5 rounded-md text-xs font-bold fv-num ${g.cancelRate > 20 ? 'bg-red-50 text-red-600 border border-red-200/80' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'}`}>{g.cancelRate}%</span></td>
                     </tr>
                   ))}
                 </tbody>
@@ -377,17 +377,17 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
             </div>
           </div>
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><MapPin size={16} className="text-blue-600" /> أعلى 10 مراكز</h3>
+            <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><MapPin size={16} className="text-[#087F8C]" /> أعلى 10 مراكز</h3>
             <div className="space-y-2">
               {geoStats.byCenter.map((c, i) => (
-                <div key={c.name} className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl">
-                  <span className="text-xs font-black text-gray-400 w-6">{i + 1}</span>
-                  <span className="text-xs font-bold text-gray-700 flex-1">{c.name}</span>
-                  <span className="text-xs font-black text-blue-600">{c.patients} مريض</span>
-                  <span className="text-[10px] text-gray-400">{c.bookings} حجز</span>
+                <div key={c.name} className="flex items-center gap-3 p-2.5 bg-[#F5FAFC] border border-[#DFEAF0]/80 rounded-xl">
+                  <span className="text-xs font-black text-[#718394] w-6 fv-num">{i + 1}</span>
+                  <span className="text-xs font-bold text-[#172B3A] flex-1">{c.name}</span>
+                  <span className="text-xs font-black text-[#087F8C] fv-num">{c.patients} مريض</span>
+                  <span className="text-[11px] text-[#718394] fv-num">{c.bookings} حجز</span>
                 </div>
               ))}
-              {geoStats.byCenter.length === 0 && <p className="text-center text-gray-400 text-xs py-4">لا توجد بيانات</p>}
+              {geoStats.byCenter.length === 0 && <p className="text-center text-[#718394] text-xs py-4 font-bold">لا توجد بيانات</p>}
             </div>
           </div>
         </div>
@@ -397,18 +397,18 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
       {activeSection === 'age' && (
         <div className="space-y-6">
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><Heart size={16} className="text-red-500" /> الكشوفات حسب الفئة العمرية</h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><Heart size={16} className="text-red-500" /> الكشوفات حسب الفئة العمرية</h3>
+            <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
               <table className="w-full text-sm">
-                <thead><tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                <thead><tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                   <th className="p-3 text-right">الفئة</th><th className="p-3 text-right">عدد المرضى</th><th className="p-3 text-right">نسبة التأكيد</th><th className="p-3 text-right">نسبة الإلغاء</th>
                 </tr></thead>
-                <tbody>
+                <tbody className="divide-y divide-[#DFEAF0]/70">
                   {ageStats.map(a => (
-                    <tr key={a.label} className="border-t border-gray-50">
-                      <td className="p-3 font-bold">{a.label}</td><td className="p-3">{a.bookings}</td>
-                      <td className="p-3"><span className="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-xs font-bold">{a.confirmRate}%</span></td>
-                      <td className="p-3"><span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-bold">{a.cancelRate}%</span></td>
+                    <tr key={a.label} className="hover:bg-[#F5FAFC]">
+                      <td className="p-3 font-bold text-[#172B3A] fv-num">{a.label}</td><td className="p-3 fv-num">{a.bookings}</td>
+                      <td className="p-3"><span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-md text-xs font-bold fv-num">{a.confirmRate}%</span></td>
+                      <td className="p-3"><span className="bg-red-50 text-red-600 border border-red-200/80 px-2.5 py-0.5 rounded-md text-xs font-bold fv-num">{a.cancelRate}%</span></td>
                     </tr>
                   ))}
                 </tbody>
@@ -416,18 +416,18 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
             </div>
           </div>
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><Scissors size={16} className="text-purple-500" /> العمليات حسب الفئة العمرية</h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><Scissors size={16} className="text-[#1769AA]" /> العمليات حسب الفئة العمرية</h3>
+            <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
               <table className="w-full text-sm">
-                <thead><tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                <thead><tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                   <th className="p-3 text-right">الفئة</th><th className="p-3 text-right">عدد العمليات</th><th className="p-3 text-right">نسبة إلغاء العمليات</th><th className="p-3 text-right">أكثر العمليات</th>
                 </tr></thead>
-                <tbody>
+                <tbody className="divide-y divide-[#DFEAF0]/70">
                   {ageStats.map(a => (
-                    <tr key={a.label} className="border-t border-gray-50">
-                      <td className="p-3 font-bold">{a.label}</td><td className="p-3">{a.operations}</td>
-                      <td className="p-3"><span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-bold">{a.opCancelRate}%</span></td>
-                      <td className="p-3 text-xs">{a.topSurgeries.map(([type, count]) => `${type}(${count})`).join('، ') || '-'}</td>
+                    <tr key={a.label} className="hover:bg-[#F5FAFC]">
+                      <td className="p-3 font-bold text-[#172B3A] fv-num">{a.label}</td><td className="p-3 fv-num">{a.operations}</td>
+                      <td className="p-3"><span className="bg-red-50 text-red-600 border border-red-200/80 px-2.5 py-0.5 rounded-md text-xs font-bold fv-num">{a.opCancelRate}%</span></td>
+                      <td className="p-3 text-xs text-[#718394] fv-num">{a.topSurgeries.map(([type, count]) => `${type}(${count})`).join('، ') || '-'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -436,7 +436,7 @@ const PatientStats: React.FC<Props> = ({ bookings, operations, contractingCompan
           </div>
           {/* Age bar chart */}
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4">توزيع المرضى حسب السن</h3>
+            <h3 className="text-sm font-black text-[#172B3A] mb-4">توزيع المرضى حسب السن</h3>
             <MiniBar data={ageStats.map(a => ({ label: a.label, value: a.bookings }))} maxVal={Math.max(...ageStats.map(a => a.bookings), 1)} />
           </div>
         </div>

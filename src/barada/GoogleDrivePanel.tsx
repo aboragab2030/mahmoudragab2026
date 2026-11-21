@@ -325,14 +325,14 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
   return (
     <div className={cardClass}>
       {confirmDeleteFile && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full p-8 text-center border border-gray-100">
-            <div className="w-16 h-16 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-[#DFEAF0]">
+            <div className="w-16 h-16 bg-red-50 border border-red-200 text-red-500 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <AlertTriangle size={32} />
             </div>
-            <h4 className="text-xl font-black text-gray-900 mb-3">تأكيد حذف الملف من Google Drive</h4>
-            <p className="text-sm text-gray-600 mb-6">
-              هل أنت متأكد من حذف الملف <span className="font-bold text-red-600">"{confirmDeleteFile.name}"</span> نهائياً من Google Drive؟ لا يمكن التراجع عن هذه العملية.
+            <h4 className="text-xl font-black text-[#172B3A] mb-3">تأكيد حذف الملف من Google Drive</h4>
+            <p className="text-sm text-[#718394] mb-6 leading-relaxed">
+              هل أنت متأكد من حذف الملف <span className="font-bold text-red-600 fv-mono">"{confirmDeleteFile.name}"</span> نهائياً من Google Drive؟ لا يمكن التراجع عن هذه العملية.
             </p>
             <div className="flex gap-3">
               <button
@@ -345,7 +345,7 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
               <button
                 type="button"
                 onClick={() => setConfirmDeleteFile(null)}
-                className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition-all"
+                className="flex-1 bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] font-bold py-3 rounded-xl hover:bg-[#DFEAF0]/40 transition-all"
               >
                 إلغاء
               </button>
@@ -355,14 +355,14 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
       )}
 
       {confirmRestoreFile && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs">
-          <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-md w-full p-8 text-center border border-gray-100">
-            <div className="w-16 h-16 bg-amber-50 text-amber-600 rounded-full flex items-center justify-center mx-auto mb-6">
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs">
+          <div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-[#DFEAF0]">
+            <div className="w-16 h-16 bg-amber-50 border border-amber-200 text-amber-600 rounded-2xl flex items-center justify-center mx-auto mb-6">
               <RotateCcw size={32} />
             </div>
-            <h4 className="text-xl font-black text-gray-900 mb-3">تأكيد استعادة النسخة الاحتياطية</h4>
-            <p className="text-sm text-gray-600 mb-6">
-              سيتم استعادة بيانات النظام من الملف <span className="font-bold text-blue-600">"{confirmRestoreFile.name}"</span> الموجود على Google Drive. هل تريد المتابعة؟
+            <h4 className="text-xl font-black text-[#172B3A] mb-3">تأكيد استعادة النسخة الاحتياطية</h4>
+            <p className="text-sm text-[#718394] mb-6 leading-relaxed">
+              سيتم استعادة بيانات النظام من الملف <span className="font-bold text-[#087F8C] fv-mono">"{confirmRestoreFile.name}"</span> الموجود على Google Drive. هل تريد المتابعة؟
             </p>
             <div className="flex gap-3">
               <button
@@ -375,7 +375,7 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
               <button
                 type="button"
                 onClick={() => setConfirmRestoreFile(null)}
-                className="flex-1 bg-gray-100 text-gray-700 font-bold py-3 rounded-xl hover:bg-gray-200 transition-all"
+                className="flex-1 bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] font-bold py-3 rounded-xl hover:bg-[#DFEAF0]/40 transition-all"
               >
                 إلغاء
               </button>
@@ -386,12 +386,12 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
 
       <div className="flex flex-wrap items-center justify-between gap-4 mb-6">
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+          <div className="w-12 h-12 rounded-2xl bg-[#EBF8FA] text-[#087F8C] flex items-center justify-center border border-[#DFEAF0]">
             <Cloud size={24} />
           </div>
           <div>
-            <h3 className="text-xl font-bold text-gray-900">التكامل مع Google Drive</h3>
-            <p className="text-xs text-gray-500">
+            <h3 className="text-xl font-black text-[#172B3A]">التكامل مع Google Drive</h3>
+            <p className="text-xs text-[#718394] font-medium">
               تصفح ملفات Google Drive وحفظ النسخ الاحتياطية واستعادتها مباشرة من السحابة.
             </p>
           </div>
@@ -399,13 +399,13 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
 
         {!needsAuth && driveUser && (
           <div className="flex items-center gap-3">
-            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl">
+            <span className="text-xs font-bold text-emerald-700 bg-emerald-50 border border-emerald-200 px-3 py-1.5 rounded-xl fv-mono">
               {driveUser.email || driveUser.displayName || 'حساب Google متصل'}
             </span>
             <button
               type="button"
               onClick={handleGoogleLogout}
-              className="text-xs font-bold text-gray-600 bg-gray-100 hover:bg-gray-200 px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all"
+              className="text-xs font-bold text-[#718394] bg-[#F5FAFC] border border-[#DFEAF0] hover:bg-white hover:text-[#172B3A] px-3 py-2 rounded-xl flex items-center gap-1.5 transition-all"
             >
               <LogOut size={14} /> فصل الحساب
             </button>
@@ -427,8 +427,8 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
       )}
 
       {needsAuth ? (
-        <div className="bg-gray-50 border border-gray-100 rounded-3xl p-8 text-center">
-          <p className="text-sm font-bold text-gray-700 mb-6">
+        <div className="bg-[#F5FAFC] border border-[#DFEAF0] rounded-3xl p-8 text-center">
+          <p className="text-sm font-bold text-[#172B3A] mb-6">
             سجّل الدخول بحساب Google لمنح التطبيق صلاحية الوصول إلى ملفاتك والنسخ الاحتياطية على Google Drive.
           </p>
           <button
@@ -474,12 +474,12 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
               type="button"
               onClick={handleBackupToDrive}
               disabled={isBusy}
-              className="bg-blue-600 text-white px-5 py-3 rounded-xl font-bold text-xs hover:bg-blue-700 transition-all flex items-center gap-2 disabled:opacity-60"
+              className="fv-btn-primary px-5 py-3 rounded-xl font-bold text-xs flex items-center gap-2 disabled:opacity-60"
             >
               <CloudUpload size={16} /> حفظ نسخة احتياطية على Google Drive
             </button>
 
-            <label className="bg-emerald-600 text-white px-5 py-3 rounded-xl font-bold text-xs hover:bg-emerald-700 transition-all flex items-center gap-2 cursor-pointer">
+            <label className="bg-[#1769AA] text-white px-5 py-3 rounded-xl font-bold text-xs hover:bg-[#087F8C] transition-all flex items-center gap-2 cursor-pointer shadow-xs">
               <Upload size={16} /> رفع ملف إلى Drive
               <input type="file" className="hidden" onChange={handleUploadLocalFile} disabled={isBusy} />
             </label>
@@ -488,15 +488,15 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
               type="button"
               onClick={() => void loadFiles()}
               disabled={isLoadingFiles || isBusy}
-              className="bg-gray-100 text-gray-700 px-4 py-3 rounded-xl font-bold text-xs hover:bg-gray-200 transition-all flex items-center gap-2 disabled:opacity-60"
+              className="bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] px-4 py-3 rounded-xl font-bold text-xs hover:bg-white transition-all flex items-center gap-2 disabled:opacity-60"
             >
-              <RefreshCw size={15} className={isLoadingFiles ? 'animate-spin' : ''} /> تحديث الملفات
+              <RefreshCw size={15} className={`text-[#087F8C] ${isLoadingFiles ? 'animate-spin' : ''}`} /> تحديث الملفات
             </button>
           </div>
 
           <div className="flex flex-wrap items-center gap-3">
             <div className="relative flex-1 min-w-[220px]">
-              <Search className="absolute right-3 top-3 text-gray-400" size={16} />
+              <Search className="absolute right-3 top-3 text-[#718394]" size={16} />
               <input
                 type="text"
                 value={searchTerm}
@@ -514,8 +514,8 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
               onClick={() => setOnlyJson((prev) => !prev)}
               className={`px-4 py-2.5 rounded-xl text-xs font-bold border transition-all ${
                 onlyJson
-                  ? 'bg-blue-50 text-blue-700 border-blue-200'
-                  : 'bg-white text-gray-600 border-gray-200 hover:bg-gray-50'
+                  ? 'bg-[#EBF8FA] text-[#087F8C] border-[#087F8C]/40'
+                  : 'bg-white text-[#718394] border-[#DFEAF0] hover:bg-[#F5FAFC] hover:text-[#172B3A]'
               }`}
             >
               {onlyJson ? 'عرض كل الملفات' : 'ملفات النسخ الاحتياطي فقط (.json)'}
@@ -525,23 +525,23 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
               type="button"
               onClick={() => void loadFiles()}
               disabled={isLoadingFiles}
-              className="bg-blue-50 text-blue-700 px-4 py-2.5 rounded-xl text-xs font-bold hover:bg-blue-100 transition-all"
+              className="bg-[#EBF8FA] border border-[#DFEAF0] text-[#087F8C] hover:bg-[#087F8C] hover:text-white px-4 py-2.5 rounded-xl text-xs font-bold transition-all"
             >
               بحث
             </button>
           </div>
 
-          <div className="border border-gray-100 rounded-2xl overflow-hidden bg-gray-50/40">
+          <div className="border border-[#DFEAF0] rounded-2xl overflow-hidden bg-[#F5FAFC]/50">
             {isLoadingFiles ? (
-              <div className="p-8 text-center text-xs font-bold text-gray-500">
+              <div className="p-8 text-center text-xs font-bold text-[#718394]">
                 جاري تحميل الملفات من Google Drive...
               </div>
             ) : files.length === 0 ? (
-              <div className="p-8 text-center text-xs font-bold text-gray-400">
+              <div className="p-8 text-center text-xs font-bold text-[#718394]">
                 لا توجد ملفات مطابقة في Google Drive.
               </div>
             ) : (
-              <div className="divide-y divide-gray-100">
+              <div className="divide-y divide-[#DFEAF0]">
                 {files.map((file) => {
                   const isFolder = file.mimeType === 'application/vnd.google-apps.folder';
                   const isJson =
@@ -551,10 +551,10 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
                   return (
                     <div
                       key={file.id}
-                      className="p-4 flex flex-wrap items-center justify-between gap-3 bg-white hover:bg-gray-50/80 transition-colors"
+                      className="p-4 flex flex-wrap items-center justify-between gap-3 bg-white hover:bg-[#F5FAFC] transition-colors"
                     >
                       <div className="flex items-center gap-3 min-w-0 flex-1">
-                        <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center shrink-0">
+                        <div className="w-10 h-10 rounded-xl bg-[#EBF8FA] border border-[#DFEAF0] text-[#087F8C] flex items-center justify-center shrink-0">
                           {isFolder ? (
                             <Folder size={18} />
                           ) : isJson ? (
@@ -564,8 +564,8 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
                           )}
                         </div>
                         <div className="min-w-0">
-                          <p className="text-sm font-bold text-gray-900 truncate">{file.name}</p>
-                          <p className="text-[11px] text-gray-400">
+                          <p className="text-sm font-bold text-[#172B3A] truncate">{file.name}</p>
+                          <p className="text-[11px] text-[#718394] fv-num">
                             {file.modifiedTime
                               ? new Date(file.modifiedTime).toLocaleString('ar-EG')
                               : '-'}
@@ -580,7 +580,7 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
                             type="button"
                             onClick={() => setConfirmRestoreFile(file)}
                             disabled={isBusy}
-                            className="bg-emerald-50 text-emerald-700 hover:bg-emerald-100 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                            className="bg-emerald-50 border border-emerald-200 text-emerald-700 hover:bg-emerald-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
                           >
                             <RotateCcw size={13} /> استعادة
                           </button>
@@ -590,7 +590,7 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
                             type="button"
                             onClick={() => void handleDownloadDriveFile(file)}
                             disabled={isBusy}
-                            className="bg-blue-50 text-blue-700 hover:bg-blue-100 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                            className="bg-[#EBF8FA] border border-[#DFEAF0] text-[#087F8C] hover:bg-[#087F8C] hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
                           >
                             <Download size={13} /> تنزيل
                           </button>
@@ -600,7 +600,7 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
                             href={externalUrl}
                             target="_blank"
                             rel="noopener noreferrer"
-                            className="bg-gray-100 text-gray-700 hover:bg-gray-200 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                            className="bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] hover:bg-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
                           >
                             <ExternalLink size={13} /> فتح
                           </a>
@@ -609,7 +609,7 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
                           type="button"
                           onClick={() => setConfirmDeleteFile(file)}
                           disabled={isBusy}
-                          className="bg-red-50 text-red-600 hover:bg-red-100 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
+                          className="bg-red-50 border border-red-200 text-red-600 hover:bg-red-600 hover:text-white px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1 transition-all"
                         >
                           <Trash2 size={13} /> حذف
                         </button>

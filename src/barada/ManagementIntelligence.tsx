@@ -28,23 +28,23 @@ interface Props {
 }
 
 const StatCard = ({ label, value, icon: Icon, color, sub }: { label: string; value: string | number; icon: any; color: string; sub?: string }) => (
-  <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+  <div className="bg-white p-5 rounded-2xl border border-[#DFEAF0] shadow-[0_10px_28px_-18px_rgba(11,31,53,0.18)] hover:border-[#25B8C7]/50 transition-all">
     <div className="flex items-center gap-3 mb-3">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}><Icon size={20} /></div>
-      <span className="text-xs font-bold text-gray-400">{label}</span>
+      <span className="text-xs font-bold text-[#718394]">{label}</span>
     </div>
-    <h3 className="text-2xl font-black text-gray-900">{value}</h3>
-    {sub && <p className="text-[10px] text-gray-400 font-bold mt-1">{sub}</p>}
+    <h3 className="text-2xl font-black text-[#172B3A] fv-num">{value}</h3>
+    {sub && <p className="text-[11px] text-[#718394] font-bold mt-1 fv-num">{sub}</p>}
   </div>
 );
 
 const MiniBar = ({ data, maxVal }: { data: { label: string; value: number }[]; maxVal: number }) => (
-  <div className="flex items-end gap-1 h-24">
+  <div className="flex items-end gap-1.5 h-24">
     {data.map((d, i) => (
       <div key={i} className="flex-1 flex flex-col items-center gap-1">
-        <span className="text-[8px] text-gray-400 font-bold">{d.value || ''}</span>
-        <div className="w-full bg-blue-500 rounded-t-md min-h-[2px] transition-all" style={{ height: `${maxVal > 0 ? (d.value / maxVal) * 100 : 0}%` }} />
-        <span className="text-[7px] text-gray-400 font-bold truncate w-full text-center">{d.label}</span>
+        <span className="text-[9px] text-[#718394] font-bold fv-num">{d.value || ''}</span>
+        <div className="w-full bg-gradient-to-t from-[#087F8C] to-[#25B8C7] rounded-t-md min-h-[3px] transition-all" style={{ height: `${maxVal > 0 ? (d.value / maxVal) * 100 : 0}%` }} />
+        <span className="text-[8px] text-[#718394] font-bold truncate w-full text-center fv-num">{d.label}</span>
       </div>
     ))}
   </div>
@@ -326,18 +326,18 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
     <div className="space-y-6 animate-in fade-in duration-300">
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2"><Brain size={28} className="text-purple-600" /> لوحة الذكاء الإداري</h2>
-          <p className="text-xs text-gray-400 font-bold mt-1">تحليلات متقدمة وتوقعات ذكية</p>
+          <h2 className="text-2xl font-black text-[#172B3A] flex items-center gap-2.5"><Brain size={26} className="text-[#087F8C]" /> لوحة الذكاء الإداري</h2>
+          <p className="text-xs text-[#718394] font-bold mt-1">تحليلات متقدمة وتوقعات ذكية</p>
         </div>
-        <button onClick={handlePrintAll} className="bg-gray-50 text-gray-600 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-gray-100 transition-all"><Printer size={14} /> طباعة / PDF</button>
+        <button onClick={handlePrintAll} className="bg-white text-[#172B3A] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#F5FAFC] transition-all cursor-pointer"><Printer size={14} className="text-[#1769AA]" /> طباعة / PDF</button>
       </div>
 
       <div className="flex flex-wrap gap-2">
         {sections.map(s => (
           <button key={s.id} onClick={() => setActiveSection(s.id as any)}
-            className={`flex items-center gap-2 px-3 py-2 rounded-xl text-xs font-bold transition-all ${activeSection === s.id ? 'bg-purple-600 text-white shadow-lg shadow-purple-200' : 'bg-white text-gray-500 border border-gray-100 hover:bg-purple-50 hover:text-purple-600'}`}>
+            className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-bold transition-all cursor-pointer ${activeSection === s.id ? 'fv-btn-primary text-white' : 'bg-white text-[#718394] border border-[#DFEAF0] hover:bg-[#F5FAFC] hover:text-[#087F8C]'}`}>
             <s.icon size={14} /> {s.label}
-            {s.id === 'alerts' && alerts.length > 0 && <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black">{alerts.length}</span>}
+            {s.id === 'alerts' && alerts.length > 0 && <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black fv-num">{alerts.length}</span>}
           </button>
         ))}
       </div>
@@ -346,32 +346,32 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
       {activeSection === 'pressure' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <StatCard label="متوسط يومي" value={pressure.avgDaily} icon={Calendar} color="bg-blue-100 text-blue-600" sub="مريض/يوم" />
-            <StatCard label="أكثر يوم ازدحاماً" value={pressure.busiestDays[0]?.day || '-'} icon={Flame} color="bg-red-100 text-red-600" sub={`${pressure.busiestDays[0]?.count || 0} حجز`} />
-            <StatCard label="أكثر ساعة ازدحاماً" value={pressure.busiestHours[0]?.hour || '-'} icon={Clock} color="bg-amber-100 text-amber-600" sub={`${pressure.busiestHours[0]?.count || 0} حجز`} />
+            <StatCard label="متوسط يومي" value={pressure.avgDaily} icon={Calendar} color="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20" sub="مريض/يوم" />
+            <StatCard label="أكثر يوم ازدحاماً" value={pressure.busiestDays[0]?.day || '-'} icon={Flame} color="bg-red-50 text-red-600 border border-red-200/70" sub={`${pressure.busiestDays[0]?.count || 0} حجز`} />
+            <StatCard label="أكثر ساعة ازدحاماً" value={pressure.busiestHours[0]?.hour || '-'} icon={Clock} color="bg-amber-50 text-amber-600 border border-amber-200/70" sub={`${pressure.busiestHours[0]?.count || 0} حجز`} />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4">توزيع الحجوزات خلال الأسبوع</h3>
+              <h3 className="text-sm font-black text-[#172B3A] mb-4">توزيع الحجوزات خلال الأسبوع</h3>
               <MiniBar data={pressure.busiestDays.map(d => ({ label: d.day, value: d.count }))} maxVal={Math.max(...pressure.busiestDays.map(d => d.count), 1)} />
             </div>
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4">أكثر ساعات اليوم ازدحاماً</h3>
-              <div className="space-y-2">
+              <h3 className="text-sm font-black text-[#172B3A] mb-4">أكثر ساعات اليوم ازدحاماً</h3>
+              <div className="space-y-2.5">
                 {pressure.busiestHours.map(h => (
                   <div key={h.hour} className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-gray-500 w-12">{h.hour}</span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
-                      <div className="bg-blue-500 h-full rounded-full" style={{ width: `${(h.count / (pressure.busiestHours[0]?.count || 1)) * 100}%` }} />
+                    <span className="text-xs font-bold text-[#718394] w-12 fv-num">{h.hour}</span>
+                    <div className="flex-1 bg-[#F5FAFC] border border-[#DFEAF0] rounded-full h-3.5 overflow-hidden">
+                      <div className="bg-gradient-to-r from-[#087F8C] to-[#25B8C7] h-full rounded-full" style={{ width: `${(h.count / (pressure.busiestHours[0]?.count || 1)) * 100}%` }} />
                     </div>
-                    <span className="text-xs font-black w-8">{h.count}</span>
+                    <span className="text-xs font-black text-[#172B3A] w-8 fv-num">{h.count}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4">توزيع أسبوعي (آخر شهر)</h3>
+            <h3 className="text-sm font-black text-[#172B3A] mb-4">توزيع أسبوعي (آخر شهر)</h3>
             <MiniBar data={pressure.weeklyDist} maxVal={Math.max(...pressure.weeklyDist.map(d => d.value), 1)} />
           </div>
         </div>
@@ -381,40 +381,40 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
       {activeSection === 'operations' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <StatCard label="نسبة التحويل" value={`${opsAnalysis.conversionRate}%`} icon={TrendingUp} color="bg-emerald-100 text-emerald-600" sub="كشف → عملية" />
-            <StatCard label="نسبة إلغاء العمليات" value={`${opsAnalysis.cancelRate}%`} icon={XCircle} color="bg-red-100 text-red-600" />
-            <StatCard label="إجمالي الإيرادات" value={`${opsAnalysis.totalRevenue.toLocaleString()}`} icon={Banknote} color="bg-green-100 text-green-600" sub="ج.م" />
-            <StatCard label="إجمالي العمليات" value={confirmedOps.length} icon={Scissors} color="bg-purple-100 text-purple-600" />
+            <StatCard label="نسبة التحويل" value={`${opsAnalysis.conversionRate}%`} icon={TrendingUp} color="bg-emerald-50 text-emerald-600 border border-emerald-200/70" sub="كشف → عملية" />
+            <StatCard label="نسبة إلغاء العمليات" value={`${opsAnalysis.cancelRate}%`} icon={XCircle} color="bg-red-50 text-red-600 border border-red-200/70" />
+            <StatCard label="إجمالي الإيرادات" value={`${opsAnalysis.totalRevenue.toLocaleString()}`} icon={Banknote} color="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20" sub="ج.م" />
+            <StatCard label="إجمالي العمليات" value={confirmedOps.length} icon={Scissors} color="bg-[#1769AA]/10 text-[#1769AA] border border-[#1769AA]/20" />
           </div>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4">العمليات حسب الشهر</h3>
+              <h3 className="text-sm font-black text-[#172B3A] mb-4">العمليات حسب الشهر</h3>
               <MiniBar data={opsAnalysis.byMonth.map(([m, c]) => ({ label: m.slice(5), value: c }))} maxVal={Math.max(...opsAnalysis.byMonth.map(([, c]) => c), 1)} />
             </div>
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4">أكثر العمليات إجراءً</h3>
+              <h3 className="text-sm font-black text-[#172B3A] mb-4">أكثر العمليات إجراءً</h3>
               <div className="space-y-2">
                 {opsAnalysis.topTypes.map(([type, count], i) => (
-                  <div key={type} className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl">
-                    <span className="text-xs font-black text-gray-400 w-4">{i + 1}</span>
-                    <span className="text-xs font-bold flex-1">{type}</span>
-                    <span className="text-xs font-black text-purple-600">{count}</span>
+                  <div key={type} className="flex items-center gap-3 p-2.5 bg-[#F5FAFC] border border-[#DFEAF0]/80 rounded-xl">
+                    <span className="text-xs font-black text-[#718394] w-4 fv-num">{i + 1}</span>
+                    <span className="text-xs font-bold text-[#172B3A] flex-1">{type}</span>
+                    <span className="text-xs font-black text-[#087F8C] fv-num">{count}</span>
                   </div>
                 ))}
               </div>
             </div>
           </div>
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4">العمليات حسب الطبيب</h3>
-            <div className="space-y-2">
+            <h3 className="text-sm font-black text-[#172B3A] mb-4">العمليات حسب الطبيب</h3>
+            <div className="space-y-2.5">
               {opsAnalysis.byDoctor.map(([doc, count], i) => (
                 <div key={doc} className="flex items-center gap-3">
-                  <span className="text-xs font-black text-gray-400 w-4">{i + 1}</span>
-                  <span className="text-xs font-bold flex-1">{doc}</span>
-                  <div className="w-24 bg-gray-100 rounded-full h-3 overflow-hidden">
-                    <div className="bg-purple-500 h-full rounded-full" style={{ width: `${(count / (opsAnalysis.byDoctor[0]?.[1] || 1)) * 100}%` }} />
+                  <span className="text-xs font-black text-[#718394] w-4 fv-num">{i + 1}</span>
+                  <span className="text-xs font-bold text-[#172B3A] flex-1">{doc}</span>
+                  <div className="w-28 bg-[#F5FAFC] border border-[#DFEAF0] rounded-full h-3 overflow-hidden">
+                    <div className="bg-gradient-to-r from-[#087F8C] to-[#1769AA] h-full rounded-full" style={{ width: `${(count / (opsAnalysis.byDoctor[0]?.[1] || 1)) * 100}%` }} />
                   </div>
-                  <span className="text-xs font-black w-8">{count}</span>
+                  <span className="text-xs font-black text-[#172B3A] w-8 fv-num">{count}</span>
                 </div>
               ))}
             </div>
@@ -427,33 +427,33 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
         <div className="space-y-6">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4">أكثر المحافظات</h3>
+              <h3 className="text-sm font-black text-[#172B3A] mb-4">أكثر المحافظات</h3>
               <div className="space-y-2">{regional.topGov.map(([gov, count], i) => (
-                <div key={gov} className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl">
-                  <span className="text-xs font-black text-gray-400 w-4">{i + 1}</span>
-                  <span className="text-xs font-bold flex-1">{gov}</span>
-                  <span className="text-xs font-black text-blue-600">{count}</span>
+                <div key={gov} className="flex items-center gap-3 p-2.5 bg-[#F5FAFC] border border-[#DFEAF0]/80 rounded-xl">
+                  <span className="text-xs font-black text-[#718394] w-4 fv-num">{i + 1}</span>
+                  <span className="text-xs font-bold text-[#172B3A] flex-1">{gov}</span>
+                  <span className="text-xs font-black text-[#087F8C] fv-num">{count}</span>
                 </div>
               ))}</div>
             </div>
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4">أكثر المراكز</h3>
+              <h3 className="text-sm font-black text-[#172B3A] mb-4">أكثر المراكز</h3>
               <div className="space-y-2">{regional.topCenters.map(([ctr, count], i) => (
-                <div key={ctr} className="flex items-center gap-3 p-2 bg-gray-50 rounded-xl">
-                  <span className="text-xs font-black text-gray-400 w-4">{i + 1}</span>
-                  <span className="text-xs font-bold flex-1">{ctr}</span>
-                  <span className="text-xs font-black text-blue-600">{count}</span>
+                <div key={ctr} className="flex items-center gap-3 p-2.5 bg-[#F5FAFC] border border-[#DFEAF0]/80 rounded-xl">
+                  <span className="text-xs font-black text-[#718394] w-4 fv-num">{i + 1}</span>
+                  <span className="text-xs font-bold text-[#172B3A] flex-1">{ctr}</span>
+                  <span className="text-xs font-black text-[#1769AA] fv-num">{count}</span>
                 </div>
               ))}</div>
             </div>
           </div>
           {regional.highCancelGov.length > 0 && (
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><AlertTriangle size={16} className="text-red-500" /> المناطق الأعلى في الإلغاء</h3>
+              <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><AlertTriangle size={16} className="text-red-500" /> المناطق الأعلى في الإلغاء</h3>
               <div className="space-y-2">{regional.highCancelGov.map(g => (
-                <div key={g.name} className="flex items-center justify-between p-3 bg-red-50 rounded-xl">
+                <div key={g.name} className="flex items-center justify-between p-3 bg-red-50 border border-red-200/70 rounded-xl">
                   <span className="text-xs font-bold text-red-700">{g.name}</span>
-                  <span className="bg-red-100 text-red-600 px-2 py-0.5 rounded-full text-xs font-black">{g.rate}%</span>
+                  <span className="bg-red-100 text-red-700 px-2.5 py-0.5 rounded-md text-xs font-black fv-num">{g.rate}%</span>
                 </div>
               ))}</div>
             </div>
@@ -466,20 +466,20 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
             {contractAnalysis.slice(0, 6).map(c => (
-              <StatCard key={c.name} label={c.name} value={c.patients} icon={Building2} color="bg-blue-100 text-blue-600" sub={`${c.bookings} كشف / ${c.operations} عملية`} />
+              <StatCard key={c.name} label={c.name} value={c.patients} icon={Building2} color="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20" sub={`${c.bookings} كشف / ${c.operations} عملية`} />
             ))}
           </div>
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4">تفاصيل جهات التعاقد</h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <h3 className="text-sm font-black text-[#172B3A] mb-4">تفاصيل جهات التعاقد</h3>
+            <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
               <table className="w-full text-sm">
-                <thead><tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                <thead><tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                   <th className="p-3 text-right">الجهة</th><th className="p-3 text-right">مرضى</th><th className="p-3 text-right">كشوفات</th><th className="p-3 text-right">عمليات</th><th className="p-3 text-right">% مرضى</th><th className="p-3 text-right">% عمليات</th>
                 </tr></thead>
-                <tbody>{contractAnalysis.map(c => (
-                  <tr key={c.name} className="border-t border-gray-50">
-                    <td className="p-3 font-bold">{c.name}</td><td className="p-3">{c.patients}</td><td className="p-3">{c.bookings}</td><td className="p-3">{c.operations}</td>
-                    <td className="p-3 text-blue-600 font-bold">{c.patientPct}%</td><td className="p-3 text-blue-600 font-bold">{c.opPct}%</td>
+                <tbody className="divide-y divide-[#DFEAF0]/70">{contractAnalysis.map(c => (
+                  <tr key={c.name} className="hover:bg-[#F5FAFC]">
+                    <td className="p-3 font-bold text-[#172B3A]">{c.name}</td><td className="p-3 fv-num">{c.patients}</td><td className="p-3 fv-num">{c.bookings}</td><td className="p-3 fv-num">{c.operations}</td>
+                    <td className="p-3 text-[#087F8C] font-bold fv-num">{c.patientPct}%</td><td className="p-3 text-[#087F8C] font-bold fv-num">{c.opPct}%</td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -492,20 +492,20 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
       {activeSection === 'doctors' && (
         <div className="space-y-6">
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4">تحليل أداء الأطباء</h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <h3 className="text-sm font-black text-[#172B3A] mb-4">تحليل أداء الأطباء</h3>
+            <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
               <table className="w-full text-sm">
-                <thead><tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                <thead><tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                   <th className="p-3 text-right">#</th><th className="p-3 text-right">الطبيب</th><th className="p-3 text-right">حجوزات</th><th className="p-3 text-right">عمليات</th>
                   <th className="p-3 text-right">تحويل%</th><th className="p-3 text-right">إلغاء%</th><th className="p-3 text-right">حمل اليوم</th>
                 </tr></thead>
-                <tbody>{doctorPerf.map((d, i) => (
-                  <tr key={d.name} className="border-t border-gray-50">
-                    <td className="p-3 text-xs font-black text-gray-400">{i + 1}</td>
-                    <td className="p-3 font-bold">{d.name}</td><td className="p-3">{d.bookings}</td><td className="p-3">{d.operations}</td>
-                    <td className="p-3"><span className="bg-green-100 text-green-600 px-2 py-0.5 rounded-full text-xs font-bold">{d.conversionRate}%</span></td>
-                    <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-xs font-bold ${d.cancelRate > 20 ? 'bg-red-100 text-red-600' : 'bg-green-100 text-green-600'}`}>{d.cancelRate}%</span></td>
-                    <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-xs font-bold ${d.todayLoad >= d.maxPatients * 0.9 ? 'bg-red-100 text-red-600' : 'bg-blue-100 text-blue-600'}`}>{d.todayLoad}/{d.maxPatients}</span></td>
+                <tbody className="divide-y divide-[#DFEAF0]/70">{doctorPerf.map((d, i) => (
+                  <tr key={d.name} className="hover:bg-[#F5FAFC]">
+                    <td className="p-3 text-xs font-black text-[#718394] fv-num">{i + 1}</td>
+                    <td className="p-3 font-bold text-[#172B3A]">{d.name}</td><td className="p-3 fv-num">{d.bookings}</td><td className="p-3 fv-num">{d.operations}</td>
+                    <td className="p-3"><span className="bg-emerald-50 text-emerald-700 border border-emerald-200/80 px-2.5 py-0.5 rounded-md text-xs font-bold fv-num">{d.conversionRate}%</span></td>
+                    <td className="p-3"><span className={`px-2.5 py-0.5 rounded-md text-xs font-bold fv-num ${d.cancelRate > 20 ? 'bg-red-50 text-red-600 border border-red-200/80' : 'bg-emerald-50 text-emerald-700 border border-emerald-200/80'}`}>{d.cancelRate}%</span></td>
+                    <td className="p-3"><span className={`px-2.5 py-0.5 rounded-md text-xs font-bold fv-num ${d.todayLoad >= d.maxPatients * 0.9 ? 'bg-red-50 text-red-600 border border-red-200/80' : 'bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20'}`}>{d.todayLoad}/{d.maxPatients}</span></td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -518,21 +518,21 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
       {activeSection === 'predictions' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <StatCard label="حجوزات متوقعة (أسبوع)" value={predictions.predictedWeekly} icon={Calendar} color="bg-blue-100 text-blue-600" />
-            <StatCard label="عمليات متوقعة (شهر)" value={predictions.predictedOps} icon={Scissors} color="bg-purple-100 text-purple-600" />
-            <StatCard label="أكثر يوم متوقع ازدحاماً" value={predictions.busiestDay} icon={Flame} color="bg-red-100 text-red-600" />
-            <StatCard label="أكثر طبيب متوقع للعمليات" value={predictions.topDocOps} icon={Star} color="bg-amber-100 text-amber-600" />
+            <StatCard label="حجوزات متوقعة (أسبوع)" value={predictions.predictedWeekly} icon={Calendar} color="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20" />
+            <StatCard label="عمليات متوقعة (شهر)" value={predictions.predictedOps} icon={Scissors} color="bg-[#1769AA]/10 text-[#1769AA] border border-[#1769AA]/20" />
+            <StatCard label="أكثر يوم متوقع ازدحاماً" value={predictions.busiestDay} icon={Flame} color="bg-red-50 text-red-600 border border-red-200/70" />
+            <StatCard label="أكثر طبيب متوقع للعمليات" value={predictions.topDocOps} icon={Star} color="bg-amber-50 text-amber-600 border border-amber-200/70" />
           </div>
           {predictions.fullDoctors.length > 0 && (
             <div className={cardClass}>
               <h3 className="text-sm font-black text-red-600 mb-4 flex items-center gap-2"><AlertTriangle size={16} /> أطباء يقتربون من الامتلاء (الغد)</h3>
               <div className="space-y-2">{predictions.fullDoctors.map(d => (
-                <div key={d.id} className="p-3 bg-red-50 rounded-xl text-xs font-bold text-red-700">{d.name}</div>
+                <div key={d.id} className="p-3 bg-red-50 border border-red-200/80 rounded-xl text-xs font-bold text-red-700">{d.name}</div>
               ))}</div>
             </div>
           )}
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4">اتجاه العمليات الشهري</h3>
+            <h3 className="text-sm font-black text-[#172B3A] mb-4">اتجاه العمليات الشهري</h3>
             <MiniBar data={opsAnalysis.byMonth.map(([m, c]) => ({ label: m.slice(5), value: c }))} maxVal={Math.max(...opsAnalysis.byMonth.map(([, c]) => c), 1)} />
           </div>
         </div>
@@ -542,23 +542,23 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
       {activeSection === 'surgery-predict' && (
         <div className="space-y-6">
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><Target size={16} className="text-purple-600" /> المرضى المحتمل إجراء عملية لهم</h3>
-            <p className="text-xs text-gray-400 mb-4">تحليل يعتمد على تاريخ الزيارات والعمر ونوع الكشف والطبيب</p>
+            <h3 className="text-sm font-black text-[#172B3A] mb-2 flex items-center gap-2"><Target size={16} className="text-[#087F8C]" /> المرضى المحتمل إجراء عملية لهم</h3>
+            <p className="text-xs text-[#718394] font-medium mb-4">تحليل يعتمد على تاريخ الزيارات والعمر ونوع الكشف والطبيب</p>
             {surgeryPrediction.length === 0 ? (
-              <p className="text-center text-gray-400 py-6 font-bold">لا توجد بيانات كافية للتحليل</p>
+              <p className="text-center text-[#718394] py-6 font-bold">لا توجد بيانات كافية للتحليل</p>
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-gray-100">
+              <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
                 <table className="w-full text-sm">
-                  <thead><tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                  <thead><tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                     <th className="p-3 text-right">المريض</th><th className="p-3 text-right">العمر</th><th className="p-3 text-right">الطبيب</th>
                     <th className="p-3 text-right">الكشف</th><th className="p-3 text-right">احتمالية%</th><th className="p-3 text-right">آخر زيارة</th>
                   </tr></thead>
-                  <tbody>{surgeryPrediction.map((p: any, i: number) => (
-                    <tr key={i} className="border-t border-gray-50">
-                      <td className="p-3 font-bold">{p.name}</td><td className="p-3">{p.age || '-'}</td><td className="p-3 text-xs">{p.doctor}</td>
-                      <td className="p-3 text-xs">{p.service}</td>
-                      <td className="p-3"><span className={`px-2 py-0.5 rounded-full text-xs font-black ${p.score >= 60 ? 'bg-red-100 text-red-600' : p.score >= 40 ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>{p.score}%</span></td>
-                      <td className="p-3 text-xs">{p.lastVisit}</td>
+                  <tbody className="divide-y divide-[#DFEAF0]/70">{surgeryPrediction.map((p: any, i: number) => (
+                    <tr key={i} className="hover:bg-[#F5FAFC]">
+                      <td className="p-3 font-bold text-[#172B3A]">{p.name}</td><td className="p-3 fv-num">{p.age || '-'}</td><td className="p-3 text-xs text-[#172B3A]">{p.doctor}</td>
+                      <td className="p-3 text-xs text-[#718394]">{p.service}</td>
+                      <td className="p-3"><span className={`px-2.5 py-0.5 rounded-md text-xs font-black fv-num ${p.score >= 60 ? 'bg-red-50 text-red-600 border border-red-200/80' : p.score >= 40 ? 'bg-amber-50 text-amber-700 border border-amber-200/80' : 'bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20'}`}>{p.score}%</span></td>
+                      <td className="p-3 text-xs text-[#718394] fv-num">{p.lastVisit}</td>
                     </tr>
                   ))}</tbody>
                 </table>
@@ -572,18 +572,18 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
       {activeSection === 'frequent' && (
         <div className="space-y-6">
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><Users size={16} className="text-blue-600" /> المرضى الأكثر زيارة</h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><Users size={16} className="text-[#087F8C]" /> المرضى الأكثر زيارة</h3>
+            <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
               <table className="w-full text-sm">
-                <thead><tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                <thead><tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                   <th className="p-3 text-right">#</th><th className="p-3 text-right">المريض</th><th className="p-3 text-right">الزيارات</th>
                   <th className="p-3 text-right">العمليات</th><th className="p-3 text-right">آخر زيارة</th>
                 </tr></thead>
-                <tbody>{frequentPatients.map((p, i) => (
-                  <tr key={p.phone} className="border-t border-gray-50">
-                    <td className="p-3 text-xs font-black text-gray-400">{i + 1}</td>
-                    <td className="p-3 font-bold">{p.name}</td><td className="p-3 text-blue-600 font-black">{p.visits}</td>
-                    <td className="p-3">{p.ops}</td><td className="p-3 text-xs">{p.lastVisit}</td>
+                <tbody className="divide-y divide-[#DFEAF0]/70">{frequentPatients.map((p, i) => (
+                  <tr key={p.phone} className="hover:bg-[#F5FAFC]">
+                    <td className="p-3 text-xs font-black text-[#718394] fv-num">{i + 1}</td>
+                    <td className="p-3 font-bold text-[#172B3A]">{p.name}</td><td className="p-3 text-[#087F8C] font-black fv-num">{p.visits}</td>
+                    <td className="p-3 fv-num">{p.ops}</td><td className="p-3 text-xs text-[#718394] fv-num">{p.lastVisit}</td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -596,24 +596,24 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
       {activeSection === 'staff' && (
         <div className="space-y-6">
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
-            <StatCard label="إجمالي الاتصالات" value={contactLogs.length} icon={Activity} color="bg-blue-100 text-blue-600" />
-            <StatCard label="عدد الموظفين النشطين" value={staffPerf.length} icon={UserCheck} color="bg-purple-100 text-purple-600" />
-            {staffPerf[0] && <StatCard label="أفضل موظف" value={staffPerf[0].name} icon={Award} color="bg-amber-100 text-amber-600" sub={`${staffPerf[0].contacts} اتصال`} />}
+            <StatCard label="إجمالي الاتصالات" value={contactLogs.length} icon={Activity} color="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20" />
+            <StatCard label="عدد الموظفين النشطين" value={staffPerf.length} icon={UserCheck} color="bg-[#1769AA]/10 text-[#1769AA] border border-[#1769AA]/20" />
+            {staffPerf[0] && <StatCard label="أفضل موظف" value={staffPerf[0].name} icon={Award} color="bg-amber-50 text-amber-600 border border-amber-200/70" sub={`${staffPerf[0].contacts} اتصال`} />}
           </div>
           <div className={cardClass}>
-            <h3 className="text-sm font-black text-gray-700 mb-4">أداء موظفي الحجز والمتابعة</h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <h3 className="text-sm font-black text-[#172B3A] mb-4">أداء موظفي الحجز والمتابعة</h3>
+            <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
               <table className="w-full text-sm">
-                <thead><tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                <thead><tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                   <th className="p-3 text-right">#</th><th className="p-3 text-right">الموظف</th><th className="p-3 text-right">إجمالي</th><th className="p-3 text-right">واتساب</th><th className="p-3 text-right">SMS</th>
                 </tr></thead>
-                <tbody>{staffPerf.map((s, i) => (
-                  <tr key={s.name} className="border-t border-gray-50">
-                    <td className="p-3 text-xs font-black text-gray-400">{i + 1}</td>
-                    <td className="p-3 font-bold">{s.name}</td>
-                    <td className="p-3"><span className="bg-blue-100 text-blue-700 px-2 py-0.5 rounded-lg text-xs font-black">{s.contacts}</span></td>
-                    <td className="p-3 text-green-600 font-bold text-xs">{s.whatsapp}</td>
-                    <td className="p-3 text-amber-600 font-bold text-xs">{s.sms}</td>
+                <tbody className="divide-y divide-[#DFEAF0]/70">{staffPerf.map((s, i) => (
+                  <tr key={s.name} className="hover:bg-[#F5FAFC]">
+                    <td className="p-3 text-xs font-black text-[#718394] fv-num">{i + 1}</td>
+                    <td className="p-3 font-bold text-[#172B3A]">{s.name}</td>
+                    <td className="p-3"><span className="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20 px-2.5 py-0.5 rounded-md text-xs font-black fv-num">{s.contacts}</span></td>
+                    <td className="p-3 text-emerald-600 font-bold text-xs fv-num">{s.whatsapp}</td>
+                    <td className="p-3 text-amber-600 font-bold text-xs fv-num">{s.sms}</td>
                   </tr>
                 ))}</tbody>
               </table>
@@ -625,12 +625,12 @@ const ManagementIntelligence: React.FC<Props> = ({ bookings, operations, doctors
       {/* Alerts */}
       {activeSection === 'alerts' && (
         <div className={cardClass}>
-          <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2"><AlertTriangle size={20} className="text-red-500" /> تنبيهات إدارية</h3>
+          <h3 className="text-lg font-black text-[#172B3A] mb-6 flex items-center gap-2"><AlertTriangle size={20} className="text-red-500" /> تنبيهات إدارية</h3>
           {alerts.length === 0 ? (
-            <div className="text-center py-10 text-gray-400"><CheckCircle size={40} className="mx-auto mb-3 text-green-400" /><p className="font-bold">لا توجد تنبيهات — كل شيء تحت السيطرة ✅</p></div>
+            <div className="text-center py-10 text-[#718394]"><CheckCircle size={40} className="mx-auto mb-3 text-emerald-500" /><p className="font-bold text-[#172B3A]">لا توجد تنبيهات — كل شيء تحت السيطرة</p></div>
           ) : (
             <div className="space-y-3">{alerts.map((a, i) => (
-              <div key={i} className={`flex items-center gap-3 p-4 rounded-xl border ${a.severity === 'high' ? 'bg-red-50 border-red-200 text-red-700' : a.severity === 'medium' ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-blue-50 border-blue-200 text-blue-700'}`}>
+              <div key={i} className={`flex items-center gap-3 p-4 rounded-xl border ${a.severity === 'high' ? 'bg-red-50 border-red-200 text-red-700' : a.severity === 'medium' ? 'bg-amber-50 border-amber-200 text-amber-700' : 'bg-[#F5FAFC] border-[#DFEAF0] text-[#087F8C]'}`}>
                 <AlertTriangle size={16} /><span className="text-sm font-bold">{a.text}</span>
               </div>
             ))}</div>

@@ -51,9 +51,9 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 const STATUS_COLORS: Record<string, string> = {
-  pending: 'bg-yellow-100 text-yellow-700',
-  paid: 'bg-green-100 text-green-700',
-  failed: 'bg-red-100 text-red-700',
+  pending: 'bg-amber-50 text-amber-700 border border-amber-200/80',
+  paid: 'bg-emerald-50 text-emerald-700 border border-emerald-200/80',
+  failed: 'bg-red-50 text-red-700 border border-red-200/80',
 };
 
 interface PaymentsTabProps {
@@ -245,9 +245,9 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
       {/* Notifications Section */}
       {notifications.length > 0 && (
         <div className={cardClass}>
-          <h3 className="text-xl font-bold mb-4 flex items-center gap-2">
-            <CheckCircle className="text-green-600" />
-            إشعارات المدفوعات الجديدة ({notifications.length})
+          <h3 className="text-xl font-black text-[#172B3A] mb-4 flex items-center gap-2">
+            <CheckCircle className="text-emerald-600" />
+            إشعارات المدفوعات الجديدة <span className="fv-num text-[#087F8C]">({notifications.length})</span>
           </h3>
           <div className="space-y-3">
             {notifications.map(notif => {
@@ -255,21 +255,21 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
               return (
               <div 
                 key={notif.id} 
-                className={cancelled ? 'paid-cancellation-notice border rounded-xl p-4 flex items-center justify-between' : 'bg-green-50 border border-green-100 rounded-xl p-4 flex items-center justify-between'}
+                className={cancelled ? 'paid-cancellation-notice border rounded-xl p-4 flex items-center justify-between' : 'bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-4 flex items-center justify-between'}
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-green-500 text-white rounded-full flex items-center justify-center">
+                  <div className="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center shadow-xs">
                     <Banknote size={20} />
                   </div>
                   <div>
                     {cancelled && <p className="text-sm font-bold mb-1">{notif.message}</p>}
-                    <h4 className="font-bold text-green-800">{notif.patient_name}</h4>
-                    <p className="text-sm text-green-600">{notif.amount} ج.م - {new Date(notif.created_at).toLocaleString('ar-EG')}</p>
+                    <h4 className="font-bold text-[#172B3A]">{notif.patient_name}</h4>
+                    <p className="text-xs text-emerald-700 font-bold fv-num">{notif.amount} ج.م - {new Date(notif.created_at).toLocaleString('ar-EG')}</p>
                   </div>
                 </div>
                 <button 
                   onClick={() => markNotificationRead(notif.id)}
-                  className="bg-green-600 text-white px-3 py-1.5 rounded-lg text-xs font-bold hover:bg-green-700"
+                  className="bg-emerald-600 text-white px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 cursor-pointer transition-colors"
                 >
                   تم الاطلاع
                 </button>
@@ -282,21 +282,21 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
       {/* Main Payments Card */}
       <div className={cardClass}>
         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
-          <h3 className="text-xl font-bold flex items-center gap-2">
-            <CreditCard className="text-blue-600" />
-            سجل المدفوعات المؤكدة ({filteredPayments.length})
+          <h3 className="text-xl font-black text-[#172B3A] flex items-center gap-2">
+            <CreditCard className="text-[#087F8C]" />
+            سجل المدفوعات المؤكدة <span className="fv-num text-[#087F8C]">({filteredPayments.length})</span>
           </h3>
           <div className="flex gap-2">
             <button 
               onClick={fetchPayments} 
-              className="bg-blue-50 text-blue-600 p-2 rounded-lg hover:bg-blue-100"
+              className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] p-2.5 rounded-xl hover:bg-[#087F8C]/10 cursor-pointer transition-colors"
               title="تحديث"
             >
               <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
             </button>
             <button 
               onClick={handlePrintPayments}
-              className="bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-200"
+              className="bg-[#F5FAFC] text-[#1769AA] border border-[#DFEAF0] p-2.5 rounded-xl hover:bg-[#1769AA]/10 cursor-pointer transition-colors"
               title="طباعة التقرير"
             >
               <Printer size={18} />
@@ -305,9 +305,9 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
         </div>
 
         {/* Search/Filter Section */}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 p-4 bg-gray-50 rounded-2xl border border-gray-100">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-6 p-4 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0]">
           <div>
-            <label className="text-xs font-bold text-gray-400 mb-1 block flex items-center gap-1">
+            <label className="text-xs font-bold text-[#718394] mb-1.5 block flex items-center gap-1">
               <Search size={12} /> اسم المريض
             </label>
             <input
@@ -320,7 +320,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
           </div>
           
           <div>
-            <label className="text-xs font-bold text-gray-400 mb-1 block flex items-center gap-1">
+            <label className="text-xs font-bold text-[#718394] mb-1.5 block flex items-center gap-1">
               <Phone size={12} /> رقم الهاتف
             </label>
             <input
@@ -328,12 +328,12 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
               value={searchPhone}
               onChange={e => setSearchPhone(e.target.value)}
               placeholder="01..."
-              className={inputClass}
+              className={`${inputClass} fv-num`}
             />
           </div>
           
           <div>
-            <label className="text-xs font-bold text-gray-400 mb-1 block flex items-center gap-1">
+            <label className="text-xs font-bold text-[#718394] mb-1.5 block flex items-center gap-1">
               <Hash size={12} /> رقم العملية
             </label>
             <input
@@ -341,12 +341,12 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
               value={searchTransactionId}
               onChange={e => setSearchTransactionId(e.target.value)}
               placeholder="رقم المعاملة..."
-              className={inputClass}
+              className={`${inputClass} fv-mono`}
             />
           </div>
           
           <div>
-            <label className="text-xs font-bold text-gray-400 mb-1 block flex items-center gap-1">
+            <label className="text-xs font-bold text-[#718394] mb-1.5 block flex items-center gap-1">
               <Wallet size={12} /> نوع الدفع
             </label>
             <select
@@ -363,7 +363,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
           </div>
           
           <div>
-            <label className="text-xs font-bold text-gray-400 mb-1 block flex items-center gap-1">
+            <label className="text-xs font-bold text-[#718394] mb-1.5 block flex items-center gap-1">
               <Filter size={12} /> الحالة
             </label>
             <select
@@ -381,121 +381,121 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
 
         {/* Summary Stats */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
-          <div className="bg-green-50 p-4 rounded-xl border border-green-100">
-            <div className="flex items-center gap-2 text-green-600 mb-1">
+          <div className="bg-emerald-50/70 p-4 rounded-2xl border border-emerald-200/80">
+            <div className="flex items-center gap-2 text-emerald-700 mb-1">
               <CheckCircle size={18} />
               <span className="text-xs font-bold">المدفوعات المؤكدة</span>
             </div>
-            <p className="text-2xl font-black text-green-700">
+            <p className="text-2xl font-black text-emerald-700 fv-num">
               {payments.filter(p => p.status === 'paid').length}
             </p>
           </div>
-          <div className="bg-yellow-50 p-4 rounded-xl border border-yellow-100">
-            <div className="flex items-center gap-2 text-yellow-600 mb-1">
+          <div className="bg-amber-50/70 p-4 rounded-2xl border border-amber-200/80">
+            <div className="flex items-center gap-2 text-amber-700 mb-1">
               <Clock size={18} />
               <span className="text-xs font-bold">قيد الانتظار</span>
             </div>
-            <p className="text-2xl font-black text-yellow-700">
+            <p className="text-2xl font-black text-amber-700 fv-num">
               {payments.filter(p => p.status === 'pending').length}
             </p>
           </div>
-          <div className="bg-blue-50 p-4 rounded-xl border border-blue-100">
-            <div className="flex items-center gap-2 text-blue-600 mb-1">
+          <div className="bg-[#F5FAFC] p-4 rounded-2xl border border-[#DFEAF0]">
+            <div className="flex items-center gap-2 text-[#087F8C] mb-1">
               <Banknote size={18} />
               <span className="text-xs font-bold">إجمالي المدفوع</span>
             </div>
-            <p className="text-2xl font-black text-blue-700">
-              {totalPaidAmount.toLocaleString('ar-EG')} ج.م
+            <p className="text-2xl font-black text-[#172B3A] fv-num">
+              {totalPaidAmount.toLocaleString('ar-EG')} <span className="text-sm font-bold text-[#718394]">ج.م</span>
             </p>
           </div>
         </div>
 
         {/* Error State */}
         {error && (
-          <div className="bg-red-50 text-red-600 p-4 rounded-xl mb-4 flex items-center gap-2">
+          <div className="bg-red-50 text-red-700 border border-red-200 p-4 rounded-xl mb-4 flex items-center gap-2">
             <XCircle size={20} />
-            <span>{error}</span>
-            <button onClick={fetchPayments} className="mr-auto text-sm underline">إعادة المحاولة</button>
+            <span className="font-bold text-sm">{error}</span>
+            <button onClick={fetchPayments} className="mr-auto text-xs font-bold underline cursor-pointer">إعادة المحاولة</button>
           </div>
         )}
 
         {/* Loading State */}
         {loading && (
-          <div className="text-center py-10 text-gray-400">
-            <RefreshCw size={32} className="animate-spin mx-auto mb-2" />
-            <p>جاري تحميل المدفوعات...</p>
+          <div className="text-center py-10 text-[#718394]">
+            <RefreshCw size={32} className="animate-spin mx-auto mb-2 text-[#087F8C]" />
+            <p className="font-bold text-sm">جاري تحميل المدفوعات...</p>
           </div>
         )}
 
         {/* Payments Table */}
         {!loading && !error && (
-          <div className="overflow-x-auto">
+          <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
             {filteredPayments.length === 0 ? (
-              <div className="text-center py-16 text-gray-400">
-                <CreditCard size={48} className="mx-auto mb-4 opacity-30" />
-                <p className="text-lg font-bold">لا توجد مدفوعات مطابقة للبحث</p>
-                <p className="text-sm mt-1">قم بتغيير معايير البحث أو انتظر وصول مدفوعات جديدة</p>
+              <div className="text-center py-16 text-[#718394]">
+                <CreditCard size={44} className="mx-auto mb-4 opacity-30 text-[#087F8C]" />
+                <p className="text-lg font-bold text-[#172B3A]">لا توجد مدفوعات مطابقة للبحث</p>
+                <p className="text-xs mt-1">قم بتغيير معايير البحث أو انتظر وصول مدفوعات جديدة</p>
               </div>
             ) : (
               <table className="w-full text-right">
-                <thead className="bg-gray-50 text-gray-500 text-xs uppercase">
+                <thead className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                   <tr>
-                    <th className="p-4">المريض / الهاتف</th>
-                    <th className="p-4">رقم العملية</th>
-                    <th className="p-4">نوع الدفع</th>
-                    <th className="p-4">المبلغ</th>
-                    <th className="p-4">الحالة</th>
-                    <th className="p-4">التاريخ</th>
-                    {isAdmin && <th className="p-4"></th>}
+                    <th className="p-3.5">المريض / الهاتف</th>
+                    <th className="p-3.5">رقم العملية</th>
+                    <th className="p-3.5">نوع الدفع</th>
+                    <th className="p-3.5">المبلغ</th>
+                    <th className="p-3.5">الحالة</th>
+                    <th className="p-3.5">التاريخ</th>
+                    {isAdmin && <th className="p-3.5"></th>}
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-gray-50">
+                <tbody className="divide-y divide-[#DFEAF0]/70">
                   {filteredPayments.map(payment => {
                     // Paid booking that was later cancelled: show the row text in red
                     const cancelled = !!payment.booking_id && cancelledBookingIds.has(payment.booking_id);
                     const c = (normal: string) => (cancelled ? 'text-red-600' : normal);
                     return (
-                    <tr key={payment.id} className="hover:bg-blue-50/10 transition-colors">
-                      <td className="p-4">
-                        <div className={`font-bold ${c('text-gray-900')}`}>{payment.patient_name}</div>
-                        <div className={`text-xs ${c('text-gray-400')} mt-1`} dir="ltr">
+                    <tr key={payment.id} className="hover:bg-[#F5FAFC] transition-colors">
+                      <td className="p-3.5">
+                        <div className={`font-bold ${c('text-[#172B3A]')}`}>{payment.patient_name}</div>
+                        <div className={`text-xs fv-mono ${c('text-[#718394]')} mt-1`} dir="ltr">
                           {payment.patient_phone || 'غير مسجل'}
                         </div>
                       </td>
-                      <td className="p-4">
-                        <span className={`font-mono text-sm bg-gray-100 px-2 py-1 rounded-sm ${cancelled ? 'text-red-600' : ''}`}>
+                      <td className="p-3.5">
+                        <span className={`fv-mono text-xs bg-[#F5FAFC] border border-[#DFEAF0] px-2.5 py-1 rounded-md ${cancelled ? 'text-red-600' : 'text-[#172B3A]'}`}>
                           {payment.transaction_id}
                         </span>
                       </td>
-                      <td className="p-4">
-                        <span className={`text-sm font-bold ${c('text-blue-600')}`}>
+                      <td className="p-3.5">
+                        <span className={`text-sm font-bold ${c('text-[#087F8C]')}`}>
                           {PAYMENT_TYPE_LABELS[payment.payment_type]}
                         </span>
                         {payment.payment_type_detail && (
-                          <div className={`text-xs ${c('text-gray-400')} mt-1`}>{payment.payment_type_detail}</div>
+                          <div className={`text-xs ${c('text-[#718394]')} mt-1`}>{payment.payment_type_detail}</div>
                         )}
                       </td>
-                      <td className="p-4">
-                        <span className={`font-bold text-lg ${c('text-gray-900')}`}>{payment.amount}</span>
-                        <span className={`text-sm ${c('text-gray-500')} mr-1`}>ج.م</span>
+                      <td className="p-3.5 fv-num">
+                        <span className={`font-black text-base ${c('text-[#172B3A]')}`}>{payment.amount}</span>
+                        <span className={`text-xs ${c('text-[#718394]')} mr-1`}>ج.م</span>
                       </td>
-                      <td className="p-4">
-                        <span className={`px-2 py-1 rounded-full text-[10px] font-black ${STATUS_COLORS[payment.status]}`}>
+                      <td className="p-3.5">
+                        <span className={`px-2.5 py-1 rounded-md text-[10px] font-black ${STATUS_COLORS[payment.status]}`}>
                           {STATUS_LABELS[payment.status]}
                         </span>
                       </td>
-                      <td className={`p-4 text-sm ${c('text-gray-600')}`}>
+                      <td className={`p-3.5 text-xs fv-num ${c('text-[#172B3A]')}`}>
                         {new Date(payment.created_at).toLocaleDateString('ar-EG')}
-                        <div className={`text-xs ${c('text-gray-400')}`}>
+                        <div className={`text-[11px] ${c('text-[#718394]')}`}>
                           {new Date(payment.created_at).toLocaleTimeString('ar-EG')}
                         </div>
                       </td>
                       {isAdmin && (
-                        <td className="p-4">
+                        <td className="p-3.5">
                           <button
                             onClick={() => deletePayment(payment)}
                             disabled={deletingId === payment.id}
-                            className="p-2 bg-gray-50 text-gray-400 rounded-lg hover:bg-red-600 hover:text-white transition-all disabled:opacity-60"
+                            className="p-2 bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 transition-all disabled:opacity-60 cursor-pointer"
                             title="حذف العملية نهائياً"
                           >
                             <Trash2 size={16} />
@@ -515,28 +515,28 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
       {/* Integration Info */}
       <div className={cardClass}>
         <div className="flex items-center gap-3 mb-4">
-          <div className="bg-purple-100 p-2 rounded-xl text-purple-600">
-            <FileText size={24} />
+          <div className="bg-[#087F8C]/10 border border-[#087F8C]/20 p-2.5 rounded-xl text-[#087F8C]">
+            <FileText size={22} />
           </div>
-          <h3 className="text-xl font-bold text-gray-900">معلومات التكامل</h3>
+          <h3 className="text-xl font-black text-[#172B3A]">معلومات التكامل</h3>
         </div>
-        <div className="bg-purple-50 p-6 rounded-2xl border border-purple-100">
-          <p className="text-sm text-purple-800 mb-4 font-bold">
+        <div className="bg-[#F5FAFC] p-6 rounded-2xl border border-[#DFEAF0]">
+          <p className="text-sm text-[#172B3A] mb-4 font-bold">
             لاستقبال إشعارات الدفع تلقائياً، قم بإرسال طلب POST إلى الـ Webhook التالي:
           </p>
-          <div className="bg-white p-4 rounded-xl border border-purple-200 font-mono text-xs overflow-x-auto" dir="ltr">
-            <code className="text-purple-700">
+          <div className="bg-[#0B1F35] text-white p-4 rounded-xl border border-[#102C48] fv-mono text-xs overflow-x-auto" dir="ltr">
+            <code className="text-[#25B8C7]">
               POST {typeof window !== 'undefined' ? window.location.origin : ''}/api/public/payment-webhook
             </code>
           </div>
-          <div className="mt-4 text-xs text-purple-600">
-            <p className="font-bold mb-2">الحقول المطلوبة في الطلب (JSON):</p>
-            <ul className="space-y-1 list-disc list-inside">
-              <li><code>patient_name</code> - اسم المريض (نص)</li>
-              <li><code>amount</code> - المبلغ (رقم)</li>
-              <li><code>transaction_id</code> - رقم العملية (نص فريد)</li>
-              <li><code>payment_type</code> - نوع الدفع (wallet/instapay/fawry/other)</li>
-              <li><code>patient_phone</code> - رقم الهاتف (اختياري)</li>
+          <div className="mt-4 text-xs text-[#718394]">
+            <p className="font-bold text-[#172B3A] mb-2">الحقول المطلوبة في الطلب (JSON):</p>
+            <ul className="space-y-1.5 list-disc list-inside">
+              <li><code className="fv-mono text-[#087F8C] font-bold">patient_name</code> - اسم المريض (نص)</li>
+              <li><code className="fv-mono text-[#087F8C] font-bold">amount</code> - المبلغ (رقم)</li>
+              <li><code className="fv-mono text-[#087F8C] font-bold">transaction_id</code> - رقم العملية (نص فريد)</li>
+              <li><code className="fv-mono text-[#087F8C] font-bold">payment_type</code> - نوع الدفع (wallet/instapay/fawry/other)</li>
+              <li><code className="fv-mono text-[#087F8C] font-bold">patient_phone</code> - رقم الهاتف (اختياري)</li>
             </ul>
           </div>
         </div>

@@ -95,15 +95,15 @@ const startOfMonth = () => {
 
 // =========== StatCard ===========
 const StatCard = ({ label, value, icon: Icon, color, sub }: { label: string; value: string | number; icon: any; color: string; sub?: string }) => (
-  <div className="bg-white p-5 rounded-2xl border border-gray-100 shadow-xs hover:shadow-md transition-shadow">
+  <div className="bg-white p-5 rounded-2xl border border-[#DFEAF0] shadow-[0_10px_28px_-18px_rgba(11,31,53,0.18)] hover:border-[#25B8C7]/50 transition-all">
     <div className="flex items-center gap-3 mb-3">
       <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${color}`}>
         <Icon size={20} />
       </div>
-      <span className="text-xs font-bold text-gray-400">{label}</span>
+      <span className="text-xs font-bold text-[#718394]">{label}</span>
     </div>
-    <h3 className="text-2xl font-black text-gray-900">{value}</h3>
-    {sub && <p className="text-[10px] text-gray-400 font-bold mt-1">{sub}</p>}
+    <h3 className="text-2xl font-black text-[#172B3A] fv-num">{value}</h3>
+    {sub && <p className="text-[11px] text-[#718394] font-bold mt-1 fv-num">{sub}</p>}
   </div>
 );
 
@@ -111,12 +111,12 @@ const StatCard = ({ label, value, icon: Icon, color, sub }: { label: string; val
 const AlertItem = ({ icon: Icon, color, text, count }: { icon: any; color: string; text: string; count: number }) => {
   if (count === 0) return null;
   return (
-    <div className={`flex items-center justify-between p-3 rounded-xl border ${color}`}>
-      <div className="flex items-center gap-2">
+    <div className={`flex items-center justify-between p-3.5 rounded-xl border ${color}`}>
+      <div className="flex items-center gap-2.5">
         <Icon size={16} />
         <span className="text-sm font-bold">{text}</span>
       </div>
-      <span className="text-lg font-black">{count}</span>
+      <span className="text-lg font-black fv-num">{count}</span>
     </div>
   );
 };
@@ -407,15 +407,15 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <style>
             @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;700&display=swap');
             @page { margin: 10mm; size: A4; }
-            body { font-family: 'Cairo', sans-serif; margin: 0; padding: 10mm; color: #333; font-size: 10pt; }
-            .header { text-align: center; border-bottom: 2px solid #2563eb; margin-bottom: 15px; padding-bottom: 8px; }
-            .header h1 { margin: 0; font-size: 16pt; color: #1e3a8a; }
-            .header h2 { margin: 5px 0 0; font-size: 12pt; color: #64748b; }
-            h3 { color: #1e3a8a; font-size: 12pt; margin: 15px 0 5px; border-bottom: 1px solid #e2e8f0; padding-bottom: 3px; }
+            body { font-family: 'Cairo', sans-serif; margin: 0; padding: 10mm; color: #172B3A; font-size: 10pt; }
+            .header { text-align: center; border-bottom: 2px solid #087F8C; margin-bottom: 15px; padding-bottom: 8px; }
+            .header h1 { margin: 0; font-size: 16pt; color: #0B1F35; }
+            .header h2 { margin: 5px 0 0; font-size: 12pt; color: #718394; }
+            h3 { color: #087F8C; font-size: 12pt; margin: 15px 0 5px; border-bottom: 1px solid #DFEAF0; padding-bottom: 3px; }
             table { width: 100%; border-collapse: collapse; margin-bottom: 10px; }
-            th, td { border: 1px solid #e2e8f0; padding: 4px 8px; text-align: right; font-size: 9pt; }
-            th { background-color: #f8fafc; font-weight: bold; }
-            .footer { margin-top: 20px; font-size: 8pt; text-align: center; color: #94a3b8; border-top: 1px dashed #e2e8f0; padding-top: 10px; }
+            th, td { border: 1px solid #DFEAF0; padding: 4px 8px; text-align: right; font-size: 9pt; }
+            th { background-color: #F5FAFC; font-weight: bold; }
+            .footer { margin-top: 20px; font-size: 8pt; text-align: center; color: #718394; border-top: 1px dashed #DFEAF0; padding-top: 10px; }
             @media print { img { display: none !important; } }
           </style>
         </head>
@@ -435,15 +435,15 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
 
   // =========== Mini Bar Chart (CSS-only) ===========
   const MiniBar = ({ data, maxVal }: { data: { label: string; value: number }[]; maxVal: number }) => (
-    <div className="flex items-end gap-1 h-24">
+    <div className="flex items-end gap-1.5 h-24">
       {data.map((d, i) => (
         <div key={i} className="flex-1 flex flex-col items-center gap-1">
-          <span className="text-[8px] text-gray-400 font-bold">{d.value}</span>
+          <span className="text-[9px] text-[#718394] font-bold fv-num">{d.value}</span>
           <div
-            className="w-full bg-blue-500 rounded-t-md min-h-[2px] transition-all"
+            className="w-full bg-gradient-to-t from-[#087F8C] to-[#25B8C7] rounded-t-md min-h-[3px] transition-all"
             style={{ height: `${maxVal > 0 ? (d.value / maxVal) * 100 : 0}%` }}
           />
-          <span className="text-[7px] text-gray-400 font-bold truncate w-full text-center">{d.label.slice(5)}</span>
+          <span className="text-[8px] text-[#718394] font-bold truncate w-full text-center fv-num">{d.label.slice(5)}</span>
         </div>
       ))}
     </div>
@@ -464,17 +464,17 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
       {/* Header */}
       <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4">
         <div>
-          <h2 className="text-2xl font-black text-gray-900 flex items-center gap-2">
-            <Eye size={28} className="text-blue-600" /> نظرة عامة
+          <h2 className="text-2xl font-black text-[#172B3A] flex items-center gap-2.5">
+            <Eye size={26} className="text-[#087F8C]" /> نظرة عامة
           </h2>
-          <p className="text-xs text-gray-400 font-bold mt-1">تحديث تلقائي كل 60 ثانية • بيانات حقيقية مباشرة</p>
+          <p className="text-xs text-[#718394] font-bold mt-1">تحديث تلقائي كل 60 ثانية • بيانات حقيقية مباشرة</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={fetchLogs} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-blue-100 transition-all">
+          <button onClick={fetchLogs} className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#087F8C]/10 transition-all cursor-pointer">
             <RefreshCw size={14} className={logsLoading ? 'animate-spin' : ''} /> تحديث
           </button>
-          <button onClick={handlePrint} className="bg-gray-50 text-gray-600 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-gray-100 transition-all">
-            <Printer size={14} /> طباعة / PDF
+          <button onClick={handlePrint} className="bg-white text-[#172B3A] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#F5FAFC] transition-all cursor-pointer">
+            <Printer size={14} className="text-[#1769AA]" /> طباعة / PDF
           </button>
         </div>
       </div>
@@ -485,16 +485,16 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <button
             key={tab.id}
             onClick={() => setActiveSubTab(tab.id as any)}
-            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all ${
+            className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-bold transition-all cursor-pointer ${
               activeSubTab === tab.id
-                ? 'bg-blue-600 text-white shadow-lg shadow-blue-200'
-                : 'bg-white text-gray-500 border border-gray-100 hover:bg-blue-50 hover:text-blue-600'
+                ? 'fv-btn-primary text-white'
+                : 'bg-white text-[#718394] border border-[#DFEAF0] hover:bg-[#F5FAFC] hover:text-[#087F8C]'
             }`}
           >
             <tab.icon size={16} />
             {tab.label}
             {tab.id === 'alerts' && totalAlerts > 0 && (
-              <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black">{totalAlerts}</span>
+              <span className="bg-red-500 text-white text-[10px] px-1.5 py-0.5 rounded-full font-black fv-num">{totalAlerts}</span>
             )}
           </button>
         ))}
@@ -505,51 +505,51 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         <div className="space-y-6">
           {/* Quick Stats Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <StatCard label="حجوزات مؤكدة" value={stats.confirmedBookings} icon={CheckCircle} color="bg-green-100 text-green-600" />
-            <StatCard label="حجوزات ملغية" value={stats.cancelledBookings} icon={XCircle} color="bg-red-100 text-red-600" />
-            <StatCard label="حجوزات اليوم" value={stats.todayBookings} icon={Calendar} color="bg-blue-100 text-blue-600" />
-            <StatCard label="حجوزات الغد" value={stats.tomorrowBookings} icon={CalendarDays} color="bg-purple-100 text-purple-600" />
-            <StatCard label="في انتظار الدفع" value={stats.pendingBookings} icon={Banknote} color="bg-yellow-100 text-yellow-600" />
+            <StatCard label="حجوزات مؤكدة" value={stats.confirmedBookings} icon={CheckCircle} color="bg-emerald-50 text-emerald-600 border border-emerald-200/70" />
+            <StatCard label="حجوزات ملغية" value={stats.cancelledBookings} icon={XCircle} color="bg-red-50 text-red-600 border border-red-200/70" />
+            <StatCard label="حجوزات اليوم" value={stats.todayBookings} icon={Calendar} color="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20" />
+            <StatCard label="حجوزات الغد" value={stats.tomorrowBookings} icon={CalendarDays} color="bg-[#1769AA]/10 text-[#1769AA] border border-[#1769AA]/20" />
+            <StatCard label="في انتظار الدفع" value={stats.pendingBookings} icon={Banknote} color="bg-amber-50 text-amber-600 border border-amber-200/70" />
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-4">
-            <StatCard label="إجمالي المرضى" value={stats.totalPatients} icon={Users} color="bg-indigo-100 text-indigo-600" />
-            <StatCard label="مرضى جدد (الشهر)" value={stats.newPatientsThisMonth} icon={TrendingUp} color="bg-emerald-100 text-emerald-600" />
-            <StatCard label="الأطباء" value={stats.totalDoctors} icon={Activity} color="bg-cyan-100 text-cyan-600" sub={`${stats.activeDoctorsToday} نشط اليوم`} />
-            <StatCard label="عمليات مؤكدة" value={stats.confirmedOps} icon={Scissors} color="bg-violet-100 text-violet-600" />
-            <StatCard label="عمليات معلقة" value={stats.pendingOps} icon={Clock} color="bg-orange-100 text-orange-600" />
+            <StatCard label="إجمالي المرضى" value={stats.totalPatients} icon={Users} color="bg-[#1769AA]/10 text-[#1769AA] border border-[#1769AA]/20" />
+            <StatCard label="مرضى جدد (الشهر)" value={stats.newPatientsThisMonth} icon={TrendingUp} color="bg-emerald-50 text-emerald-600 border border-emerald-200/70" />
+            <StatCard label="الأطباء" value={stats.totalDoctors} icon={Activity} color="bg-[#25B8C7]/15 text-[#087F8C] border border-[#25B8C7]/30" sub={`${stats.activeDoctorsToday} نشط اليوم`} />
+            <StatCard label="عمليات مؤكدة" value={stats.confirmedOps} icon={Scissors} color="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20" />
+            <StatCard label="عمليات معلقة" value={stats.pendingOps} icon={Clock} color="bg-amber-50 text-amber-600 border border-amber-200/70" />
           </div>
 
           {/* Charts Row */}
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Last 7 Days */}
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><BarChart2 size={16} className="text-blue-600" /> آخر 7 أيام</h3>
+              <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><BarChart2 size={16} className="text-[#087F8C]" /> آخر 7 أيام</h3>
               <MiniBar
                 data={stats.last7Days.map(d => ({ label: d.date, value: d.bookings + d.operations }))}
                 maxVal={Math.max(...stats.last7Days.map(d => d.bookings + d.operations), 1)}
               />
-              <div className="flex gap-4 mt-3 text-[10px] font-bold text-gray-400">
-                <span>● حجوزات: {stats.last7Days.reduce((a, d) => a + d.bookings, 0)}</span>
-                <span>● عمليات: {stats.last7Days.reduce((a, d) => a + d.operations, 0)}</span>
+              <div className="flex gap-4 mt-3 text-[11px] font-bold text-[#718394] fv-num">
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#087F8C] inline-block" /> حجوزات: {stats.last7Days.reduce((a, d) => a + d.bookings, 0)}</span>
+                <span className="flex items-center gap-1.5"><span className="w-2 h-2 rounded-full bg-[#25B8C7] inline-block" /> عمليات: {stats.last7Days.reduce((a, d) => a + d.operations, 0)}</span>
               </div>
             </div>
 
             {/* Peak Hours */}
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><Clock size={16} className="text-blue-600" /> أكثر ساعات الحجز</h3>
-              <div className="space-y-2">
-                {stats.peakHours.length === 0 && <p className="text-gray-400 text-xs">لا توجد بيانات</p>}
-                {stats.peakHours.map(([hour, count], i) => (
+              <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><Clock size={16} className="text-[#087F8C]" /> أكثر ساعات الحجز</h3>
+              <div className="space-y-2.5">
+                {stats.peakHours.length === 0 && <p className="text-[#718394] text-xs font-bold">لا توجد بيانات</p>}
+                {stats.peakHours.map(([hour, count]) => (
                   <div key={hour} className="flex items-center gap-3">
-                    <span className="text-xs font-bold text-gray-500 w-16">{hour}:00</span>
-                    <div className="flex-1 bg-gray-100 rounded-full h-4 overflow-hidden">
+                    <span className="text-xs font-bold text-[#718394] w-16 fv-num">{hour}:00</span>
+                    <div className="flex-1 bg-[#F5FAFC] border border-[#DFEAF0] rounded-full h-3.5 overflow-hidden">
                       <div
-                        className="bg-blue-500 h-full rounded-full transition-all"
+                        className="bg-gradient-to-r from-[#087F8C] to-[#25B8C7] h-full rounded-full transition-all"
                         style={{ width: `${(count / (stats.peakHours[0]?.[1] || 1)) * 100}%` }}
                       />
                     </div>
-                    <span className="text-xs font-black text-gray-700 w-8">{count}</span>
+                    <span className="text-xs font-black text-[#172B3A] w-8 fv-num">{count}</span>
                   </div>
                 ))}
               </div>
@@ -560,19 +560,19 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
             {/* Service Distribution */}
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><PieChart size={16} className="text-blue-600" /> توزيع نوع الخدمة</h3>
+              <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><PieChart size={16} className="text-[#087F8C]" /> توزيع نوع الخدمة</h3>
               <div className="flex items-center gap-4">
                 <div className="flex-1">
                   <div className="flex items-center gap-2 mb-2">
-                    <div className="w-3 h-3 bg-green-500 rounded-full" />
-                    <span className="text-xs font-bold text-gray-600">نقدي: {stats.cashCount}</span>
+                    <div className="w-3 h-3 bg-emerald-500 rounded-full" />
+                    <span className="text-xs font-bold text-[#172B3A] fv-num">نقدي: {stats.cashCount}</span>
                   </div>
                   <div className="flex items-center gap-2">
-                    <div className="w-3 h-3 bg-blue-500 rounded-full" />
-                    <span className="text-xs font-bold text-gray-600">تعاقد: {stats.contractCount}</span>
+                    <div className="w-3 h-3 bg-[#087F8C] rounded-full" />
+                    <span className="text-xs font-bold text-[#172B3A] fv-num">تعاقد: {stats.contractCount}</span>
                   </div>
                 </div>
-                <div className="text-3xl font-black text-gray-200">
+                <div className="text-3xl font-black text-[#087F8C]/25 fv-num">
                   {stats.cashCount + stats.contractCount > 0
                     ? `${Math.round((stats.cashCount / (stats.cashCount + stats.contractCount)) * 100)}%`
                     : '0%'}
@@ -582,34 +582,34 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
 
             {/* Operational Metrics */}
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><Activity size={16} className="text-blue-600" /> مؤشرات تشغيلية</h3>
+              <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><Activity size={16} className="text-[#087F8C]" /> مؤشرات تشغيلية</h3>
               <div className="space-y-3">
                 <div className="flex justify-between text-xs font-bold">
-                  <span className="text-gray-500">نسبة الإلغاء</span>
-                  <span className="text-red-600">{stats.noShowRate}%</span>
+                  <span className="text-[#718394]">نسبة الإلغاء</span>
+                  <span className="text-red-600 fv-num">{stats.noShowRate}%</span>
                 </div>
                 <div className="flex justify-between text-xs font-bold">
-                  <span className="text-gray-500">نسبة التأكيد</span>
-                  <span className="text-green-600">{100 - stats.noShowRate}%</span>
+                  <span className="text-[#718394]">نسبة التأكيد</span>
+                  <span className="text-emerald-600 fv-num">{100 - stats.noShowRate}%</span>
                 </div>
                 <div className="flex justify-between text-xs font-bold">
-                  <span className="text-gray-500">نسبة التأكيد بعد الاتصال</span>
-                  <span className="text-blue-600">{staffPerformance.confirmationRate}%</span>
+                  <span className="text-[#718394]">نسبة التأكيد بعد الاتصال</span>
+                  <span className="text-[#087F8C] fv-num">{staffPerformance.confirmationRate}%</span>
                 </div>
               </div>
             </div>
 
             {/* Doctor Performance Summary */}
             <div className={cardClass}>
-              <h3 className="text-sm font-black text-gray-700 mb-4 flex items-center gap-2"><Star size={16} className="text-blue-600" /> أداء الأطباء</h3>
-              <div className="space-y-2">
+              <h3 className="text-sm font-black text-[#172B3A] mb-4 flex items-center gap-2"><Star size={16} className="text-[#087F8C]" /> أداء الأطباء</h3>
+              <div className="space-y-2.5">
                 {stats.doctorPerformance.slice(0, 5).map((doc, i) => (
                   <div key={doc.name} className="flex items-center gap-2">
-                    <span className="text-[10px] font-black text-gray-400 w-4">{i + 1}</span>
-                    <span className="text-xs font-bold text-gray-700 flex-1 truncate">{doc.name}</span>
-                    <span className="text-[10px] font-black text-blue-600">{doc.total}</span>
-                    <div className="w-16 bg-gray-100 rounded-full h-2 overflow-hidden">
-                      <div className={`h-full rounded-full ${doc.loadPercent > 90 ? 'bg-red-500' : doc.loadPercent > 60 ? 'bg-yellow-500' : 'bg-green-500'}`} style={{ width: `${Math.min(doc.loadPercent, 100)}%` }} />
+                    <span className="text-[11px] font-black text-[#718394] w-4 fv-num">{i + 1}</span>
+                    <span className="text-xs font-bold text-[#172B3A] flex-1 truncate">{doc.name}</span>
+                    <span className="text-[11px] font-black text-[#087F8C] fv-num">{doc.total}</span>
+                    <div className="w-16 bg-[#F5FAFC] border border-[#DFEAF0] rounded-full h-2 overflow-hidden">
+                      <div className={`h-full rounded-full ${doc.loadPercent > 90 ? 'bg-red-500' : doc.loadPercent > 60 ? 'bg-amber-500' : 'bg-emerald-500'}`} style={{ width: `${Math.min(doc.loadPercent, 100)}%` }} />
                     </div>
                   </div>
                 ))}
@@ -622,14 +622,14 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
       {/* =================== ALERTS TAB =================== */}
       {activeSubTab === 'alerts' && (
         <div className={cardClass}>
-          <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
+          <h3 className="text-lg font-black text-[#172B3A] mb-6 flex items-center gap-2">
             <AlertTriangle size={20} className="text-red-500" /> لوحة التنبيهات
-            {totalAlerts > 0 && <span className="bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full font-black">{totalAlerts} تنبيه</span>}
+            {totalAlerts > 0 && <span className="bg-red-50 text-red-600 border border-red-200 text-xs px-2.5 py-0.5 rounded-full font-black fv-num">{totalAlerts} تنبيه</span>}
           </h3>
           {totalAlerts === 0 ? (
-            <div className="text-center py-10 text-gray-400">
-              <CheckCircle size={40} className="mx-auto mb-3 text-green-400" />
-              <p className="font-bold">لا توجد تنبيهات حالياً - كل شيء تحت السيطرة ✅</p>
+            <div className="text-center py-10 text-[#718394]">
+              <CheckCircle size={40} className="mx-auto mb-3 text-emerald-500" />
+              <p className="font-bold text-[#172B3A]">لا توجد تنبيهات حالياً - كل شيء تحت السيطرة</p>
             </div>
           ) : (
             <div className="space-y-3">
@@ -638,7 +638,7 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
               <AlertItem icon={Phone} color="bg-amber-50 border-amber-200 text-amber-700" text="حجوزات داخل نافذة التذكير بدون اتصال" count={alerts.uncontactedInWindow} />
               <AlertItem icon={Flame} color="bg-red-50 border-red-200 text-red-600" text="أطباء ممتلئون (≥90%)" count={alerts.fullDoctors} />
               <AlertItem icon={Banknote} color="bg-yellow-50 border-yellow-200 text-yellow-700" text="مدفوعات معلقة" count={alerts.failedPayments} />
-              <AlertItem icon={Users} color="bg-purple-50 border-purple-200 text-purple-700" text="مواعيد مزدحمة" count={alerts.crowdedSlots} />
+              <AlertItem icon={Users} color="bg-[#1769AA]/10 border-[#1769AA]/25 text-[#1769AA]" text="مواعيد مزدحمة" count={alerts.crowdedSlots} />
             </div>
           )}
         </div>
@@ -648,23 +648,24 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
       {activeSubTab === 'reminders' && (
         <div className="space-y-6">
           <div className={cardClass}>
-            <h3 className="text-lg font-black text-gray-900 mb-2 flex items-center gap-2">
-              <Bell size={20} className="text-blue-600" /> مراقبة تنفيذ التذكيرات
+            <h3 className="text-lg font-black text-[#172B3A] mb-3 flex items-center gap-2">
+              <Bell size={20} className="text-[#087F8C]" /> مراقبة تنفيذ التذكيرات
             </h3>
-            <p className="text-xs text-gray-400 font-bold mb-6 bg-blue-50 p-3 rounded-xl border border-blue-100">
-              📋 يعرض حجوزات الغد التي لم يُسجَّل لها اتصال بعد. نافذة التذكير الحالية: {intervalHours} ساعة.
+            <p className="text-xs text-[#172B3A] font-bold mb-6 bg-[#F5FAFC] p-3.5 rounded-xl border border-[#DFEAF0] flex items-center gap-2 fv-num">
+              <Bell size={15} className="text-[#087F8C] shrink-0" />
+              <span>يعرض حجوزات الغد التي لم يُسجَّل لها اتصال بعد. نافذة التذكير الحالية: {intervalHours} ساعة.</span>
             </p>
 
             {upcomingReminders.length === 0 ? (
-              <div className="text-center py-10 text-gray-400">
-                <CheckCircle size={40} className="mx-auto mb-3 text-green-400" />
-                <p className="font-bold">تم الاتصال بجميع مرضى الغد ✅</p>
+              <div className="text-center py-10 text-[#718394]">
+                <CheckCircle size={40} className="mx-auto mb-3 text-emerald-500" />
+                <p className="font-bold text-[#172B3A]">تم الاتصال بجميع مرضى الغد</p>
               </div>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-gray-100">
+              <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                    <tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                       <th className="p-3 text-right">المريض</th>
                       <th className="p-3 text-right">الهاتف</th>
                       <th className="p-3 text-right">الطبيب</th>
@@ -673,17 +674,17 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                       <th className="p-3 text-right">حالة التذكير</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-[#DFEAF0]/70">
                     {upcomingReminders.map(b => (
-                      <tr key={b.id} className="border-t border-gray-50 hover:bg-red-50/30">
-                        <td className="p-3 font-bold text-gray-900">{b.patientName}</td>
-                        <td className="p-3 text-xs text-gray-500 font-mono" dir="ltr">{b.phone}</td>
-                        <td className="p-3 text-xs">{b.doctorName}</td>
-                        <td className="p-3 text-xs font-bold">{b.date} - {b.time}</td>
-                        <td className="p-3 text-xs">{b.service}</td>
+                      <tr key={b.id} className="hover:bg-red-50/30 transition-colors">
+                        <td className="p-3 font-bold text-[#172B3A]">{b.patientName}</td>
+                        <td className="p-3 text-xs text-[#718394] fv-mono" dir="ltr">{b.phone}</td>
+                        <td className="p-3 text-xs text-[#172B3A]">{b.doctorName}</td>
+                        <td className="p-3 text-xs font-bold text-[#172B3A] fv-num">{b.date} - {b.time}</td>
+                        <td className="p-3 text-xs text-[#718394]">{b.service}</td>
                         <td className="p-3">
-                          <span className="px-2 py-1 rounded-full text-[10px] font-black bg-red-100 text-red-700">
-                            ⚠️ لم يتم الاتصال
+                          <span className="inline-flex items-center gap-1 px-2.5 py-1 rounded-md text-[10px] font-black bg-red-50 text-red-700 border border-red-200/80">
+                            <AlertTriangle size={11} /> لم يتم الاتصال
                           </span>
                         </td>
                       </tr>
@@ -701,44 +702,44 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         <div className="space-y-6">
           {/* Summary Cards */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-            <StatCard label="إجمالي الاتصالات" value={staffPerformance.totalContacts} icon={Phone} color="bg-blue-100 text-blue-600" />
-            <StatCard label="نسبة التأكيد بعد الاتصال" value={`${staffPerformance.confirmationRate}%`} icon={CheckCircle} color="bg-green-100 text-green-600" />
-            <StatCard label="حجوزات الغد بدون اتصال" value={staffPerformance.unhandledTomorrow} icon={AlertCircle} color="bg-red-100 text-red-600" />
-            <StatCard label="عدد الموظفين النشطين" value={staffPerformance.staffList.length} icon={UserCheck} color="bg-purple-100 text-purple-600" />
+            <StatCard label="إجمالي الاتصالات" value={staffPerformance.totalContacts} icon={Phone} color="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20" />
+            <StatCard label="نسبة التأكيد بعد الاتصال" value={`${staffPerformance.confirmationRate}%`} icon={CheckCircle} color="bg-emerald-50 text-emerald-600 border border-emerald-200/70" />
+            <StatCard label="حجوزات الغد بدون اتصال" value={staffPerformance.unhandledTomorrow} icon={AlertCircle} color="bg-red-50 text-red-600 border border-red-200/70" />
+            <StatCard label="عدد الموظفين النشطين" value={staffPerformance.staffList.length} icon={UserCheck} color="bg-[#1769AA]/10 text-[#1769AA] border border-[#1769AA]/20" />
           </div>
 
           {/* Staff Performance Table */}
           <div className={cardClass}>
-            <h3 className="text-lg font-black text-gray-900 mb-6 flex items-center gap-2">
-              <UserCheck size={20} className="text-blue-600" /> مؤشرات أداء الموظفين
+            <h3 className="text-lg font-black text-[#172B3A] mb-6 flex items-center gap-2">
+              <UserCheck size={20} className="text-[#087F8C]" /> مؤشرات أداء الموظفين
             </h3>
             {staffPerformance.staffList.length === 0 ? (
-              <p className="text-center text-gray-400 py-10 font-bold">لا توجد بيانات اتصال مسجلة بعد</p>
+              <p className="text-center text-[#718394] py-10 font-bold">لا توجد بيانات اتصال مسجلة بعد</p>
             ) : (
-              <div className="overflow-x-auto rounded-2xl border border-gray-100">
+              <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                    <tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                       <th className="p-3 text-right">#</th>
                       <th className="p-3 text-right">الموظف</th>
-                      <th className="p-3 text-right">إجمالي الاتصالات</th>
-                      <th className="p-3 text-right">واتساب</th>
-                      <th className="p-3 text-right">SMS</th>
+                      <th className="p-3 text-center">إجمالي الاتصالات</th>
+                      <th className="p-3 text-center">واتساب</th>
+                      <th className="p-3 text-center">SMS</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-[#DFEAF0]/70">
                     {staffPerformance.staffList.map((staff, i) => (
-                      <tr key={staff.name} className="border-t border-gray-50 hover:bg-gray-50">
-                        <td className="p-3 text-xs font-black text-gray-400">{i + 1}</td>
-                        <td className="p-3 font-bold text-gray-900">{staff.name}</td>
+                      <tr key={staff.name} className="hover:bg-[#F5FAFC] transition-colors">
+                        <td className="p-3 text-xs font-black text-[#718394] fv-num">{i + 1}</td>
+                        <td className="p-3 font-bold text-[#172B3A]">{staff.name}</td>
                         <td className="p-3 text-center">
-                          <span className="bg-blue-100 text-blue-700 px-2 py-1 rounded-lg text-xs font-black">{staff.totalContacts}</span>
+                          <span className="bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20 px-2.5 py-1 rounded-lg text-xs font-black fv-num">{staff.totalContacts}</span>
                         </td>
                         <td className="p-3 text-center">
-                          <span className="text-xs font-bold text-green-600">{staff.results['whatsapp'] || 0}</span>
+                          <span className="text-xs font-bold text-emerald-600 fv-num">{staff.results['whatsapp'] || 0}</span>
                         </td>
                         <td className="p-3 text-center">
-                          <span className="text-xs font-bold text-amber-600">{staff.results['sms'] || 0}</span>
+                          <span className="text-xs font-bold text-amber-600 fv-num">{staff.results['sms'] || 0}</span>
                         </td>
                       </tr>
                     ))}
@@ -755,16 +756,16 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
         <div className="space-y-6">
           {/* Tomorrow's bookings without contact */}
           <div className={cardClass}>
-            <h3 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
-              <CalendarDays size={20} className="text-red-500" /> حجوزات الغد بدون نتيجة اتصال ({upcomingReminders.length})
+            <h3 className="text-lg font-black text-[#172B3A] mb-4 flex items-center gap-2">
+              <CalendarDays size={20} className="text-red-500" /> حجوزات الغد بدون نتيجة اتصال <span className="fv-num text-[#718394]">({upcomingReminders.length})</span>
             </h3>
             {upcomingReminders.length === 0 ? (
-              <p className="text-center text-gray-400 py-6 font-bold">✅ تم تغطية جميع حجوزات الغد</p>
+              <p className="text-center text-emerald-600 py-6 font-bold flex items-center justify-center gap-2"><CheckCircle size={18} /> تم تغطية جميع حجوزات الغد</p>
             ) : (
-              <div className="overflow-x-auto rounded-xl border border-gray-100">
+              <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                    <tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                       <th className="p-3 text-right">المريض</th>
                       <th className="p-3 text-right">الهاتف</th>
                       <th className="p-3 text-right">الطبيب</th>
@@ -772,14 +773,14 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
                       <th className="p-3 text-right">الوقت</th>
                     </tr>
                   </thead>
-                  <tbody>
+                  <tbody className="divide-y divide-[#DFEAF0]/70">
                     {upcomingReminders.map(b => (
-                      <tr key={b.id} className="border-t border-gray-50">
-                        <td className="p-3 font-bold">{b.patientName}</td>
-                        <td className="p-3 text-xs font-mono" dir="ltr">{b.phone}</td>
-                        <td className="p-3 text-xs">{b.doctorName}</td>
-                        <td className="p-3 text-xs">{b.service}</td>
-                        <td className="p-3 text-xs font-bold">{b.time}</td>
+                      <tr key={b.id} className="hover:bg-[#F5FAFC]">
+                        <td className="p-3 font-bold text-[#172B3A]">{b.patientName}</td>
+                        <td className="p-3 text-xs text-[#718394] fv-mono" dir="ltr">{b.phone}</td>
+                        <td className="p-3 text-xs text-[#172B3A]">{b.doctorName}</td>
+                        <td className="p-3 text-xs text-[#718394]">{b.service}</td>
+                        <td className="p-3 text-xs font-bold text-[#172B3A] fv-num">{b.time}</td>
                       </tr>
                     ))}
                   </tbody>
@@ -790,25 +791,25 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
 
           {/* Staff Comparison */}
           <div className={cardClass}>
-            <h3 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
-              <ArrowUpDown size={20} className="text-blue-600" /> مقارنة أداء الموظفين
+            <h3 className="text-lg font-black text-[#172B3A] mb-4 flex items-center gap-2">
+              <ArrowUpDown size={20} className="text-[#087F8C]" /> مقارنة أداء الموظفين
             </h3>
             {staffPerformance.staffList.length === 0 ? (
-              <p className="text-center text-gray-400 py-6 font-bold">لا توجد بيانات</p>
+              <p className="text-center text-[#718394] py-6 font-bold">لا توجد بيانات</p>
             ) : (
               <div className="space-y-3">
                 {staffPerformance.staffList.map((staff, i) => {
                   const maxContacts = staffPerformance.staffList[0]?.totalContacts || 1;
                   return (
                     <div key={staff.name} className="flex items-center gap-3">
-                      <span className="text-xs font-black text-gray-400 w-6">{i + 1}</span>
-                      <span className="text-xs font-bold text-gray-700 w-24 truncate">{staff.name}</span>
-                      <div className="flex-1 bg-gray-100 rounded-full h-5 overflow-hidden">
+                      <span className="text-xs font-black text-[#718394] w-6 fv-num">{i + 1}</span>
+                      <span className="text-xs font-bold text-[#172B3A] w-24 truncate">{staff.name}</span>
+                      <div className="flex-1 bg-[#F5FAFC] border border-[#DFEAF0] rounded-full h-5 overflow-hidden">
                         <div
-                          className="bg-blue-500 h-full rounded-full flex items-center justify-end px-2 transition-all"
+                          className="bg-gradient-to-r from-[#087F8C] to-[#25B8C7] h-full rounded-full flex items-center justify-end px-2 transition-all"
                           style={{ width: `${(staff.totalContacts / maxContacts) * 100}%` }}
                         >
-                          <span className="text-[9px] text-white font-black">{staff.totalContacts}</span>
+                          <span className="text-[10px] text-white font-black fv-num">{staff.totalContacts}</span>
                         </div>
                       </div>
                     </div>
@@ -820,34 +821,34 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
 
           {/* Doctor Daily Load */}
           <div className={cardClass}>
-            <h3 className="text-lg font-black text-gray-900 mb-4 flex items-center gap-2">
-              <Activity size={20} className="text-blue-600" /> الحمل اليومي للأطباء
+            <h3 className="text-lg font-black text-[#172B3A] mb-4 flex items-center gap-2">
+              <Activity size={20} className="text-[#087F8C]" /> الحمل اليومي للأطباء
             </h3>
-            <div className="overflow-x-auto rounded-xl border border-gray-100">
+            <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
               <table className="w-full text-sm">
                 <thead>
-                  <tr className="bg-gray-50 text-gray-500 text-xs font-bold">
+                  <tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
                     <th className="p-3 text-right">الطبيب</th>
-                    <th className="p-3 text-right">حجوزات اليوم</th>
-                    <th className="p-3 text-right">الحد الأقصى</th>
+                    <th className="p-3 text-center">حجوزات اليوم</th>
+                    <th className="p-3 text-center">الحد الأقصى</th>
                     <th className="p-3 text-right">نسبة التحميل</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody className="divide-y divide-[#DFEAF0]/70">
                   {stats.doctorPerformance.map(doc => (
-                    <tr key={doc.name} className="border-t border-gray-50">
-                      <td className="p-3 font-bold text-gray-900">{doc.name}</td>
-                      <td className="p-3 text-center font-bold">{doc.todayLoad}</td>
-                      <td className="p-3 text-center text-gray-500">{doc.maxPatients}</td>
+                    <tr key={doc.name} className="hover:bg-[#F5FAFC]">
+                      <td className="p-3 font-bold text-[#172B3A]">{doc.name}</td>
+                      <td className="p-3 text-center font-bold text-[#172B3A] fv-num">{doc.todayLoad}</td>
+                      <td className="p-3 text-center text-[#718394] fv-num">{doc.maxPatients}</td>
                       <td className="p-3">
                         <div className="flex items-center gap-2">
-                          <div className="flex-1 bg-gray-100 rounded-full h-3 overflow-hidden">
+                          <div className="flex-1 bg-[#F5FAFC] border border-[#DFEAF0] rounded-full h-2.5 overflow-hidden">
                             <div
-                              className={`h-full rounded-full ${doc.loadPercent > 90 ? 'bg-red-500' : doc.loadPercent > 60 ? 'bg-yellow-500' : 'bg-green-500'}`}
+                              className={`h-full rounded-full ${doc.loadPercent > 90 ? 'bg-red-500' : doc.loadPercent > 60 ? 'bg-amber-500' : 'bg-emerald-500'}`}
                               style={{ width: `${Math.min(doc.loadPercent, 100)}%` }}
                             />
                           </div>
-                          <span className={`text-xs font-black ${doc.loadPercent > 90 ? 'text-red-600' : doc.loadPercent > 60 ? 'text-yellow-600' : 'text-green-600'}`}>
+                          <span className={`text-xs font-black fv-num ${doc.loadPercent > 90 ? 'text-red-600' : doc.loadPercent > 60 ? 'text-amber-600' : 'text-emerald-600'}`}>
                             {doc.loadPercent}%
                           </span>
                         </div>

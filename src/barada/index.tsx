@@ -17,6 +17,7 @@ import { runBookingTestMode } from './bookingTestMode';
 import { EGYPT_CENTERS } from './egyptData';
 import PatientStats from './PatientStats';
 import ManagementIntelligence from './ManagementIntelligence';
+import clinicFacilityImg from '../assets/images/clinic_facility_modern_1795257432732.jpg';
 import { 
   Eye, Calendar, Phone, MapPin, Send, Menu, X, 
   Activity, Clock, UserPlus, Users, Settings, Trash2, 
@@ -539,34 +540,34 @@ const TermsView = ({ settings }: { settings: AppSettings }) => {
   const isAr = settings.language === 'ar';
   const content = isAr ? settings.termsAr : settings.termsEn;
   return (
-    <div className="py-24 bg-white min-h-[80vh]">
-      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-16">
-          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-6">
-            <Scale size={32} />
+    <div className="py-20 min-h-[80vh]">
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-12">
+          <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20 mb-5">
+            <Scale size={28} />
           </div>
-          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">{isAr ? 'الشروط والأحكام' : 'Terms and Conditions'}</h1>
-          <p className="text-gray-500 font-bold">{isAr ? 'يرجى قراءة اتفاقية الاستخدام بعناية' : 'Please read the usage agreement carefully'}</p>
+          <h1 className="text-3xl md:text-5xl font-black text-[#172B3A] mb-3 fv-balance">{isAr ? 'الشروط والأحكام' : 'Terms and Conditions'}</h1>
+          <p className="text-[#718394] font-semibold">{isAr ? 'يرجى قراءة اتفاقية الاستخدام بعناية' : 'Please read the usage agreement carefully'}</p>
         </div>
 
-        <div className="bg-gray-50 p-10 md:p-16 rounded-[3rem] border border-gray-100 shadow-xs">
-           <div className="flex items-center gap-3 mb-8 text-blue-600">
-             <ShieldAlert size={28} />
-             <h3 className="text-2xl font-black">{isAr ? 'اتفاقية الخدمة' : 'Service Agreement'}</h3>
+        <div className="bg-white p-8 md:p-12 rounded-3xl border border-[#DFEAF0] shadow-[0_12px_32px_-16px_rgba(11,31,53,0.1)]">
+           <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DFEAF0] text-[#087F8C]">
+             <ShieldAlert size={24} />
+             <h3 className="text-xl font-black text-[#172B3A]">{isAr ? 'اتفاقية الخدمة' : 'Service Agreement'}</h3>
            </div>
-           <div className="prose prose-blue max-w-none">
-              <p className="text-gray-600 text-lg leading-relaxed font-bold whitespace-pre-wrap">
+           <div className="max-w-none">
+              <p className="text-[#172B3A]/85 text-base md:text-lg leading-relaxed font-medium whitespace-pre-wrap">
                 {content}
               </p>
            </div>
         </div>
 
-        <div className="mt-12 bg-blue-600 text-white p-10 rounded-[3rem] shadow-xl shadow-blue-500/20 text-center">
-          <h4 className="text-2xl font-black mb-4">{isAr ? 'هل لديك أي استفسار حول سياساتنا؟' : 'Have questions about our policies?'}</h4>
-          <p className="opacity-90 mb-8 font-bold">{isAr ? 'نحن هنا لمساعدتك وتوضيح كافة التفاصيل المتعلقة بحقوق المريض.' : 'We are here to help and clarify all details regarding patient rights.'}</p>
-          <button className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black hover:bg-gray-100 transition-all active:scale-95">
-             {isAr ? 'تواصل معنا الآن' : 'Contact Us Now'}
-          </button>
+        <div className="mt-10 fv-dark-surface text-white p-8 md:p-10 rounded-3xl border border-white/10 shadow-xl text-center">
+          <h4 className="text-2xl font-black mb-3">{isAr ? 'هل لديك أي استفسار حول سياساتنا؟' : 'Have questions about our policies?'}</h4>
+          <p className="text-slate-300 mb-6 font-medium">{isAr ? 'نحن هنا لمساعدتك وتوضيح كافة التفاصيل المتعلقة بحقوق المريض.' : 'We are here to help and clarify all details regarding patient rights.'}</p>
+          <span className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-[#25B8C7] px-6 py-3 rounded-xl font-bold text-sm">
+             {isAr ? 'فريق خدمة المرضى متاح دائماً عبر صفحة تواصل معنا' : 'Patient care team is available via Contact Us'}
+          </span>
         </div>
       </div>
     </div>
@@ -1125,54 +1126,57 @@ const BookingModal = ({
         setTimeout(() => setCopied(null), 2000);
     };
 
-    const renderFormStep = () => (
-        <form onSubmit={handleNextStep} className="space-y-5">
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+    const renderFormStep = () => {
+        const modalFieldClass = "w-full bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-3.5 text-[#172B3A] focus:bg-white focus:ring-2 focus:ring-[#25B8C7]/25 focus:border-[#087F8C] outline-hidden transition-all font-bold";
+        const modalLabelClass = "text-xs font-bold text-[#718394] mr-1 block";
+        return (
+        <form onSubmit={handleNextStep} className="space-y-4">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">الاسم بالكامل</label>
-                    <input type="text" value={name} onChange={e => setName(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold" placeholder="ادخل اسمك" />
+                    <label className={modalLabelClass}>الاسم بالكامل</label>
+                    <input type="text" value={name} onChange={e => setName(e.target.value)} className={modalFieldClass} placeholder="ادخل اسمك الرباعي" />
                 </div>
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">رقم الهاتف (11 رقم)</label>
-                    <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold text-left" placeholder="01xxxxxxxxx" dir="ltr" maxLength={11} />
+                    <label className={modalLabelClass}>رقم الهاتف (11 رقم)</label>
+                    <input type="tel" value={phone} onChange={e => setPhone(e.target.value)} className={`${modalFieldClass} text-left fv-num`} placeholder="01xxxxxxxxx" dir="ltr" maxLength={11} />
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">رقم هاتف ثانٍ (اختياري)</label>
-                    <input type="tel" value={phone2} onChange={e => setPhone2(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold text-left" placeholder="01xxxxxxxxx" dir="ltr" maxLength={11} />
+                    <label className={modalLabelClass}>رقم هاتف ثانٍ (اختياري)</label>
+                    <input type="tel" value={phone2} onChange={e => setPhone2(e.target.value)} className={`${modalFieldClass} text-left fv-num`} placeholder="01xxxxxxxxx" dir="ltr" maxLength={11} />
                 </div>
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">السن</label>
-                    <input type="number" value={age} onChange={e => setAge(e.target.value)} min={1} max={120} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold" placeholder="السن" />
+                    <label className={modalLabelClass}>السن</label>
+                    <input type="number" value={age} onChange={e => setAge(e.target.value)} min={1} max={120} className={`${modalFieldClass} fv-num`} placeholder="السن" />
                 </div>
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">المحافظة</label>
-                    <select value={governorate} onChange={e => { setGovernorate(e.target.value); setCenter(''); }} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold">
+                    <label className={modalLabelClass}>المحافظة</label>
+                    <select value={governorate} onChange={e => { setGovernorate(e.target.value); setCenter(''); }} className={modalFieldClass}>
                         <option value="" disabled>-- اختر المحافظة --</option>
                         {EGYPT_GOVERNORATES.map(g => <option key={g} value={g}>{g}</option>)}
                     </select>
                 </div>
             </div>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">المركز / المدينة</label>
+                    <label className={modalLabelClass}>المركز / المدينة</label>
                     {governorate && EGYPT_CENTERS[governorate] ? (
-                        <select value={center} onChange={e => setCenter(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold">
+                        <select value={center} onChange={e => setCenter(e.target.value)} className={modalFieldClass}>
                             <option value="" disabled>-- اختر المركز --</option>
                             {EGYPT_CENTERS[governorate].map(c => <option key={c} value={c}>{c}</option>)}
                         </select>
                     ) : (
-                        <input type="text" value={center} onChange={e => setCenter(e.target.value)} disabled={!governorate} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold disabled:opacity-50" placeholder={governorate ? 'أدخل المركز' : 'اختر المحافظة أولاً'} />
+                        <input type="text" value={center} onChange={e => setCenter(e.target.value)} disabled={!governorate} className={`${modalFieldClass} disabled:opacity-50`} placeholder={governorate ? 'أدخل المركز' : 'اختر المحافظة أولاً'} />
                     )}
                 </div>
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">نوع الكشف</label>
+                    <label className={modalLabelClass}>نوع الكشف</label>
                     <select value={bookingType} onChange={e => {
                         const val = e.target.value as 'cash' | 'contract';
                         setBookingType(val);
                         if (val === 'cash') setContractingId(undefined);
-                    }} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold">
+                    }} className={modalFieldClass}>
                         <option value="cash">كشف نقدي</option>
                         <option value="contract">كشف تعاقد</option>
                     </select>
@@ -1187,57 +1191,57 @@ const BookingModal = ({
                     />
                 </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-                <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">الطبيب</label>
-                    <select value={selectedDoctorId} onChange={e => setSelectedDoctorId(Number(e.target.value))} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="space-y-1.5 md:col-span-2">
+                    <label className={modalLabelClass}>الطبيب</label>
+                    <select value={selectedDoctorId} onChange={e => setSelectedDoctorId(Number(e.target.value))} className={modalFieldClass}>
                         <option value={0} disabled>-- اختر الطبيب --</option>
-                        {realtimeDoctors.map(d => <option key={d.id} value={d.id}>د. {d.name} - {d.fee} ج.م</option>)}
+                        {realtimeDoctors.map(d => <option key={d.id} value={d.id}>{d.name} - {d.fee} ج.م</option>)}
                     </select>
                 </div>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">الخدمة</label>
-                    <select value={service} onChange={e => setService(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold">
+                    <label className={modalLabelClass}>الخدمة</label>
+                    <select value={service} onChange={e => setService(e.target.value)} className={modalFieldClass}>
                         {services.map(s => <option key={s.id} value={s.title}>{s.title} - {s.price} ج.م</option>)}
                     </select>
                     {servicePrice > 0 && (
-                        <p className="text-xs text-blue-600 font-bold mt-1">سعر الخدمة: {servicePrice} ج.م</p>
+                        <p className="text-xs text-[#087F8C] font-bold mt-1 fv-num">سعر الخدمة: {servicePrice} ج.م</p>
                     )}
                 </div>
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">التاريخ</label>
+                    <label className={modalLabelClass}>التاريخ</label>
                     {currentSelectedDoctor && filteredAvailableDates.length > 0 ? (
-                        <select value={date} onChange={e => setDate(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold">
+                        <select value={date} onChange={e => setDate(e.target.value)} className={modalFieldClass}>
                             {filteredAvailableDates.map(d => <option key={d} value={d}>{arabicWeekday(d)} - {d}</option>)}
                         </select>
                     ) : (
-                        <input type="date" value={date} min={tomorrowStr} disabled={!!currentSelectedDoctor} onChange={e => setDate(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold" />
+                        <input type="date" value={date} min={tomorrowStr} disabled={!!currentSelectedDoctor} onChange={e => setDate(e.target.value)} className={modalFieldClass} />
                     )}
                 </div>
             </div>
             {/* Display Doctor Fee */}
             {currentSelectedDoctor && (
-                <div className="bg-emerald-50 border border-emerald-200 rounded-2xl p-4 flex items-center justify-between">
+                <div className="bg-[#F5FAFC] border border-[#25B8C7]/40 rounded-2xl p-4 flex flex-wrap items-center justify-between gap-2">
                     <div className="flex items-center gap-2">
-                        <span className="text-emerald-600 font-bold">رسوم الطبيب:</span>
-                        <span className="text-emerald-700 font-black text-lg">{doctorFee} ج.م</span>
-                        {isFollowUpVisit && <span className="text-xs text-gray-500 font-bold">(متابعة - مجاناً)</span>}
+                        <span className="text-[#087F8C] font-bold text-sm">رسوم الطبيب:</span>
+                        <span className="text-[#172B3A] font-black text-lg fv-num">{doctorFee} ج.م</span>
+                        {isFollowUpVisit && <span className="text-xs text-[#718394] font-bold">(متابعة - مجاناً)</span>}
                     </div>
                     {totalPayment > 0 && (
                         <div className="text-right">
-                            <span className="text-gray-500 text-sm font-bold">إجمالي المطلوب: </span>
-                            <span className="text-blue-600 font-black text-lg">{totalPayment} ج.م</span>
+                            <span className="text-[#718394] text-sm font-bold">إجمالي المطلوب: </span>
+                            <span className="text-[#1769AA] font-black text-lg fv-num">{totalPayment} ج.م</span>
                         </div>
                     )}
                 </div>
             )}
-            <div className="grid grid-cols-1 md:grid-cols-1 gap-5">
+            <div className="grid grid-cols-1 gap-4">
                 <div className="space-y-1.5">
-                    <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">الوقت (المواعيد المتاحة)</label>
-                    <select value={time} onChange={e => setTime(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold">
+                    <label className={modalLabelClass}>الوقت (المواعيد المتاحة)</label>
+                    <select value={time} onChange={e => setTime(e.target.value)} className={modalFieldClass}>
                         <option value="" disabled>اختر موعداً...</option>
                         {availableSlots.map(t => <option key={t} value={t}>{t}</option>)}
                         {availableSlots.length === 0 && <option disabled>لا توجد مواعيد متاحة حالياً</option>}
@@ -1245,39 +1249,40 @@ const BookingModal = ({
                 </div>
             </div>
             <div className="space-y-1.5">
-                <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">ملاحظات (اختياري)</label>
-                <textarea value={bookingNotes} onChange={e => setBookingNotes(e.target.value)} rows={2} maxLength={500} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold resize-none" placeholder="أي ملاحظات إضافية..." />
+                <label className={modalLabelClass}>ملاحظات (اختياري)</label>
+                <textarea value={bookingNotes} onChange={e => setBookingNotes(e.target.value)} rows={2} maxLength={500} className={`${modalFieldClass} resize-none`} placeholder="أي ملاحظات إضافية..." />
             </div>
-            <button type="submit" className={`w-full ${initialData ? 'bg-orange-600 hover:bg-orange-700 shadow-orange-500/20' : 'bg-blue-600 hover:bg-blue-700 shadow-blue-500/20'} text-white font-black py-5 rounded-2xl shadow-xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3 mt-4`}>
-                {initialData ? <Edit2 size={24} /> : <CheckCircle size={24} />}
+            <button type="submit" className={`w-full ${initialData ? 'bg-amber-600 hover:bg-amber-700 shadow-lg shadow-amber-500/20 text-white' : 'fv-btn-primary'} font-black py-4 rounded-xl transition-all flex items-center justify-center gap-3 mt-4`}>
+                {initialData ? <Edit2 size={20} /> : <CheckCircle size={20} />}
                 {initialData ? 'تحديث البيانات' : (bookingType === 'contract' && contractingId ? 'تأكيد حجز التعاقد' : 'متابعة لاختيار الدفع')}
             </button>
         </form>
-    );
+        );
+    };
 
     const renderPaymentSelectionStep = () => (
         <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
-            <button onClick={() => setStep(1)} className="flex items-center gap-1 text-gray-500 hover:text-blue-600 font-bold text-sm mb-4">
+            <button onClick={() => setStep(1)} className="flex items-center gap-1.5 text-[#718394] hover:text-[#087F8C] font-bold text-sm mb-4">
                 <ArrowLeft size={18} /> عودة للبيانات
             </button>
 
-            <div className="text-center mb-8">
-                <h3 className="text-xl font-black text-gray-900">طريقة الدفع</h3>
-                <p className="text-gray-500 text-sm mt-1 font-medium">اختر الطريقة المناسبة لتأكيد حجزك</p>
+            <div className="text-center mb-6">
+                <h3 className="text-xl font-black text-[#172B3A]">طريقة الدفع</h3>
+                <p className="text-[#718394] text-sm mt-1 font-medium">اختر الطريقة المناسبة لتأكيد حجزك</p>
             </div>
 
-            <div className="grid grid-cols-1 gap-4">
+            <div className="grid grid-cols-1 gap-3.5">
                 {paymentOptionsFor(settings.paymentMethods).cash && (
                 <button 
                     onClick={() => { setSelectedPaymentMethod('cash'); handleFinalConfirm('cash'); }}
-                    className="p-5 rounded-2xl border-2 border-gray-100 hover:border-blue-500 hover:bg-blue-50 transition-all flex items-center gap-4 group text-right"
+                    className="p-4 rounded-2xl border border-[#DFEAF0] hover:border-[#087F8C] hover:bg-[#F5FAFC] transition-all flex items-center gap-4 group text-right"
                 >
-                    <div className="w-12 h-12 bg-green-100 text-green-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-xl flex items-center justify-center border border-emerald-200 group-hover:scale-105 transition-transform">
                         <Banknote size={24} />
                     </div>
                     <div>
-                        <h4 className="font-bold text-gray-900">الدفع نقداً في المركز</h4>
-                        <p className="text-xs text-gray-500">الدفع عند الحضور للكشف</p>
+                        <h4 className="font-bold text-[#172B3A]">الدفع نقداً في المركز</h4>
+                        <p className="text-xs text-[#718394]">الدفع عند الحضور للكشف</p>
                     </div>
                 </button>
                 )}
@@ -1285,14 +1290,14 @@ const BookingModal = ({
                 {paymentOptionsFor(settings.paymentMethods).instapay && (
                 <button 
                     onClick={() => { setSelectedPaymentMethod('instapay'); setStep(3); }}
-                    className="p-5 rounded-2xl border-2 border-gray-100 hover:border-purple-500 hover:bg-purple-50 transition-all flex items-center gap-4 group text-right"
+                    className="p-4 rounded-2xl border border-[#DFEAF0] hover:border-[#1769AA] hover:bg-[#F5FAFC] transition-all flex items-center gap-4 group text-right"
                 >
-                    <div className="w-12 h-12 bg-purple-100 text-purple-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 bg-purple-50 text-purple-600 rounded-xl flex items-center justify-center border border-purple-200 group-hover:scale-105 transition-transform">
                         <CreditCard size={24} />
                     </div>
                     <div>
-                        <h4 className="font-bold text-gray-900">انستا باي (InstaPay)</h4>
-                        <p className="text-xs text-gray-500">تحويل لحظي آمن</p>
+                        <h4 className="font-bold text-[#172B3A]">انستا باي (InstaPay)</h4>
+                        <p className="text-xs text-[#718394]">تحويل لحظي آمن</p>
                     </div>
                 </button>
                 )}
@@ -1300,14 +1305,14 @@ const BookingModal = ({
                 {paymentOptionsFor(settings.paymentMethods).wallet && (
                 <button 
                     onClick={() => { setSelectedPaymentMethod('wallet'); setStep(3); }}
-                    className="p-5 rounded-2xl border-2 border-gray-100 hover:border-orange-500 hover:bg-orange-50 transition-all flex items-center gap-4 group text-right"
+                    className="p-4 rounded-2xl border border-[#DFEAF0] hover:border-[#087F8C] hover:bg-[#F5FAFC] transition-all flex items-center gap-4 group text-right"
                 >
-                    <div className="w-12 h-12 bg-orange-100 text-orange-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 bg-amber-50 text-amber-600 rounded-xl flex items-center justify-center border border-amber-200 group-hover:scale-105 transition-transform">
                         <Wallet size={24} />
                     </div>
                     <div>
-                        <h4 className="font-bold text-gray-900">محافظ الهاتف (Wallet)</h4>
-                        <p className="text-xs text-gray-500">فودافون كاش، اتصالات، أورانج</p>
+                        <h4 className="font-bold text-[#172B3A]">محافظ الهاتف (Wallet)</h4>
+                        <p className="text-xs text-[#718394]">فودافون كاش، اتصالات، أورانج</p>
                     </div>
                 </button>
                 )}
@@ -1315,14 +1320,14 @@ const BookingModal = ({
                 {paymobEnabled && !initialData && (
                 <button 
                     onClick={() => { setSelectedPaymentMethod('paymob'); handleFinalConfirm('paymob'); }}
-                    className="p-5 rounded-2xl border-2 border-gray-100 hover:border-blue-500 hover:bg-blue-50 transition-all flex items-center gap-4 group text-right"
+                    className="p-4 rounded-2xl border border-[#DFEAF0] hover:border-[#1769AA] hover:bg-[#F5FAFC] transition-all flex items-center gap-4 group text-right"
                 >
-                    <div className="w-12 h-12 bg-blue-100 text-blue-600 rounded-full flex items-center justify-center group-hover:scale-110 transition-transform">
+                    <div className="w-12 h-12 bg-[#087F8C]/10 text-[#087F8C] rounded-xl flex items-center justify-center border border-[#087F8C]/20 group-hover:scale-105 transition-transform">
                         <CreditCard size={24} />
                     </div>
                     <div>
-                        <h4 className="font-bold text-gray-900">الدفع أونلاين (بطاقة / محفظة إلكترونية)</h4>
-                        <p className="text-xs text-gray-500">ادفع الآن ويتم تأكيد الحجز تلقائياً</p>
+                        <h4 className="font-bold text-[#172B3A]">الدفع أونلاين (بطاقة / محفظة إلكترونية)</h4>
+                        <p className="text-xs text-[#718394]">ادفع الآن ويتم تأكيد الحجز تلقائياً</p>
                     </div>
                 </button>
                 )}
@@ -1340,50 +1345,50 @@ const BookingModal = ({
 
         return (
             <div className="space-y-6 animate-in fade-in slide-in-from-right duration-300">
-                <button onClick={() => setStep(2)} className="flex items-center gap-1 text-gray-500 hover:text-blue-600 font-bold text-sm mb-4">
+                <button onClick={() => setStep(2)} className="flex items-center gap-1.5 text-[#718394] hover:text-[#087F8C] font-bold text-sm mb-4">
                     <ArrowLeft size={18} /> عودة للاختيار
                 </button>
 
-                <div className="text-center mb-8">
-                    <div className={`w-20 h-20 ${isInsta ? 'bg-purple-100 text-purple-600' : 'bg-orange-100 text-orange-600'} rounded-full flex items-center justify-center mx-auto mb-4`}>
-                        {isInsta ? <Zap size={32} /> : <Smartphone size={32} />}
+                <div className="text-center mb-6">
+                    <div className={`w-16 h-16 ${isInsta ? 'bg-purple-50 text-purple-600 border-purple-200' : 'bg-amber-50 text-amber-600 border-amber-200'} border rounded-2xl flex items-center justify-center mx-auto mb-4`}>
+                        {isInsta ? <Zap size={28} /> : <Smartphone size={28} />}
                     </div>
-                    <h3 className="text-xl font-black text-gray-900">{isInsta ? 'بيانات التحويل عبر انستا باي' : 'بيانات المحفظة الإلكترونية'}</h3>
-                    <p className="text-gray-500 text-sm mt-1 font-medium">يرجى تحويل مبلغ الكشف إلى البيانات التالية</p>
+                    <h3 className="text-xl font-black text-[#172B3A]">{isInsta ? 'بيانات التحويل عبر انستا باي' : 'بيانات المحفظة الإلكترونية'}</h3>
+                    <p className="text-[#718394] text-sm mt-1 font-medium">يرجى تحويل مبلغ الكشف إلى البيانات التالية</p>
                 </div>
 
-                <div className="bg-gray-50 p-6 rounded-2xl border border-gray-100 space-y-4">
+                <div className="bg-[#F5FAFC] p-5 rounded-2xl border border-[#DFEAF0] space-y-3">
                     {methodsToShow.map((method, idx) => (
-                        <div key={idx} className="bg-white p-4 rounded-xl border border-gray-200 flex justify-between items-center">
+                        <div key={idx} className="bg-white p-4 rounded-xl border border-[#DFEAF0] flex justify-between items-center">
                             <div>
-                                <p className="text-[10px] text-gray-400 font-bold uppercase">{method.label}</p>
-                                <p className="font-black text-lg text-gray-800" dir="ltr">{method.detail}</p>
+                                <p className="text-[11px] text-[#718394] font-bold">{method.label}</p>
+                                <p className="font-black text-lg text-[#172B3A] fv-num" dir="ltr">{method.detail}</p>
                             </div>
-                            <button onClick={() => copyToClipboard(method.detail)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg">
+                            <button onClick={() => copyToClipboard(method.detail)} className="p-2 text-[#087F8C] hover:bg-[#F5FAFC] rounded-lg transition-colors">
                                 {copied === method.detail ? <CheckCircle size={20} /> : <Copy size={20} />}
                             </button>
                         </div>
                     ))}
                 </div>
 
-                <div className="bg-blue-50 p-4 rounded-xl text-xs text-blue-800 font-bold flex items-start gap-2">
-                    <Info size={16} className="shrink-0 mt-0.5" />
+                <div className="bg-[#087F8C]/8 border border-[#087F8C]/20 p-4 rounded-xl text-xs text-[#172B3A] font-semibold flex items-start gap-2">
+                    <Info size={16} className="shrink-0 mt-0.5 text-[#087F8C]" />
                     <p>بعد إتمام التحويل، سيقوم فريق الاستقبال بمراجعة العملية وتأكيد الحجز نهائياً. يرجى الاحتفاظ بصورة التحويل.</p>
                 </div>
 
                 {isInsta && (
-                    <div className="space-y-3 border-t border-gray-100 pt-5">
+                    <div className="space-y-3 border-t border-[#DFEAF0] pt-5">
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">رقم العملية / التحويل (إلزامي)</label>
-                            <input type="text" value={transferRef} onChange={e => setTransferRef(e.target.value)} dir="ltr" className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-hidden transition-all font-bold text-left" placeholder="رقم العملية كما يظهر في تطبيق إنستاباي" />
+                            <label className="text-xs font-bold text-[#718394] mr-1 block">رقم العملية / التحويل (إلزامي)</label>
+                            <input type="text" value={transferRef} onChange={e => setTransferRef(e.target.value)} dir="ltr" className="w-full bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-3.5 focus:bg-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-hidden transition-all font-bold text-left fv-num" placeholder="رقم العملية كما يظهر في تطبيق إنستاباي" />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">المبلغ المرسل (اختياري)</label>
-                            <input type="number" min={0} value={transferAmount} onChange={e => setTransferAmount(e.target.value)} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 focus:ring-4 focus:ring-purple-500/10 focus:border-purple-500 outline-hidden transition-all font-bold" placeholder="مثال: 300" />
+                            <label className="text-xs font-bold text-[#718394] mr-1 block">المبلغ المرسل (اختياري)</label>
+                            <input type="number" min={0} value={transferAmount} onChange={e => setTransferAmount(e.target.value)} className="w-full bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-3.5 focus:bg-white focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500 outline-hidden transition-all font-bold fv-num" placeholder="مثال: 300" />
                         </div>
                         <div className="space-y-1.5">
-                            <label className="text-[10px] font-black text-gray-400 uppercase tracking-widest mr-2">صورة الإيصال (إلزامي - صورة أو PDF حتى 5 ميغابايت)</label>
-                            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" onChange={e => setEvidenceFile(e.target.files?.[0] || null)} className="w-full text-sm font-bold text-gray-600 file:ml-3 file:rounded-xl file:border-0 file:bg-purple-50 file:px-4 file:py-2 file:font-bold file:text-purple-700" />
+                            <label className="text-xs font-bold text-[#718394] mr-1 block">صورة الإيصال (إلزامي - صورة أو PDF حتى 5 ميغابايت)</label>
+                            <input type="file" accept=".jpg,.jpeg,.png,.webp,.pdf" onChange={e => setEvidenceFile(e.target.files?.[0] || null)} className="w-full text-sm font-bold text-[#718394] file:ml-3 file:rounded-xl file:border-0 file:bg-purple-50 file:px-4 file:py-2 file:font-bold file:text-purple-700" />
                         </div>
                         {instapayError && <p className="text-xs text-red-600 font-bold">{instapayError}</p>}
                     </div>
@@ -1391,9 +1396,9 @@ const BookingModal = ({
 
                 <button 
                     onClick={() => handleFinalConfirm()}
-                    className={`w-full ${isInsta ? 'bg-purple-600 hover:bg-purple-700 shadow-purple-500/20' : 'bg-orange-600 hover:bg-orange-700 shadow-orange-500/20'} text-white font-black py-5 rounded-2xl shadow-xl transition-all hover:scale-[1.02] active:scale-95 flex items-center justify-center gap-3`}
+                    className={`w-full ${isInsta ? 'bg-purple-600 hover:bg-purple-700 shadow-lg shadow-purple-500/20' : 'fv-btn-primary'} text-white font-black py-4 rounded-xl transition-all flex items-center justify-center gap-3`}
                 >
-                    <CheckCircle size={24} />
+                    <CheckCircle size={20} />
                     تم إرسال المبلغ وتأكيد الحجز
                 </button>
             </div>
@@ -1401,20 +1406,20 @@ const BookingModal = ({
     };
 
     return (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-300">
-            <div className="bg-white rounded-[2.5rem] shadow-2xl max-w-xl w-full p-8 md:p-12 overflow-hidden relative max-h-[90vh] overflow-y-auto">
-                <button onClick={onClose} className="absolute top-6 left-6 p-2 hover:bg-gray-100 rounded-full transition-colors text-gray-400 hover:text-gray-900 z-10">
-                    <X size={24} />
+        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs animate-in fade-in duration-300">
+            <div className="bg-white rounded-3xl border border-[#DFEAF0] shadow-2xl max-w-xl w-full p-6 md:p-10 overflow-hidden relative max-h-[90vh] overflow-y-auto">
+                <button onClick={onClose} className="absolute top-5 left-5 p-2 hover:bg-[#F5FAFC] rounded-full transition-colors text-[#718394] hover:text-[#172B3A] z-10">
+                    <X size={22} />
                 </button>
                 
                 {step === 1 && (
-                    <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-2xl bg-blue-50 text-blue-600 mb-4">
-                            {initialData ? <Edit2 size={32} /> : <Calendar size={32} />}
+                    <div className="text-center mb-6">
+                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20 mb-4">
+                            {initialData ? <Edit2 size={26} /> : <Calendar size={26} />}
                         </div>
-                        <h2 className="text-3xl font-black text-gray-900">{initialData ? 'تعديل بيانات الحجز' : 'تأكيد موعد الحجز'}</h2>
-                        <p className="text-gray-500 text-sm mt-2">
-                            {initialData ? `تعديل حجز المريض: ${initialData.patientName}` : doctor ? `حجز مع د. ${doctor.name}` : 'حجز موعد جديد'}
+                        <h2 className="text-2xl md:text-3xl font-black text-[#172B3A]">{initialData ? 'تعديل بيانات الحجز' : 'تأكيد موعد الحجز'}</h2>
+                        <p className="text-[#718394] text-sm mt-1.5 font-medium">
+                            {initialData ? `تعديل حجز المريض: ${initialData.patientName}` : doctor ? `حجز مع ${doctor.name}` : 'حجز موعد جديد'}
                         </p>
                     </div>
                 )}
@@ -1459,46 +1464,46 @@ const LoginView = ({ onLogin, settings, isLoading: externalLoading }: { onLogin:
     };
 
     return (
-        <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 px-4 py-12">
-            <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl p-10 border border-gray-100">
-                <div className="text-center mb-10">
-                    <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 text-blue-600 rounded-full mb-6 overflow-hidden border-4 border-blue-50 shadow-inner">
+        <div className="min-h-[82vh] flex items-center justify-center px-4 py-14 relative overflow-hidden">
+            <div className="max-w-md w-full bg-white rounded-3xl shadow-[0_24px_60px_-20px_rgba(11,31,53,0.16)] p-8 md:p-10 border border-[#DFEAF0] relative z-10">
+                <div className="text-center mb-8">
+                    <div className="inline-flex items-center justify-center w-20 h-20 bg-[#F5FAFC] text-[#087F8C] rounded-2xl mb-5 overflow-hidden border border-[#DFEAF0] p-2">
                         {settings.logoUrl ? (
                             <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
                         ) : (
-                            <Lock size={40} />
+                            <Lock size={34} />
                         )}
                     </div>
-                    <h2 className="text-3xl font-black text-gray-900 mb-2">دخول الموظفين</h2>
-                    <p className="text-gray-500 text-sm font-medium">يرجى إدخال بيانات الاعتماد الخاصة بك</p>
+                    <h2 className="text-2xl md:text-3xl font-black text-[#172B3A] mb-1.5">دخول الموظفين</h2>
+                    <p className="text-[#718394] text-sm font-medium">يرجى إدخال بيانات الاعتماد الخاصة بك</p>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-6">
+                <form onSubmit={handleSubmit} className="space-y-5">
                     <div>
-                        <label className="block text-xs font-black text-gray-400 mb-2 uppercase tracking-widest">اسم المستخدم أو البريد الإلكتروني</label>
+                        <label className="block text-xs font-bold text-[#718394] mb-1.5">اسم المستخدم أو البريد الإلكتروني</label>
                         <div className="relative">
-                            <User className="absolute right-4 top-4 text-gray-400" size={18} />
-                            <input type="text" value={usernameOrEmail} onChange={e => { setUsernameOrEmail(e.target.value); setError(''); }} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 pr-12 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold" placeholder="اسم المستخدم أو example@email.com" dir="ltr" />
+                            <User className="absolute right-3.5 top-3.5 text-[#718394]" size={18} />
+                            <input type="text" value={usernameOrEmail} onChange={e => { setUsernameOrEmail(e.target.value); setError(''); }} className="w-full bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-3.5 pr-11 text-[#172B3A] focus:bg-white focus:ring-2 focus:ring-[#25B8C7]/25 focus:border-[#087F8C] outline-hidden transition-all font-bold" placeholder="اسم المستخدم أو example@email.com" dir="ltr" />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-black text-gray-400 mb-2 uppercase tracking-widest">كلمة المرور</label>
+                        <label className="block text-xs font-bold text-[#718394] mb-1.5">كلمة المرور</label>
                         <div className="relative">
-                            <Shield className="absolute right-4 top-4 text-gray-400" size={18} />
-                            <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 pr-12 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold" placeholder="••••••••" />
+                            <Shield className="absolute right-3.5 top-3.5 text-[#718394]" size={18} />
+                            <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} className="w-full bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-3.5 pr-11 text-[#172B3A] focus:bg-white focus:ring-2 focus:ring-[#25B8C7]/25 focus:border-[#087F8C] outline-hidden transition-all font-bold" placeholder="••••••••" />
                         </div>
                     </div>
                     {error && (
-                        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-xs font-bold flex items-center gap-2 animate-shake">
+                        <div className="bg-red-50 text-red-600 p-3.5 rounded-xl border border-red-200 text-xs font-bold flex items-center gap-2">
                             <AlertCircle size={16} />
                             {error}
                         </div>
                     )}
-                    <button type="submit" disabled={isSubmitting || externalLoading} className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all hover:scale-102 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70">
-                        {(isSubmitting || externalLoading) ? <RotateCcw size={20} className="animate-spin" /> : <Send size={20} />}
+                    <button type="submit" disabled={isSubmitting || externalLoading} className="w-full fv-btn-primary font-black py-4 rounded-xl transition-all flex items-center justify-center gap-2 disabled:opacity-70">
+                        {(isSubmitting || externalLoading) ? <RotateCcw size={20} className="animate-spin" /> : <Send size={18} />}
                         تسجيل الدخول
                     </button>
                 </form>
-                <div className="mt-8 text-center text-gray-400 text-xs font-medium">
+                <div className="mt-7 pt-5 border-t border-[#DFEAF0] text-center text-[#718394] text-xs font-medium">
                     نظام إدارة مركز براده للعيون &copy; {new Date().getFullYear()}
                 </div>
             </div>
@@ -1508,24 +1513,28 @@ const LoginView = ({ onLogin, settings, isLoading: externalLoading }: { onLogin:
 
 const SmartStatsBar = ({ settings }: { settings: AppSettings }) => {
     const icons = [Users, Activity, UserPlus, Award];
-    const colors = ['text-blue-600', 'text-emerald-600', 'text-purple-600', 'text-amber-600'];
+    const accents = [
+      'bg-[#087F8C]/10 text-[#087F8C] border-[#087F8C]/20',
+      'bg-[#1769AA]/10 text-[#1769AA] border-[#1769AA]/20',
+      'bg-[#25B8C7]/15 text-[#087F8C] border-[#25B8C7]/25',
+      'bg-[#102C48]/10 text-[#172B3A] border-[#102C48]/15',
+    ];
     
     return (
-        <div className="relative -mt-16 z-30 max-w-7xl mx-auto px-4">
-        <div className="glass-stats rounded-2xl p-6 md:p-8 grid grid-cols-2 lg:grid-cols-4 gap-6 relative overflow-hidden group">
-                <div className="absolute inset-0 bg-gradient-to-r from-blue-50/20 via-transparent to-emerald-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
+        <div className="relative -mt-14 z-30 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+            <div className="glass-stats rounded-2xl p-6 md:p-8 grid grid-cols-2 lg:grid-cols-4 gap-6 relative overflow-hidden">
                 {settings.stats.map((stat, idx) => {
                     const StatIcon = icons[idx] || Award;
-                    const colorClass = colors[idx] || 'text-gray-600';
+                    const accentCls = accents[idx] || accents[0];
                     return (
                         <div key={idx} className="relative flex flex-col items-center text-center group/item">
-                            {idx !== 0 && <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 w-px h-12 bg-gray-200/60"></div>}
-                            <div className={`p-3 rounded-xl ${colorClass.replace('text', 'bg')}/10 mb-3 transition-all duration-500 group-hover/item:scale-110 group-hover/item:shadow-lg group-hover/item:-translate-y-1`}>
-                                <StatIcon className={`${colorClass} drop-shadow-xs`} size={24} />
+                            {idx !== 0 && <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 w-px h-12 bg-[#DFEAF0]"></div>}
+                            <div className={`w-12 h-12 rounded-xl border flex items-center justify-center mb-3 transition-transform duration-300 group-hover/item:-translate-y-0.5 ${accentCls}`}>
+                                <StatIcon size={22} />
                             </div>
-                            <h4 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 tracking-tight group-hover/item:text-blue-700 transition-colors">{stat.value}</h4>
-                            <p className="text-gray-600 text-xs font-bold uppercase tracking-widest mb-1">{stat.label}</p>
-                            <span className="text-[9px] font-black text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100 group-hover/item:bg-white transition-colors">{stat.trend}</span>
+                            <h4 className="text-2xl md:text-3xl font-black text-[#172B3A] mb-1 tracking-tight fv-num">{stat.value}</h4>
+                            <p className="text-[#172B3A] text-xs font-bold mb-1">{stat.label}</p>
+                            <span className="text-[11px] font-medium text-[#718394]">{stat.trend}</span>
                         </div>
                     );
                 })}
@@ -1534,66 +1543,57 @@ const SmartStatsBar = ({ settings }: { settings: AppSettings }) => {
     );
 };
 
-const AboutUs = ({ settings, t }: { settings: AppSettings, t: any }) => {
+const AboutUs = ({ settings }: { settings: AppSettings, t: any }) => {
+    const isAr = settings.language === 'ar';
     return (
-        <div id="about" className="py-32 relative overflow-hidden scroll-mt-20">
-            <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
-                <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-50 rounded-full blur-[120px] opacity-40"></div>
-                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-emerald-50/50 rounded-full blur-[150px] opacity-40 translate-x-1/2 translate-y-1/2"></div>
-            </div>
+        <div id="about" className="py-24 relative overflow-hidden scroll-mt-20">
             <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-14 items-center">
                     <div className="relative">
-                        <div className="relative rounded-[4rem] overflow-hidden shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] transform transition-all hover:scale-[1.01] duration-700 aspect-[4/5] lg:aspect-auto lg:h-[650px]">
-                            <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1200" alt="Modern Clinic" className="w-full h-full object-cover" />
-                            <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-blue-900/10 to-transparent"></div>
-                            <div className="absolute top-10 right-10 bg-white/90 backdrop-blur-md p-5 rounded-[2.5rem] shadow-2xl border border-white/50 flex items-center gap-4 animate-bounce-slow">
-                                <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
-                                    <ShieldCheck size={28} />
+                        <div className="relative rounded-3xl overflow-hidden border border-[#DFEAF0] shadow-[0_28px_60px_-22px_rgba(11,31,53,0.22)] aspect-[4/5] lg:aspect-auto lg:h-[600px]">
+                            <img src={clinicFacilityImg} alt={isAr ? 'مقر مركز برادة للعيون وتجهيزاته الطبية' : 'Barrada Eye Center modern ophthalmology suite'} className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-[#0B1F35]/90 via-[#0B1F35]/20 to-transparent"></div>
+                            <div className="absolute top-6 right-6 bg-white/95 backdrop-blur-md px-5 py-3.5 rounded-2xl shadow-lg border border-[#DFEAF0] flex items-center gap-3.5">
+                                <div className="w-11 h-11 bg-[#087F8C] rounded-xl flex items-center justify-center text-white">
+                                    <ShieldCheck size={22} />
                                 </div>
                                 <div>
-                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{settings.language === 'ar' ? 'خبرة تفوق' : 'Expertise over'}</p>
-                                    <p className="text-xl font-black text-gray-900">{settings.language === 'ar' ? '20 عاماً' : '20 Years'}</p>
+                                    <p className="text-[11px] font-bold text-[#718394]">{isAr ? 'خبرة تفوق' : 'Expertise over'}</p>
+                                    <p className="text-lg font-black text-[#172B3A] fv-num">{isAr ? '20 عاماً' : '20 Years'}</p>
                                 </div>
                             </div>
-                            <div className="absolute bottom-10 right-10 left-10 bg-white/10 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 text-white shadow-2xl">
-                                <div className="flex items-center gap-3 mb-3">
-                                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
-                                    <h4 className="font-black text-2xl tracking-tight">{settings.language === 'ar' ? 'رعاية طبية بمعايير عالمية' : 'World-class Medical Care'}</h4>
-                                </div>
-                                <p className="text-base opacity-90 leading-relaxed font-medium">{settings.language === 'ar' ? 'نحن في مركز براده نؤمن أن الرؤية هي أثمن ما يملكه الإنسان، ولذلك نكرس أحدث التقنيات الجراحية لخدمة أعينكم.' : 'At Barada Center, we believe vision is humanity\'s most precious asset, so we dedicate advanced surgical technologies to serve your eyes.'}</p>
+                            <div className="absolute bottom-6 right-6 left-6 bg-[#0B1F35]/75 backdrop-blur-xl p-6 rounded-2xl border border-white/15 text-white">
+                                <h4 className="font-black text-xl mb-2 text-white">{isAr ? 'رعاية طبية بمعايير عالمية' : 'World-class Medical Care'}</h4>
+                                <p className="text-sm text-slate-200 leading-relaxed font-medium">{isAr ? 'نحن في مركز براده نؤمن أن الرؤية هي أثمن ما يملكه الإنسان، ولذلك نكرس أحدث التقنيات الجراحية لخدمة أعينكم.' : 'At Barada Center, we believe vision is humanity\'s most precious asset, so we dedicate advanced surgical technologies to serve your eyes.'}</p>
                             </div>
                         </div>
-                        <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-blue-600/10 rounded-[2.5rem] -z-10 animate-pulse"></div>
                     </div>
-                    <div className="space-y-12">
-                        <div className="space-y-6">
-                            <span className="bg-blue-100/50 text-blue-600 px-6 py-2 rounded-full text-xs font-black uppercase tracking-[0.2em] mb-4 inline-block border border-blue-200/50">{settings.language === 'ar' ? 'قصتنا ونجاحنا' : 'Our Story & Success'}</span>
-                            <h2 className="text-5xl lg:text-6xl font-black text-gray-900 leading-[1.15] tracking-tight">
-                                {settings.language === 'ar' ? (
-                                    <>نصنع مستقبلاً <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400">أكثر إشراقاً</span> لعينيك</>
+                    <div className="space-y-8">
+                        <div className="space-y-4">
+                            <span className="text-[#087F8C] text-xs font-extrabold tracking-wide uppercase inline-block">{isAr ? 'قصتنا ونجاحنا' : 'Our Story & Success'}</span>
+                            <h2 className="text-3xl md:text-5xl font-black text-[#172B3A] leading-[1.2] tracking-tight fv-balance">
+                                {isAr ? (
+                                    <>نصنع مستقبلاً <span className="text-[#087F8C]">أكثر إشراقاً</span> لعينيك</>
                                 ) : (
-                                    <>Creating a <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400">Brighter</span> Future for Your Eyes</>
+                                    <>Creating a <span className="text-[#087F8C]">Brighter</span> Future for Your Eyes</>
                                 )}
                             </h2>
-                            <p className="text-gray-500 text-xl leading-relaxed font-medium">{settings.language === 'ar' ? 'تأسس مركز براده ليكون الصرح الطبي الأول المتخصص في طب وجراحة العيون، حيث نجمع بين الإرث الأكاديمي والخبرة العملية والتقنيات الرقمية المتقدمة.' : 'Barada Center was founded to be a leading specialized medical facility for ophthalmology, combining academic heritage with practical experience and advanced digital technologies.'}</p>
+                            <p className="text-[#718394] text-lg leading-relaxed font-medium">{isAr ? 'تأسس مركز براده ليكون الصرح الطبي الأول المتخصص في طب وجراحة العيون، حيث نجمع بين الإرث الأكاديمي والخبرة العملية والتقنيات الرقمية المتقدمة.' : 'Barada Center was founded to be a leading specialized medical facility for ophthalmology, combining academic heritage with practical experience and advanced digital technologies.'}</p>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
-                            <div className="group p-10 bg-white rounded-[3rem] border border-gray-100 shadow-xs hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] transition-all hover:-translate-y-2 relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-2 h-full bg-blue-600/10 group-hover:bg-blue-600 transition-colors"></div>
-                                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-8 group-hover:rotate-12 transition-transform shadow-inner">
-                                    <Target size={32} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                            <div className="p-7 bg-white rounded-2xl border border-[#DFEAF0] hover:border-[#087F8C]/40 shadow-[0_6px_20px_-14px_rgba(11,31,53,0.12)] transition-all">
+                                <div className="w-12 h-12 bg-[#087F8C]/10 rounded-xl flex items-center justify-center text-[#087F8C] mb-5">
+                                    <Target size={24} />
                                 </div>
-                                <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">{settings.language === 'ar' ? 'رؤيتنا' : 'Our Vision'}</h4>
-                                <p className="text-sm text-gray-500 leading-relaxed font-bold opacity-80">{settings.language === 'ar' ? 'أن نبقى الخيار الأول والأكثر موثوقية في الشرق الأوسط عبر تقديم حلول بصرية متكاملة وآمنة.' : 'To remain the first and most trusted choice in the Middle East by providing integrated and safe optical solutions.'}</p>
+                                <h4 className="text-xl font-black text-[#172B3A] mb-2.5">{isAr ? 'رؤيتنا' : 'Our Vision'}</h4>
+                                <p className="text-sm text-[#718394] leading-relaxed font-medium">{isAr ? 'أن نبقى الخيار الأول والأكثر موثوقية في الشرق الأوسط عبر تقديم حلول بصرية متكاملة وآمنة.' : 'To remain the first and most trusted choice in the Middle East by providing integrated and safe optical solutions.'}</p>
                             </div>
-                            <div className="group p-10 bg-white rounded-[3rem] border border-gray-100 shadow-xs hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] transition-all hover:-translate-y-2 relative overflow-hidden">
-                                <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500/10 group-hover:bg-emerald-500 transition-colors"></div>
-                                <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-8 group-hover:rotate-12 transition-transform shadow-inner">
-                                    <Compass size={32} />
+                            <div className="p-7 bg-white rounded-2xl border border-[#DFEAF0] hover:border-[#1769AA]/40 shadow-[0_6px_20px_-14px_rgba(11,31,53,0.12)] transition-all">
+                                <div className="w-12 h-12 bg-[#1769AA]/10 rounded-xl flex items-center justify-center text-[#1769AA] mb-5">
+                                    <Compass size={24} />
                                 </div>
-                                <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">{settings.language === 'ar' ? 'رسالتنا' : 'Our Mission'}</h4>
-                                <p className="text-sm text-gray-500 leading-relaxed font-bold opacity-80">{settings.language === 'ar' ? 'الالتزام بالابتكار الطبي المستمر وتوفير تجربة مريض استثنائية ترتكز على الشفافية والنتائج الملموسة.' : 'Commitment to continuous medical innovation and providing an exceptional patient experience focused on transparency and tangible results.'}</p>
+                                <h4 className="text-xl font-black text-[#172B3A] mb-2.5">{isAr ? 'رسالتنا' : 'Our Mission'}</h4>
+                                <p className="text-sm text-[#718394] leading-relaxed font-medium">{isAr ? 'الالتزام بالابتكار الطبي المستمر وتوفير تجربة مريض استثنائية ترتكز على الشفافية والنتائج الملموسة.' : 'Commitment to continuous medical innovation and providing an exceptional patient experience focused on transparency and tangible results.'}</p>
                             </div>
                         </div>
                     </div>
@@ -1671,67 +1671,67 @@ const Navbar = ({
   return (
     <nav className={`sticky w-full z-50 top-0 transition-all duration-300 glass-navbar ${
       isScrolled 
-        ? "py-1" 
-        : "py-3"
+        ? "py-0.5" 
+        : "py-2"
     } ${transparent && !isScrolled ? "navbar-clear" : ""}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-20 items-center">
+        <div className="flex justify-between h-18 md:h-20 items-center">
           <div className="flex items-center">
-            <div className="shrink-0 flex items-center gap-2 cursor-pointer group glass-logo" onClick={handleLogoClick}>
-              <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 active:scale-95">
+            <div className="shrink-0 flex items-center gap-2.5 cursor-pointer group glass-logo" onClick={handleLogoClick}>
+              <div className="w-10 h-10 rounded-xl flex items-center justify-center overflow-hidden border border-[#DFEAF0]/60 bg-white/90 transition-transform group-hover:scale-105 active:scale-95">
                 {settings.logoUrl ? (
                   <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
                 ) : (
-                  <Eye size={24} className="text-emerald-600" />
+                  <Eye size={22} className="text-[#087F8C]" />
                 )}
               </div>
-              <span className="font-bold text-xl text-gray-800 tracking-tight">{settings.appName}</span>
-              {settings.patientMode && <span className="bg-emerald-50 text-emerald-600 text-[8px] font-black px-1.5 py-0.5 rounded-md border border-emerald-100 uppercase tracking-tighter ml-2">Patient Mode</span>}
+              <span className="font-black text-lg md:text-xl text-[#172B3A] tracking-tight fv-nav-brand transition-colors">{settings.appName}</span>
+              {settings.patientMode && <span className="bg-[#087F8C]/10 text-[#087F8C] text-[9px] font-black px-2 py-0.5 rounded-md border border-[#087F8C]/20 uppercase tracking-tighter mr-1">Patient Mode</span>}
             </div>
           </div>
-          <div className="hidden md:flex items-center space-x-6">
+          <div className="hidden md:flex items-center gap-1 lg:gap-2">
             {navItems.map((item) => (
-              <button key={item.id} onClick={() => onNavigate(item.id)} className="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-bold transition-all duration-300 whitespace-nowrap glass-btn-hover">
+              <button key={item.id} onClick={() => onNavigate(item.id)} className="fv-nav-link text-[#172B3A] hover:text-[#087F8C] px-3 py-2 rounded-lg text-sm font-bold transition-all duration-200 whitespace-nowrap glass-btn-hover">
                 {item.name}
               </button>
             ))}
             
             {currentUser && (
                 <div className="relative">
-                    <button onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) onMarkAsRead(); }} className="relative p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-90">
-                        <Bell size={24} />
+                    <button onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) onMarkAsRead(); }} className="fv-nav-icon relative p-2.5 text-[#172B3A] hover:text-[#087F8C] hover:bg-[#087F8C]/10 rounded-xl transition-all active:scale-90">
+                        <Bell size={22} />
                         {unreadCount > 0 && (
-                            <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white animate-pulse">
+                            <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white fv-num">
                                 {unreadCount}
                             </span>
                         )}
                     </button>
                     {showNotifications && (
-                        <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-[60] origin-top-left animate-in fade-in zoom-in-95 duration-200">
-                            <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                                <h3 className="font-bold text-gray-800 text-sm">الإشعارات</h3>
+                        <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-2xl shadow-[0_20px_50px_-15px_rgba(11,31,53,0.2)] border border-[#DFEAF0] overflow-hidden z-[60] origin-top-left animate-in fade-in zoom-in-95 duration-200">
+                            <div className="p-3.5 border-b border-[#DFEAF0] flex justify-between items-center bg-[#F5FAFC]">
+                                <h3 className="font-black text-[#172B3A] text-sm">الإشعارات</h3>
                                 {notifications.length > 0 && (
-                                    <button onClick={onClearNotifications} className="text-xs text-red-500 hover:text-red-700">مسح الكل</button>
+                                    <button onClick={onClearNotifications} className="text-xs font-bold text-red-600 hover:text-red-700">مسح الكل</button>
                                 )}
                             </div>
                             <div className="max-h-80 overflow-y-auto">
                                 {notifications.length === 0 ? (
-                                    <div className="p-8 text-center text-gray-400">
-                                        <Bell size={32} className="mx-auto mb-2 opacity-20" />
-                                        <p className="text-sm">لا توجد إشعارات جديدة</p>
+                                    <div className="p-8 text-center text-[#718394]">
+                                        <Bell size={30} className="mx-auto mb-2 opacity-30" />
+                                        <p className="text-sm font-medium">لا توجد إشعارات جديدة</p>
                                     </div>
                                 ) : (
-                                    <div className="divide-y divide-gray-50">
+                                    <div className="divide-y divide-[#DFEAF0]/70">
                                         {notifications.map(note => (
-                                            <div key={note.id} className={`p-4 hover:bg-gray-50 transition-colors ${!note.read ? 'bg-blue-50/50' : ''}`}>
+                                            <div key={note.id} className={`p-4 hover:bg-[#F5FAFC] transition-colors ${!note.read ? 'bg-[#087F8C]/5' : ''}`}>
                                                 <div className="flex items-start gap-3">
-                                                    <div className={`mt-1 p-1.5 rounded-full shrink-0 ${note.type === 'success' ? 'bg-green-100 text-green-600' : note.type === 'warning' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-600'}`}>
+                                                    <div className={`mt-1 p-1.5 rounded-lg shrink-0 ${note.type === 'success' ? 'bg-emerald-50 text-emerald-600' : note.type === 'warning' ? 'bg-red-50 text-red-600' : 'bg-[#087F8C]/10 text-[#087F8C]'}`}>
                                                         {note.type === 'success' ? <CheckCircle size={16} /> : note.type === 'warning' ? <AlertCircle size={16} /> : <Bell size={16} />}
                                                     </div>
                                                     <div className="flex-1">
-                                                        <h4 className="text-sm font-bold text-gray-900">{note.title}</h4>
-                                                        <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{note.message}</p>
-                                                        <span className="text-[10px] text-gray-400 mt-2 block">{note.date}</span>
+                                                        <h4 className="text-sm font-bold text-[#172B3A]">{note.title}</h4>
+                                                        <p className="text-xs text-[#718394] mt-0.5 leading-relaxed">{note.message}</p>
+                                                        <span className="text-[10px] text-[#718394] mt-2 block fv-num">{note.date}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1745,68 +1745,68 @@ const Navbar = ({
             )}
 
             {currentUser ? (
-              <div className="flex items-center gap-2 mr-4 border-r border-gray-200 pr-4">
-                 <button onClick={() => onNavigate('admin')} className="bg-gray-800 text-white px-4 py-2 rounded-full transition-all shadow-xs flex items-center gap-2 hover:bg-gray-900 hover:scale-105 active:scale-95">
-                  <Settings size={16} />
+              <div className="flex items-center gap-2 mr-3 border-r border-[#DFEAF0]/60 pr-3">
+                 <button onClick={() => onNavigate('admin')} className="bg-[#0B1F35] hover:bg-[#102C48] text-white px-4 py-2 rounded-xl transition-all shadow-xs border border-white/10 flex items-center gap-2 text-sm font-bold active:scale-95">
+                  <Settings size={16} className="text-[#25B8C7]" />
                   <span>{currentUser.name}</span>
                 </button>
-                <button onClick={onLogout} className="text-red-600 hover:bg-red-50 p-2 rounded-full transition-all active:scale-90" title={t.logout}>
-                  <LogOut size={20} />
+                <button onClick={onLogout} className="text-red-500 hover:bg-red-500/10 p-2 rounded-xl transition-all active:scale-90" title={t.logout}>
+                  <LogOut size={19} />
                 </button>
               </div>
             ) : !settings.patientMode && (
-              <button onClick={onLoginClick} className="bg-blue-600 text-white px-5 py-2 rounded-full transition-all shadow-xs flex items-center gap-2 hover:bg-blue-700 hover:scale-105 active:scale-95 mr-2">
-                <Lock size={16} />
+              <button onClick={onLoginClick} className="fv-btn-primary px-5 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 mr-2">
+                <Lock size={15} />
                 {t.login}
               </button>
             )}
           </div>
           <div className="md:hidden flex items-center gap-2">
             {currentUser && (
-                <button onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) onMarkAsRead(); }} className="relative p-2.5 text-gray-600 hover:text-blue-600 transition-all active:scale-90">
-                    <Bell size={24} />
+                <button onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) onMarkAsRead(); }} className="fv-nav-icon relative p-2 text-[#172B3A] hover:text-[#087F8C] transition-all active:scale-90">
+                    <Bell size={22} />
                     {unreadCount > 0 && (
-                        <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white animate-pulse">
+                        <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white fv-num">
                             {unreadCount}
                         </span>
                     )}
                 </button>
             )}
-            <button onClick={() => setIsOpen(!isOpen)} className="text-gray-600 hover:text-blue-600 p-2 relative w-12 h-12 flex items-center justify-center transition-all overflow-hidden">
-              <div className={`transition-all duration-500 transform absolute ${isOpen ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`}>
-                <Menu size={32} />
+            <button onClick={() => setIsOpen(!isOpen)} className="fv-nav-icon text-[#172B3A] hover:text-[#087F8C] p-2 relative w-11 h-11 flex items-center justify-center transition-all overflow-hidden">
+              <div className={`transition-all duration-300 transform absolute ${isOpen ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`}>
+                <Menu size={28} />
               </div>
-              <div className={`transition-all duration-500 transform absolute ${isOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"}`}>
-                <X size={32} />
+              <div className={`transition-all duration-300 transform absolute ${isOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"}`}>
+                <X size={28} />
               </div>
             </button>
           </div>
         </div>
       </div>
       {showNotifications && currentUser && (
-        <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-200 shadow-xl z-40 max-h-[50vh] overflow-y-auto animate-in slide-in-from-top duration-300">
-             <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
-                <h3 className="font-bold text-gray-800 text-sm">الإشعارات</h3>
+        <div className="md:hidden absolute top-18 left-0 w-full bg-white border-b border-[#DFEAF0] shadow-xl z-40 max-h-[50vh] overflow-y-auto animate-in slide-in-from-top duration-300">
+             <div className="p-3 border-b border-[#DFEAF0] flex justify-between items-center bg-[#F5FAFC]">
+                <h3 className="font-black text-[#172B3A] text-sm">الإشعارات</h3>
                 {notifications.length > 0 && (
-                    <button onClick={onClearNotifications} className="text-xs text-red-500 hover:text-red-700">مسح الكل</button>
+                    <button onClick={onClearNotifications} className="text-xs font-bold text-red-600 hover:text-red-700">مسح الكل</button>
                 )}
             </div>
             {notifications.length === 0 ? (
-                <div className="p-8 text-center text-gray-400">
-                    <p className="text-sm">لا توجد إشعارات جديدة</p>
+                <div className="p-8 text-center text-[#718394]">
+                    <p className="text-sm font-medium">لا توجد إشعارات جديدة</p>
                 </div>
             ) : (
-                <div className="divide-y divide-gray-50">
+                <div className="divide-y divide-[#DFEAF0]/70">
                     {notifications.map(note => (
-                        <div key={note.id} className={`p-4 ${!note.read ? 'bg-blue-50/50' : ''}`}>
+                        <div key={note.id} className={`p-4 ${!note.read ? 'bg-[#087F8C]/5' : ''}`}>
                             <div className="flex items-start gap-3">
-                                <div className={`mt-1 p-1.5 rounded-full shrink-0 ${note.type === 'success' ? 'bg-green-100 text-green-600' : note.type === 'warning' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-600'}`}>
+                                <div className={`mt-1 p-1.5 rounded-lg shrink-0 ${note.type === 'success' ? 'bg-emerald-50 text-emerald-600' : note.type === 'warning' ? 'bg-red-50 text-red-600' : 'bg-[#087F8C]/10 text-[#087F8C]'}`}>
                                     {note.type === 'success' ? <CheckCircle size={16} /> : note.type === 'warning' ? <AlertCircle size={16} /> : <Bell size={16} />}
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-bold text-gray-900">{note.title}</h4>
-                                    <p className="text-xs text-gray-600 mt-1 leading-relaxed">{note.message}</p>
-                                    <span className="text-[10px] text-gray-400 mt-2 block">{note.date}</span>
+                                    <h4 className="text-sm font-bold text-[#172B3A]">{note.title}</h4>
+                                    <p className="text-xs text-[#718394] mt-1 leading-relaxed">{note.message}</p>
+                                    <span className="text-[10px] text-[#718394] mt-2 block fv-num">{note.date}</span>
                                 </div>
                             </div>
                         </div>
@@ -1816,15 +1816,15 @@ const Navbar = ({
         </div>
       )}
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-gray-100 absolute w-full h-[calc(100vh-5rem)] overflow-y-auto shadow-xl z-30 animate-in slide-in-from-right duration-300">
+        <div className="md:hidden bg-white border-t border-[#DFEAF0] absolute w-full h-[calc(100vh-4.5rem)] overflow-y-auto shadow-xl z-30 animate-in slide-in-from-right duration-300">
           <div className="px-4 pb-20 space-y-1 sm:px-6 pt-4">
             {navItems.map((item) => (
-              <button key={item.id} onClick={() => { onNavigate(item.id); setIsOpen(false); }} className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 block px-4 py-5 rounded-2xl text-lg font-bold w-full text-right border-b border-gray-50 transition-all active:scale-95">
+              <button key={item.id} onClick={() => { onNavigate(item.id); setIsOpen(false); }} className="text-[#172B3A] hover:text-[#087F8C] hover:bg-[#F5FAFC] block px-4 py-4 rounded-xl text-base font-bold w-full text-right border-b border-[#DFEAF0]/60 transition-all active:scale-95">
                 {item.name}
               </button>
             ))}
              {(currentUser || !settings.patientMode) && (
-               <button onClick={() => { currentUser ? onLogout() : onLoginClick(); setIsOpen(false); }} className={`block px-4 py-5 rounded-2xl text-lg font-bold w-full text-right ${currentUser ? 'text-red-600 bg-red-50/50' : 'text-blue-600 bg-blue-50/50'} mt-6 transition-all active:scale-95`}>
+               <button onClick={() => { currentUser ? onLogout() : onLoginClick(); setIsOpen(false); }} className={`block px-4 py-4 rounded-xl text-base font-bold w-full text-right ${currentUser ? 'text-red-600 bg-red-50' : 'text-[#087F8C] bg-[#F5FAFC] border border-[#DFEAF0]'} mt-6 transition-all active:scale-95`}>
                   {currentUser ? t.logout : t.login}
                 </button>
              )}
@@ -1845,34 +1845,37 @@ const Hero = ({ onCtaClick, images, title, description, t }: { onCtaClick: () =>
     return () => clearInterval(interval);
   }, [images.length]);
   return (
-    <div id="home" className="relative h-[650px] flex items-center justify-center overflow-hidden">
+    <div id="home" className="relative min-h-[640px] md:min-h-[680px] flex items-center justify-center overflow-hidden fv-hero-stage -mt-20 pt-20">
       {images.map((img, index) => (
         <div key={img.id} className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="absolute inset-0 bg-black/50 z-10"></div> 
-          <img src={img.url} alt="Hero" className="w-full h-full object-cover scale-110 animate-pulse-slow" />
+          <div className="absolute inset-0 bg-gradient-to-b from-[#0B1F35]/80 via-[#0B1F35]/65 to-[#0B1F35]/90 z-10"></div> 
+          <img src={img.url} alt="Hero" className="w-full h-full object-cover scale-105" />
         </div>
       ))}
-      <div className="relative z-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
-        <div className="animate-in fade-in slide-in-from-bottom-10 duration-1000">
-            <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight drop-shadow-2xl">{title}</h1>
-            <p className="text-lg md:text-2xl mb-12 text-gray-100 leading-relaxed max-w-2xl mx-auto drop-shadow-lg">{description}</p>
+      <div className="absolute inset-0 fv-grid-pattern opacity-40 pointer-events-none z-10"></div>
+      <div className="relative z-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white pb-12">
+        <div className="animate-in fade-in slide-in-from-bottom-8 duration-700">
+            <h1 className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-black mb-6 leading-[1.15] tracking-tight drop-shadow-xl fv-balance">{title}</h1>
+            <p className="text-base sm:text-lg md:text-xl mb-10 text-slate-200 leading-relaxed max-w-2xl mx-auto font-medium">{description}</p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <button onClick={onCtaClick} className="bg-blue-600 text-white px-10 py-5 rounded-2xl text-xl font-bold hover:bg-blue-700 shadow-2xl hover:shadow-blue-500/20 transition-all hover:scale-105 flex items-center justify-center gap-3">
-                  <Calendar size={24} />
+                <button onClick={onCtaClick} className="fv-btn-primary px-9 py-4 rounded-xl text-lg font-black flex items-center justify-center gap-3">
+                  <Calendar size={22} />
                   {t.arabic === 'العربية' ? 'احجز موعدك الآن' : 'Book Your Appointment Now'}
                 </button>
-                <button onClick={() => document.getElementById('partners')?.scrollIntoView({ behavior: 'smooth' })} className="bg-white/10 backdrop-blur-md border-2 border-white/30 text-white px-10 py-5 rounded-2xl text-xl font-bold hover:bg-white/20 transition-all flex items-center justify-center gap-3">
-                  <Handshake size={24} />
+                <button onClick={() => document.getElementById('partners')?.scrollIntoView({ behavior: 'smooth' })} className="bg-white/10 backdrop-blur-md border border-white/25 text-white px-9 py-4 rounded-xl text-lg font-bold hover:bg-white/20 transition-all flex items-center justify-center gap-3">
+                  <Handshake size={22} className="text-[#25B8C7]" />
                   {t.arabic === 'العربية' ? 'استعرض التعاقدات' : 'View Partners'}
                 </button>
             </div>
         </div>
       </div>
-      <div className="absolute bottom-10 left-0 right-0 z-20 flex justify-center gap-3">
-        {images.map((_, idx) => (
-            <button key={idx} onClick={() => setCurrentIndex(idx)} className={`w-3 h-3 rounded-full transition-all duration-300 ${idx === currentIndex ? 'bg-blue-500 w-10' : 'bg-white/50 hover:bg-white'}`} />
-        ))}
-      </div>
+      {images.length > 1 && (
+        <div className="absolute bottom-20 left-0 right-0 z-20 flex justify-center gap-2.5">
+          {images.map((_, idx) => (
+              <button key={idx} onClick={() => setCurrentIndex(idx)} className={`h-2 rounded-full transition-all duration-300 ${idx === currentIndex ? 'bg-[#25B8C7] w-9' : 'bg-white/40 hover:bg-white/75 w-2.5'}`} aria-label={`Slide ${idx + 1}`} />
+          ))}
+        </div>
+      )}
     </div>
   );
 };
@@ -1891,48 +1894,49 @@ const ContactUsView = ({ onSubmit, onNavigate }: { onSubmit: (data: any) => Prom
         alert('تم إرسال رسالتك بنجاح. شكراً لتواصلك معنا.');
         onNavigate('home');
     };
+    const fieldCls = "w-full bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-3.5 text-[#172B3A] focus:bg-white focus:ring-2 focus:ring-[#25B8C7]/25 focus:border-[#087F8C] outline-hidden transition-all font-bold";
     return (
-        <div className="py-20 bg-gray-50 min-h-screen">
+        <div className="py-16 md:py-20 min-h-screen">
             <div className="max-w-2xl mx-auto px-4">
-                <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
+                <div className="bg-white rounded-3xl shadow-[0_20px_50px_-20px_rgba(11,31,53,0.14)] p-8 md:p-10 border border-[#DFEAF0]">
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4">
-                            <MessageCircle size={32} />
+                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20 mb-4">
+                            <MessageCircle size={28} />
                         </div>
-                        <h2 className="text-3xl font-bold text-gray-800">تواصل معنا</h2>
-                        <p className="text-gray-500 mt-2">يسعدنا استقبال مقترحاتكم واستفساركم في أي وقت</p>
+                        <h2 className="text-2xl md:text-3xl font-black text-[#172B3A]">تواصل معنا</h2>
+                        <p className="text-[#718394] text-sm font-medium mt-2">يسعدنا استقبال مقترحاتكم واستفساركم في أي وقت</p>
                     </div>
-                    <div className="space-y-6">
+                    <div className="space-y-5">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">الاسم الكريم</label>
-                            <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-blue-500 focus:border-blue-500 p-3 border transition-shadow" placeholder="الاسم" />
+                            <label className="block text-xs font-bold text-[#718394] mb-1.5">الاسم الكريم</label>
+                            <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className={fieldCls} placeholder="الاسم" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">رقم الهاتف</label>
-                            <input type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-blue-500 focus:border-blue-500 p-3 border transition-shadow" placeholder="01xxxxxxxxx" />
+                            <label className="block text-xs font-bold text-[#718394] mb-1.5">رقم الهاتف</label>
+                            <input type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className={`${fieldCls} text-left fv-num`} dir="ltr" placeholder="01xxxxxxxxx" />
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">نوع الرسالة</label>
-                            <div className="flex gap-4">
-                                <label className="flex items-center gap-2 cursor-pointer bg-gray-50 p-3 rounded-lg flex-1 border border-gray-200 hover:border-blue-200 transition-colors">
-                                    <input type="radio" name="type" value="suggestion" checked={form.type === 'suggestion'} onChange={e => setForm({...form, type: e.target.value})} className="text-blue-600 focus:ring-blue-500" />
+                            <label className="block text-xs font-bold text-[#718394] mb-2">نوع الرسالة</label>
+                            <div className="flex gap-3">
+                                <label className="flex items-center gap-2.5 cursor-pointer bg-[#F5FAFC] p-3.5 rounded-xl flex-1 border border-[#DFEAF0] hover:border-[#087F8C]/40 transition-colors font-bold text-sm text-[#172B3A]">
+                                    <input type="radio" name="type" value="suggestion" checked={form.type === 'suggestion'} onChange={e => setForm({...form, type: e.target.value})} className="accent-[#087F8C]" />
                                     <span>اقتراح / استفسار</span>
                                 </label>
-                                <label className="flex items-center gap-2 cursor-pointer bg-gray-50 p-3 rounded-lg flex-1 border border-gray-200 hover:border-red-200 transition-colors">
-                                    <input type="radio" name="type" value="complaint" checked={form.type === 'complaint'} onChange={e => setForm({...form, type: e.target.value})} className="text-red-600 focus:ring-red-500" />
+                                <label className="flex items-center gap-2.5 cursor-pointer bg-[#F5FAFC] p-3.5 rounded-xl flex-1 border border-[#DFEAF0] hover:border-red-300 transition-colors font-bold text-sm text-[#172B3A]">
+                                    <input type="radio" name="type" value="complaint" checked={form.type === 'complaint'} onChange={e => setForm({...form, type: e.target.value})} className="accent-red-600" />
                                     <span>شكوى</span>
                                 </label>
                             </div>
                         </div>
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">الرسالة</label>
-                            <textarea rows={5} value={form.message} onChange={e => setForm({...form, message: e.target.value})} className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-blue-500 focus:border-blue-500 p-3 border transition-shadow" placeholder="اكتب تفاصيل رسالتك هنا..." />
+                            <label className="block text-xs font-bold text-[#718394] mb-1.5">الرسالة</label>
+                            <textarea rows={5} value={form.message} onChange={e => setForm({...form, message: e.target.value})} className={fieldCls} placeholder="اكتب تفاصيل رسالتك هنا..." />
                         </div>
-                        <div className="flex gap-4 pt-4">
-                            <button onClick={handleSubmit} className="flex-1 bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                        <div className="flex gap-3 pt-3">
+                            <button onClick={handleSubmit} disabled={sending} className="flex-1 fv-btn-primary font-black py-3.5 px-4 rounded-xl flex items-center justify-center gap-2 disabled:opacity-60">
                                 <Send size={18} /> إرسال
                             </button>
-                            <button onClick={() => onNavigate('home')} className="px-6 py-3.5 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors">إلغاء</button>
+                            <button onClick={() => onNavigate('home')} className="px-6 py-3.5 border border-[#DFEAF0] rounded-xl text-[#718394] font-bold hover:bg-[#F5FAFC] hover:text-[#172B3A] transition-colors">إلغاء</button>
                         </div>
                     </div>
                 </div>
@@ -1985,43 +1989,43 @@ const AiAssistant = ({ language }: { language: 'ar' | 'en' }) => {
     <>
       <div className={`fixed bottom-6 left-6 z-[60] transition-all duration-300 ${isOpen ? 'scale-0 opacity-0 pointer-events-none' : 'scale-100 opacity-100'}`}>
         <button onClick={() => setIsOpen(true)} className="bg-transparent border-0 p-0 cursor-pointer transition-all hover:scale-110 animate-bounce focus:outline-hidden" title={language === 'ar' ? "المساعد الذكي" : "Smart Assistant"} aria-label={language === 'ar' ? "المساعد الذكي" : "Smart Assistant"}>
-           <img src="/assets/ai-robot-mascot.png" alt={language === 'ar' ? "المساعد الذكي" : "Smart Assistant"} referrerPolicy="no-referrer" className="w-20 h-20 object-contain drop-shadow-[0_10px_18px_rgba(37,99,235,0.45)] select-none pointer-events-none" />
+           <img src="/assets/ai-robot-mascot.png" alt={language === 'ar' ? "المساعد الذكي" : "Smart Assistant"} referrerPolicy="no-referrer" className="w-20 h-20 object-contain drop-shadow-[0_10px_18px_rgba(8,127,140,0.45)] select-none pointer-events-none" />
         </button>
       </div>
-      <div className={`fixed bottom-24 left-6 z-[60] w-[350px] max-w-[calc(100vw-3rem)] bg-white rounded-2xl shadow-2xl border border-gray-100 overflow-hidden transition-all duration-300 origin-bottom-left flex flex-col ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-10 pointer-events-none'}`}>
-          <div className="bg-blue-600 p-4 text-white flex items-center justify-between">
+      <div className={`fixed bottom-24 left-6 z-[60] w-[350px] max-w-[calc(100vw-3rem)] bg-white rounded-2xl shadow-2xl border border-[#DFEAF0] overflow-hidden transition-all duration-300 origin-bottom-left flex flex-col ${isOpen ? 'scale-100 opacity-100 translate-y-0' : 'scale-95 opacity-0 translate-y-10 pointer-events-none'}`}>
+          <div className="bg-gradient-to-l from-[#0B1F35] via-[#102C48] to-[#087F8C] p-4 text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                   <img src="/assets/ai-robot-mascot.png" alt="" referrerPolicy="no-referrer" className="w-7 h-7 object-contain" />
                   <h3 className="font-bold">{language === 'ar' ? "المساعد الذكي" : "Smart Assistant"}</h3>
               </div>
-              <button onClick={() => setIsOpen(false)} className="hover:bg-white/20 p-1 rounded-sm transition-colors"><X size={20} /></button>
+              <button onClick={() => setIsOpen(false)} className="hover:bg-white/20 p-1 rounded-lg transition-colors"><X size={20} /></button>
           </div>
-          <div className="h-80 overflow-y-auto p-4 space-y-4 bg-gray-50">
+          <div className="h-80 overflow-y-auto p-4 space-y-4 bg-[#F5FAFC]">
               {messages.length === 0 && (
-                  <div className="text-center text-gray-400 mt-20">
+                  <div className="text-center text-[#718394] mt-16">
                       <img src="/assets/ai-robot-mascot.png" alt="" referrerPolicy="no-referrer" className="w-16 h-16 object-contain mx-auto mb-2 drop-shadow-xs" />
-                      <p>{language === 'ar' ? "مرحباً! كيف يمكنني مساعدتك اليوم؟" : "Hello! How can I help you today?"}</p>
+                      <p className="text-sm font-semibold">{language === 'ar' ? "مرحباً! كيف يمكنني مساعدتك اليوم؟" : "Hello! How can I help you today?"}</p>
                   </div>
               )}
               {messages.map((msg, idx) => (
                   <div key={idx} className={`flex ${msg.role === 'user' ? 'justify-start' : 'justify-end'}`}>
-                      <div className={`max-w-[80%] p-3 rounded-2xl whitespace-pre-line ${msg.role === 'user' ? 'bg-blue-600 text-white rounded-tr-none' : 'bg-white text-gray-800 shadow-xs border border-gray-200 rounded-tl-none'}`}>
+                      <div className={`max-w-[80%] p-3 rounded-2xl text-sm whitespace-pre-line ${msg.role === 'user' ? 'bg-[#087F8C] text-white rounded-tr-none' : 'bg-white text-[#172B3A] shadow-xs border border-[#DFEAF0] rounded-tl-none'}`}>
                           {msg.text}
                       </div>
                   </div>
               ))}
               {isLoading && (
                   <div className="flex justify-end">
-                        <div className="bg-white text-gray-800 shadow-xs border border-gray-200 rounded-2xl rounded-tl-none p-3">
+                        <div className="bg-white text-[#718394] shadow-xs border border-[#DFEAF0] rounded-2xl rounded-tl-none p-3 text-sm">
                           <span className="animate-pulse">{language === 'ar' ? "جاري الكتابة..." : "Typing..."}</span>
                         </div>
                   </div>
               )}
               <div ref={chatEndRef} />
           </div>
-          <div className="p-4 bg-white border-t border-gray-100 flex gap-2">
-              <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} placeholder={language === 'ar' ? "اكتب استفسارك هنا..." : "Type your query here..."} className="flex-1 bg-gray-50 border border-gray-200 rounded-xl p-3 focus:outline-hidden focus:ring-2 focus:ring-blue-500 text-sm" />
-              <button onClick={handleSend} disabled={isLoading} className="bg-blue-600 text-white p-3 rounded-xl hover:bg-blue-700 transition-colors disabled:opacity-50">
+          <div className="p-3.5 bg-white border-t border-[#DFEAF0] flex gap-2">
+              <input type="text" value={input} onChange={e => setInput(e.target.value)} onKeyDown={e => e.key === 'Enter' && handleSend()} placeholder={language === 'ar' ? "اكتب استفسارك هنا..." : "Type your query here..."} className="flex-1 bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-3 focus:bg-white focus:outline-hidden focus:ring-2 focus:ring-[#25B8C7]/25 focus:border-[#087F8C] text-sm text-[#172B3A]" />
+              <button onClick={handleSend} disabled={isLoading} className="fv-btn-primary p-3 rounded-xl disabled:opacity-50">
                   <Send size={18} className={isLoading ? "opacity-0" : ""} />
               </button>
           </div>
@@ -2109,6 +2113,9 @@ const AdminPanel = ({
   const [deletingServiceId, setDeletingServiceId] = useState<number | null>(null);
   const [deletingOpIdModal, setDeletingOpIdModal] = useState<number | null>(null);
   const [deletingHeroImageId, setDeletingHeroImageId] = useState<number | null>(null);
+  const [clearingContactLogsModal, setClearingContactLogsModal] = useState(false);
+  const [isClearingContactLogs, setIsClearingContactLogs] = useState(false);
+  const [contactLogsNotice, setContactLogsNotice] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
 
   const [doctorSearchTerm, setDoctorSearchTerm] = useState('');
 
@@ -2119,6 +2126,31 @@ const AdminPanel = ({
       if (!error && data) setContactLogs(data);
     } catch { /* silent */ }
     setContactLogsLoading(false);
+  };
+
+  const handleClearContactLogs = async () => {
+    if (currentUser?.role !== 'admin') return;
+    setIsClearingContactLogs(true);
+    setContactLogsNotice(null);
+    try {
+      const { error } = await supabase
+        .from('contact_logs')
+        .delete()
+        .neq('id', '00000000-0000-0000-0000-000000000000');
+      if (error) {
+        console.error('Error clearing contact logs:', error);
+        setContactLogsNotice({ type: 'error', message: 'تعذر مسح سجل الاتصالات والتذكيرات.' });
+        return;
+      }
+      setContactLogs([]);
+      setClearingContactLogsModal(false);
+      setContactLogsNotice({ type: 'success', message: 'تم مسح سجل الاتصالات والتذكيرات بنجاح.' });
+    } catch (err) {
+      console.error('Error clearing contact logs:', err);
+      setContactLogsNotice({ type: 'error', message: 'حدث خطأ أثناء مسح سجل الاتصالات والتذكيرات.' });
+    } finally {
+      setIsClearingContactLogs(false);
+    }
   };
 
   // Staff only open the sections the manager allowed; land on the first allowed one.
@@ -2530,9 +2562,9 @@ const handlePrint = (title: string, contentHtml: string) => {
 
   const getDoctorStats = () => doctors.map(doc => { const bookingsCount = allBookings.filter(b => b.doctorId === doc.id && (!reportStart || b.date >= reportStart) && (!reportEnd || b.date <= reportEnd) && b.status === 'confirmed').length; const operationsCount = operations.filter(op => op.doctorName === doc.name && (!reportStart || op.date >= reportStart) && (!reportEnd || op.date <= reportEnd) && op.status === 'confirmed').length; return { ...doc, bookingsCount, operationsCount, total: bookingsCount + operationsCount }; }).sort((a,b) => { if (reportSortBy === 'bookings') return b.bookingsCount - a.bookingsCount; if (reportSortBy === 'operations') return b.operationsCount - a.operationsCount; return b.total - a.total; });
   const doctorStats = getDoctorStats(); const top5Doctors = doctorStats.slice(0, 5); const maxStatValue = Math.max(...doctorStats.map(d => d.total), 1);
-  const tabClass = (id: string) => `w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl font-bold transition-all duration-300 ${activeTab === id ? 'bg-blue-600 text-white shadow-lg shadow-blue-500/20 translate-x-1' : 'bg-transparent text-gray-500 hover:bg-blue-50 hover:text-blue-600'}`;
-  const inputClass = "w-full bg-white border border-gray-300 rounded-xl p-3.5 text-gray-900 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 focus:outline-hidden transition-all shadow-xs";
-  const cardClass = "bg-white p-8 rounded-[2rem] border border-gray-100 shadow-xl shadow-gray-200/50";
+  const tabClass = (id: string) => `w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-bold transition-all duration-200 ${activeTab === id ? 'bg-[#087F8C] text-white shadow-[0_8px_20px_-6px_rgba(8,127,140,0.45)] translate-x-0.5' : 'bg-transparent text-[#718394] hover:bg-[#F5FAFC] hover:text-[#087F8C]'}`;
+  const inputClass = "w-full bg-white border border-[#DFEAF0] rounded-xl p-3 text-[#172B3A] focus:ring-2 focus:ring-[#25B8C7]/25 focus:border-[#087F8C] focus:outline-hidden transition-all font-medium";
+  const cardClass = "bg-white p-6 md:p-8 rounded-2xl border border-[#DFEAF0] shadow-[0_10px_28px_-16px_rgba(11,31,53,0.1)]";
   
   const bookingToDelete = allBookings.find(b => b.id === deletingBookingId); 
   const doctorToDelete = doctors.find(d => d.id === deletingDoctorId);
@@ -2593,39 +2625,40 @@ const handlePrint = (title: string, contentHtml: string) => {
   const analyticsData = getPatientAnalytics();
 
   return (
-    <div className="py-20 bg-gray-50 text-gray-900 min-h-screen" id="admin">
-      {deletingBookingId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-[2.5rem] shadow-2xl max-md w-full p-10 text-center border border-gray-100"><div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner"><AlertTriangle size={40} /></div><h3 className="text-2xl font-black text-gray-900 mb-4">تأكيد حذف الحجز</h3><div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100 text-right"><p className="text-sm text-gray-500 font-bold mb-2">هل أنت متأكد من رغبتك في حذف حجز المريض:</p><p className="text-lg font-black text-red-600">{bookingToDelete?.patientName}</p><p className="text-xs text-gray-400 mt-2">موعد: {bookingToDelete?.date} في {bookingToDelete?.time}</p></div><div className="flex gap-4"><button onClick={() => { onDeleteBooking(deletingBookingId); setDeletingBookingId(null); }} className="flex-1 bg-red-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"><Trash size={18} /> تأكيد الحذف</button><button onClick={() => setDeletingBookingId(null)} className="flex-1 bg-gray-100 text-gray-600 font-black py-4 rounded-2xl hover:bg-gray-200 transition-all">تراجع</button></div></div></div>)}
-      {deletingDoctorId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-[2.5rem] shadow-2xl max-md w-full p-10 text-center border border-gray-100"><div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner"><AlertTriangle size={40} /></div><h3 className="text-2xl font-black text-gray-900 mb-4">تأكيد حذف الطبيب</h3><div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100 text-right"><p className="text-sm text-gray-500 font-bold mb-2">هل أنت متأكد من رغبتك في حذف بيانات الطبيب:</p><p className="text-lg font-black text-red-600">{doctorToDelete?.name}</p></div><div className="flex gap-4"><button onClick={() => { const id = deletingDoctorId; deleteDoctorFromDb(doctors.find(d => d.id === id)); setDoctors(prev => prev.filter(d => d.id !== id)); if (editingDoctorId === id) { setEditingDoctorId(null); setNewDoctor({ name: '', specialty: '', image: '', maxPatients: 10, fee: 150, availableDates: [], patientsPerHour: 4, topSpecialtiesStr: '', experience: 10, education: '', followUpExamCount: 2, followUpSurgeryCount: 3, facebookUrl: '', youtubeUrl: '', tiktokUrl: '', websiteUrl: '', instagramUrl: '', xUrl: '' }); } setDeletingDoctorId(null); }} className="flex-1 bg-red-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"><Trash size={18} /> تأكيد الحذف</button><button onClick={() => setDeletingDoctorId(null)} className="flex-1 bg-gray-100 text-gray-600 font-black py-4 rounded-2xl hover:bg-gray-200 transition-all">تراجع</button></div></div></div>)}
-      {deletingUserId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-[2.5rem] shadow-2xl max-md w-full p-10 text-center border border-gray-100"><div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner"><AlertTriangle size={40} /></div><h3 className="text-2xl font-black text-gray-900 mb-4">تأكيد حذف المستخدم</h3><div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100 text-right"><p className="text-sm text-gray-500 font-bold mb-2">هل أنت متأكد من رغبتك في حذف حساب الموظف:</p><p className="text-lg font-black text-red-600">{userToDelete?.name}</p></div><div className="flex gap-4"><button onClick={() => { setUsers(prev => prev.filter(u => u.id !== deletingUserId)); setDeletingUserId(null); }} className="flex-1 bg-red-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"><Trash size={18} /> تأكيد الحذف</button><button onClick={() => setDeletingUserId(null)} className="flex-1 bg-gray-100 text-gray-600 font-black py-4 rounded-2xl hover:bg-gray-200 transition-all">تراجع</button></div></div></div>)}
-      {deletingPartnerId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-[2.5rem] shadow-2xl max-md w-full p-10 text-center border border-gray-100"><div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner"><AlertTriangle size={40} /></div><h3 className="text-2xl font-black text-gray-900 mb-4">تأكيد حذف جهة التعاقد</h3><div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100 text-right"><p className="text-sm text-gray-500 font-bold mb-2">هل أنت متأكد من رغبتك في حذف:</p><p className="text-lg font-black text-red-600">{partnerToDelete?.name}</p></div><div className="flex gap-4"><button onClick={confirmDeletePartner} className="flex-1 bg-red-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"><Trash size={18} /> تأكيد الحذف</button><button onClick={() => setDeletingPartnerId(null)} className="flex-1 bg-gray-100 text-gray-600 font-black py-4 rounded-2xl hover:bg-gray-200 transition-all">تراجع</button></div></div></div>)}
-      {deletingServiceId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-[2.5rem] shadow-2xl max-md w-full p-10 text-center border border-gray-100"><div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner"><AlertTriangle size={40} /></div><h3 className="text-2xl font-black text-gray-900 mb-4">تأكيد حذف الخدمة</h3><div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100 text-right"><p className="text-sm text-gray-500 font-bold mb-2">هل أنت متأكد من رغبتك في حذف الخدمة:</p><p className="text-lg font-black text-red-600">{serviceToDelete?.title}</p></div><div className="flex gap-4"><button onClick={async () => { try { const originalService = realtimeData.services.find((s: any) => parseInt(s.id.slice(-8), 16) === deletingServiceId); if (originalService) { const { error } = await supabase.from('services').delete().eq('id', originalService.id); if (error) throw error; } else { setServices(prev => prev.filter(s => s.id !== deletingServiceId)); } if(editingServiceId === deletingServiceId) setEditingServiceId(null); setDeletingServiceId(null); } catch (err) { console.error('Error deleting service:', err); alert('حدث خطأ أثناء حذف الخدمة'); setDeletingServiceId(null); } }} className="flex-1 bg-red-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"><Trash size={18} /> تأكيد الحذف</button><button onClick={() => setDeletingServiceId(null)} className="flex-1 bg-gray-100 text-gray-600 font-black py-4 rounded-2xl hover:bg-gray-200 transition-all">تراجع</button></div></div></div>)}
-      {deletingOpIdModal !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-[2.5rem] shadow-2xl max-md w-full p-10 text-center border border-gray-100"><div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner"><AlertTriangle size={40} /></div><h3 className="text-2xl font-black text-gray-900 mb-4">تأكيد حذف سجل العملية</h3><div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100 text-right"><p className="text-sm text-gray-500 font-bold mb-2">هل أنت متأكد من رغبتك في حذف سجل العملية للمريض:</p><p className="text-lg font-black text-red-600">{opToDelete?.patientName}</p><p className="text-xs text-gray-400 mt-2">نوع الجراحة: {opToDelete?.surgeryType}</p></div><div className="flex gap-4"><button onClick={async () => { const target = operations.find(o => o.id === deletingOpIdModal); if (target?.dbId && !(await deleteOperation(target.dbId))) return; setOperations(prev => prev.filter(o => o.id !== deletingOpIdModal)); if (editingOpId === deletingOpIdModal) setEditingOpId(null); setDeletingOpIdModal(null); }} className="flex-1 bg-red-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"><Trash size={18} /> تأكيد الحذف</button><button onClick={() => setDeletingOpIdModal(null)} className="flex-1 bg-gray-100 text-gray-600 font-black py-4 rounded-2xl hover:bg-gray-200 transition-all">تراجع</button></div></div></div>)}
-      {deletingHeroImageId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-[2.5rem] shadow-2xl max-md w-full p-10 text-center border border-gray-100"><div className="w-20 h-20 bg-red-50 text-red-500 rounded-full flex items-center justify-center mx-auto mb-8 shadow-inner"><AlertTriangle size={40} /></div><h3 className="text-2xl font-black text-gray-900 mb-4">تأكيد حذف الصورة</h3><div className="bg-gray-50 p-6 rounded-2xl mb-8 border border-gray-100 text-right"><p className="text-sm text-gray-500 font-bold mb-2">هل أنت متأكد من رغبتك في حذف هذه الصورة من شريط العرض؟</p><div className="rounded-xl overflow-hidden h-32 w-full mt-4 border border-gray-200"><img src={heroImages.find(i => i.id === deletingHeroImageId)?.url} className="w-full h-full object-cover" /></div></div><div className="flex gap-4"><button onClick={confirmDeleteHeroImage} className="flex-1 bg-red-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-red-500/20 hover:bg-red-700 transition-all hover:scale-105 active:scale-95 flex items-center justify-center gap-2"><Trash size={18} /> تأكيد الحذف</button><button onClick={() => setDeletingHeroImageId(null)} className="flex-1 bg-gray-100 text-gray-600 font-black py-4 rounded-2xl hover:bg-gray-200 transition-all">تراجع</button></div></div></div>)}
+    <div className="py-12 md:py-16 bg-[#F5FAFC] text-[#172B3A] min-h-screen" id="admin">
+      {deletingBookingId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-[#DFEAF0]"><div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl border border-red-200 flex items-center justify-center mx-auto mb-6"><AlertTriangle size={32} /></div><h3 className="text-xl font-black text-[#172B3A] mb-3">تأكيد حذف الحجز</h3><div className="bg-[#F5FAFC] p-5 rounded-2xl mb-6 border border-[#DFEAF0] text-right"><p className="text-xs text-[#718394] font-bold mb-1.5">هل أنت متأكد من رغبتك في حذف حجز المريض:</p><p className="text-base font-black text-red-600">{bookingToDelete?.patientName}</p><p className="text-xs text-[#718394] mt-1.5 fv-num">موعد: {bookingToDelete?.date} في {bookingToDelete?.time}</p></div><div className="flex gap-3"><button onClick={() => { onDeleteBooking(deletingBookingId); setDeletingBookingId(null); }} className="flex-1 bg-red-600 text-white font-black py-3.5 rounded-xl hover:bg-red-700 transition-all flex items-center justify-center gap-2"><Trash size={17} /> تأكيد الحذف</button><button onClick={() => setDeletingBookingId(null)} className="flex-1 bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-black py-3.5 rounded-xl hover:bg-white transition-all">تراجع</button></div></div></div>)}
+      {deletingDoctorId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-[#DFEAF0]"><div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl border border-red-200 flex items-center justify-center mx-auto mb-6"><AlertTriangle size={32} /></div><h3 className="text-xl font-black text-[#172B3A] mb-3">تأكيد حذف الطبيب</h3><div className="bg-[#F5FAFC] p-5 rounded-2xl mb-6 border border-[#DFEAF0] text-right"><p className="text-xs text-[#718394] font-bold mb-1.5">هل أنت متأكد من رغبتك في حذف بيانات الطبيب:</p><p className="text-base font-black text-red-600">{doctorToDelete?.name}</p></div><div className="flex gap-3"><button onClick={() => { const id = deletingDoctorId; deleteDoctorFromDb(doctors.find(d => d.id === id)); setDoctors(prev => prev.filter(d => d.id !== id)); if (editingDoctorId === id) { setEditingDoctorId(null); setNewDoctor({ name: '', specialty: '', image: '', maxPatients: 10, fee: 150, availableDates: [], patientsPerHour: 4, topSpecialtiesStr: '', experience: 10, education: '', followUpExamCount: 2, followUpSurgeryCount: 3, facebookUrl: '', youtubeUrl: '', tiktokUrl: '', websiteUrl: '', instagramUrl: '', xUrl: '' }); } setDeletingDoctorId(null); }} className="flex-1 bg-red-600 text-white font-black py-3.5 rounded-xl hover:bg-red-700 transition-all flex items-center justify-center gap-2"><Trash size={17} /> تأكيد الحذف</button><button onClick={() => setDeletingDoctorId(null)} className="flex-1 bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-black py-3.5 rounded-xl hover:bg-white transition-all">تراجع</button></div></div></div>)}
+      {deletingUserId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-[#DFEAF0]"><div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl border border-red-200 flex items-center justify-center mx-auto mb-6"><AlertTriangle size={32} /></div><h3 className="text-xl font-black text-[#172B3A] mb-3">تأكيد حذف المستخدم</h3><div className="bg-[#F5FAFC] p-5 rounded-2xl mb-6 border border-[#DFEAF0] text-right"><p className="text-xs text-[#718394] font-bold mb-1.5">هل أنت متأكد من رغبتك في حذف حساب الموظف:</p><p className="text-base font-black text-red-600">{userToDelete?.name}</p></div><div className="flex gap-3"><button onClick={() => { setUsers(prev => prev.filter(u => u.id !== deletingUserId)); setDeletingUserId(null); }} className="flex-1 bg-red-600 text-white font-black py-3.5 rounded-xl hover:bg-red-700 transition-all flex items-center justify-center gap-2"><Trash size={17} /> تأكيد الحذف</button><button onClick={() => setDeletingUserId(null)} className="flex-1 bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-black py-3.5 rounded-xl hover:bg-white transition-all">تراجع</button></div></div></div>)}
+      {deletingPartnerId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-[#DFEAF0]"><div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl border border-red-200 flex items-center justify-center mx-auto mb-6"><AlertTriangle size={32} /></div><h3 className="text-xl font-black text-[#172B3A] mb-3">تأكيد حذف جهة التعاقد</h3><div className="bg-[#F5FAFC] p-5 rounded-2xl mb-6 border border-[#DFEAF0] text-right"><p className="text-xs text-[#718394] font-bold mb-1.5">هل أنت متأكد من رغبتك في حذف:</p><p className="text-base font-black text-red-600">{partnerToDelete?.name}</p></div><div className="flex gap-3"><button onClick={confirmDeletePartner} className="flex-1 bg-red-600 text-white font-black py-3.5 rounded-xl hover:bg-red-700 transition-all flex items-center justify-center gap-2"><Trash size={17} /> تأكيد الحذف</button><button onClick={() => setDeletingPartnerId(null)} className="flex-1 bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-black py-3.5 rounded-xl hover:bg-white transition-all">تراجع</button></div></div></div>)}
+      {deletingServiceId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-[#DFEAF0]"><div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl border border-red-200 flex items-center justify-center mx-auto mb-6"><AlertTriangle size={32} /></div><h3 className="text-xl font-black text-[#172B3A] mb-3">تأكيد حذف الخدمة</h3><div className="bg-[#F5FAFC] p-5 rounded-2xl mb-6 border border-[#DFEAF0] text-right"><p className="text-xs text-[#718394] font-bold mb-1.5">هل أنت متأكد من رغبتك في حذف الخدمة:</p><p className="text-base font-black text-red-600">{serviceToDelete?.title}</p></div><div className="flex gap-3"><button onClick={async () => { try { const originalService = realtimeData.services.find((s: any) => parseInt(s.id.slice(-8), 16) === deletingServiceId); if (originalService) { const { error } = await supabase.from('services').delete().eq('id', originalService.id); if (error) throw error; } else { setServices(prev => prev.filter(s => s.id !== deletingServiceId)); } if(editingServiceId === deletingServiceId) setEditingServiceId(null); setDeletingServiceId(null); } catch (err) { console.error('Error deleting service:', err); alert('حدث خطأ أثناء حذف الخدمة'); setDeletingServiceId(null); } }} className="flex-1 bg-red-600 text-white font-black py-3.5 rounded-xl hover:bg-red-700 transition-all flex items-center justify-center gap-2"><Trash size={17} /> تأكيد الحذف</button><button onClick={() => setDeletingServiceId(null)} className="flex-1 bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-black py-3.5 rounded-xl hover:bg-white transition-all">تراجع</button></div></div></div>)}
+      {deletingOpIdModal !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-[#DFEAF0]"><div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl border border-red-200 flex items-center justify-center mx-auto mb-6"><AlertTriangle size={32} /></div><h3 className="text-xl font-black text-[#172B3A] mb-3">تأكيد حذف سجل العملية</h3><div className="bg-[#F5FAFC] p-5 rounded-2xl mb-6 border border-[#DFEAF0] text-right"><p className="text-xs text-[#718394] font-bold mb-1.5">هل أنت متأكد من رغبتك في حذف سجل العملية للمريض:</p><p className="text-base font-black text-red-600">{opToDelete?.patientName}</p><p className="text-xs text-[#718394] mt-1.5">نوع الجراحة: {opToDelete?.surgeryType}</p></div><div className="flex gap-3"><button onClick={async () => { const target = operations.find(o => o.id === deletingOpIdModal); if (target?.dbId && !(await deleteOperation(target.dbId))) return; setOperations(prev => prev.filter(o => o.id !== deletingOpIdModal)); if (editingOpId === deletingOpIdModal) setEditingOpId(null); setDeletingOpIdModal(null); }} className="flex-1 bg-red-600 text-white font-black py-3.5 rounded-xl hover:bg-red-700 transition-all flex items-center justify-center gap-2"><Trash size={17} /> تأكيد الحذف</button><button onClick={() => setDeletingOpIdModal(null)} className="flex-1 bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-black py-3.5 rounded-xl hover:bg-white transition-all">تراجع</button></div></div></div>)}
+      {deletingHeroImageId !== null && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-[#DFEAF0]"><div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl border border-red-200 flex items-center justify-center mx-auto mb-6"><AlertTriangle size={32} /></div><h3 className="text-xl font-black text-[#172B3A] mb-3">تأكيد حذف الصورة</h3><div className="bg-[#F5FAFC] p-5 rounded-2xl mb-6 border border-[#DFEAF0] text-right"><p className="text-xs text-[#718394] font-bold mb-2">هل أنت متأكد من رغبتك في حذف هذه الصورة من شريط العرض؟</p><div className="rounded-xl overflow-hidden h-32 w-full mt-3 border border-[#DFEAF0]"><img src={heroImages.find(i => i.id === deletingHeroImageId)?.url} className="w-full h-full object-cover" /></div></div><div className="flex gap-3"><button onClick={confirmDeleteHeroImage} className="flex-1 bg-red-600 text-white font-black py-3.5 rounded-xl hover:bg-red-700 transition-all flex items-center justify-center gap-2"><Trash size={17} /> تأكيد الحذف</button><button onClick={() => setDeletingHeroImageId(null)} className="flex-1 bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-black py-3.5 rounded-xl hover:bg-white transition-all">تراجع</button></div></div></div>)}
+      {clearingContactLogsModal && currentUser?.role === 'admin' && (<div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs animate-in fade-in duration-300"><div className="bg-white rounded-3xl shadow-2xl max-w-md w-full p-8 text-center border border-[#DFEAF0]"><div className="w-16 h-16 bg-red-50 text-red-600 rounded-2xl border border-red-200 flex items-center justify-center mx-auto mb-6"><AlertTriangle size={32} /></div><h3 className="text-xl font-black text-[#172B3A] mb-3">تأكيد مسح سجل الاتصالات والتذكيرات</h3><div className="bg-[#F5FAFC] p-5 rounded-2xl mb-6 border border-[#DFEAF0] text-right"><p className="text-xs text-[#718394] font-bold mb-1.5">هل أنت متأكد من رغبتك في مسح جميع سجلات الاتصالات والتذكيرات نهائياً؟</p><p className="text-xs text-red-600 font-bold fv-num">عدد السجلات الحالية: {contactLogs.length}</p></div><div className="flex gap-3"><button onClick={handleClearContactLogs} disabled={isClearingContactLogs} className="flex-1 bg-red-600 text-white font-black py-3.5 rounded-xl hover:bg-red-700 transition-all flex items-center justify-center gap-2 disabled:opacity-60"><Trash size={17} /> {isClearingContactLogs ? 'جاري المسح...' : 'تأكيد المسح'}</button><button onClick={() => setClearingContactLogsModal(false)} disabled={isClearingContactLogs} className="flex-1 bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-black py-3.5 rounded-xl hover:bg-white transition-all">تراجع</button></div></div></div>)}
 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col lg:flex-row gap-12">
+        <div className="flex flex-col lg:flex-row gap-8">
             <aside className="lg:w-72 shrink-0">
-                <div className="sticky top-24 bg-white rounded-[2rem] border border-gray-100 shadow-xl shadow-gray-100/50 p-6 space-y-1.5 overflow-hidden">
-                    <div className="flex items-center gap-3 px-4 py-6 mb-4 border-b border-gray-50"><div className="p-3 bg-blue-600 rounded-2xl text-white shadow-lg shadow-blue-200"><LayoutDashboard size={24} /></div><div><h2 className="text-xl font-black text-gray-900 leading-none">{t.controlPanel}</h2><p className="text-[10px] text-gray-400 font-bold mt-1 uppercase tracking-widest">Barada EMS</p></div></div>
-                    {canAccessSection(currentUser, 'overview') && (<button onClick={() => setActiveTab('overview')} className={tabClass('overview')}><Eye size={20} /> نظرة عامة</button>)}
-                    {canAccessSection(currentUser, 'doctors') && (<button onClick={() => setActiveTab('doctors')} className={tabClass('doctors')}><Users size={20} /> {t.doctors}</button>)}
-                    {canAccessSection(currentUser, 'bookings') && (<button onClick={() => setActiveTab('bookings')} className={tabClass('bookings')}><CalendarDays size={20} /> {t.myBookings}</button>)}
-                    {canAccessSection(currentUser, 'operations') && (<button onClick={() => setActiveTab('operations')} className={tabClass('operations')}><Scissors size={20} /> سجل العمليات</button>)}
-                    {canAccessSection(currentUser, 'reminders') && (<button onClick={() => setActiveTab('reminders')} className={tabClass('reminders')}><Smartphone size={20} /> التذكيرات</button>)}
-                    {canAccessSection(currentUser, 'patient-stats') && (<button onClick={() => setActiveTab('patient-stats')} className={tabClass('patient-stats')}><PieChart size={20} /> إحصائيات المرضى</button>)}
-                    {canAccessSection(currentUser, 'intelligence') && (<button onClick={() => setActiveTab('intelligence')} className={tabClass('intelligence')}><Brain size={20} /> الذكاء الإداري</button>)}
-                    {canAccessSection(currentUser, 'payments') && (<button onClick={() => setActiveTab('payments')} className={tabClass('payments')}><CreditCard size={20} /> المدفوعات</button>)}
-                    {canAccessSection(currentUser, 'contact-logs') && (<button onClick={() => { setActiveTab('contact-logs'); if (contactLogs.length === 0) fetchContactLogs(); }} className={tabClass('contact-logs')}><History size={20} /> سجل الاتصالات</button>)}
-                    <div className="h-px bg-gray-50 mx-4 my-4"></div>
-                    {canAccessSection(currentUser, 'partners') && (<button onClick={() => setActiveTab('partners')} className={tabClass('partners')}><Building2 size={20} /> {t.partners}</button>)}
-                    {canAccessSection(currentUser, 'services') && (<button onClick={() => setActiveTab('services')} className={tabClass('services')}><LayoutTemplate size={20} /> {t.services}</button>)}
-                    {canAccessSection(currentUser, 'hero-images') && (<button onClick={() => setActiveTab('hero-images')} className={tabClass('hero-images')}><ImageIcon size={20} /> الصور</button>)}
-                    {canAccessSection(currentUser, 'complaints') && (<button onClick={() => setActiveTab('complaints')} className={tabClass('complaints')}><MessageSquare size={20} /> الشكاوى</button>)}
-                    <div className="h-px bg-gray-50 mx-4 my-4"></div>
-                    {canAccessSection(currentUser, 'users') && (<button onClick={() => setActiveTab('users')} className={tabClass('users')}><UserCog size={20} /> المستخدمين</button>)}
-                    {canAccessSection(currentUser, 'settings') && (<button onClick={() => setActiveTab('settings')} className={tabClass('settings')}><Settings size={20} /> {t.settings}</button>)}
-                    {canAccessSection(currentUser, 'backup') && (<button onClick={() => setActiveTab('backup')} className={tabClass('backup')}><Database size={20} /> النسخ الاحتياطي</button>)}
-                    {canAccessSection(currentUser, 'paymob-settings') && (<button onClick={() => setActiveTab('paymob-settings')} className={tabClass('paymob-settings')}><CreditCard size={20} /> إعدادات الدفع الإلكتروني</button>)}
+                <div className="sticky top-24 bg-white rounded-2xl border border-[#DFEAF0] shadow-[0_10px_28px_-16px_rgba(11,31,53,0.1)] p-4 md:p-5 space-y-1 overflow-hidden">
+                    <div className="flex items-center gap-3 px-3 py-4 mb-3 border-b border-[#DFEAF0]"><div className="p-2.5 bg-gradient-to-br from-[#087F8C] to-[#1769AA] rounded-xl text-white shadow-sm"><LayoutDashboard size={22} /></div><div><h2 className="text-lg font-black text-[#172B3A] leading-none">{t.controlPanel}</h2><p className="text-[10px] text-[#718394] font-bold mt-1 uppercase tracking-widest">Barada EMS</p></div></div>
+                    {canAccessSection(currentUser, 'overview') && (<button onClick={() => setActiveTab('overview')} className={tabClass('overview')}><Eye size={18} /> نظرة عامة</button>)}
+                    {canAccessSection(currentUser, 'doctors') && (<button onClick={() => setActiveTab('doctors')} className={tabClass('doctors')}><Users size={18} /> {t.doctors}</button>)}
+                    {canAccessSection(currentUser, 'bookings') && (<button onClick={() => setActiveTab('bookings')} className={tabClass('bookings')}><CalendarDays size={18} /> {t.myBookings}</button>)}
+                    {canAccessSection(currentUser, 'operations') && (<button onClick={() => setActiveTab('operations')} className={tabClass('operations')}><Scissors size={18} /> سجل العمليات</button>)}
+                    {canAccessSection(currentUser, 'reminders') && (<button onClick={() => setActiveTab('reminders')} className={tabClass('reminders')}><Smartphone size={18} /> التذكيرات</button>)}
+                    {canAccessSection(currentUser, 'patient-stats') && (<button onClick={() => setActiveTab('patient-stats')} className={tabClass('patient-stats')}><PieChart size={18} /> إحصائيات المرضى</button>)}
+                    {canAccessSection(currentUser, 'intelligence') && (<button onClick={() => setActiveTab('intelligence')} className={tabClass('intelligence')}><Brain size={18} /> الذكاء الإداري</button>)}
+                    {canAccessSection(currentUser, 'payments') && (<button onClick={() => setActiveTab('payments')} className={tabClass('payments')}><CreditCard size={18} /> المدفوعات</button>)}
+                    {canAccessSection(currentUser, 'contact-logs') && (<button onClick={() => { setActiveTab('contact-logs'); if (contactLogs.length === 0) fetchContactLogs(); }} className={tabClass('contact-logs')}><History size={18} /> سجل الاتصالات</button>)}
+                    <div className="h-px bg-[#DFEAF0] mx-3 my-3"></div>
+                    {canAccessSection(currentUser, 'partners') && (<button onClick={() => setActiveTab('partners')} className={tabClass('partners')}><Building2 size={18} /> {t.partners}</button>)}
+                    {canAccessSection(currentUser, 'services') && (<button onClick={() => setActiveTab('services')} className={tabClass('services')}><LayoutTemplate size={18} /> {t.services}</button>)}
+                    {canAccessSection(currentUser, 'hero-images') && (<button onClick={() => setActiveTab('hero-images')} className={tabClass('hero-images')}><ImageIcon size={18} /> الصور</button>)}
+                    {canAccessSection(currentUser, 'complaints') && (<button onClick={() => setActiveTab('complaints')} className={tabClass('complaints')}><MessageSquare size={18} /> الشكاوى</button>)}
+                    <div className="h-px bg-[#DFEAF0] mx-3 my-3"></div>
+                    {canAccessSection(currentUser, 'users') && (<button onClick={() => setActiveTab('users')} className={tabClass('users')}><UserCog size={18} /> المستخدمين</button>)}
+                    {canAccessSection(currentUser, 'settings') && (<button onClick={() => setActiveTab('settings')} className={tabClass('settings')}><Settings size={18} /> {t.settings}</button>)}
+                    {canAccessSection(currentUser, 'backup') && (<button onClick={() => setActiveTab('backup')} className={tabClass('backup')}><Database size={18} /> النسخ الاحتياطي</button>)}
+                    {canAccessSection(currentUser, 'paymob-settings') && (<button onClick={() => setActiveTab('paymob-settings')} className={tabClass('paymob-settings')}><CreditCard size={18} /> إعدادات الدفع الإلكتروني</button>)}
                 </div>
             </aside>
             <main className="flex-1 min-w-0">
@@ -2641,75 +2674,75 @@ const handlePrint = (title: string, contentHtml: string) => {
                   />
                 )}
                 {activeTab === 'doctors' && (
-                    <div className="space-y-8 animate-in fade-in duration-300">
-                        <div className={`${cardClass} ${editingDoctorId ? 'ring-2 ring-blue-500 shadow-blue-100' : ''}`}>
-                            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">{editingDoctorId ? <Edit2 size={24} className="text-blue-600"/> : <Plus size={24} className="text-blue-600" />} {editingDoctorId ? 'تعديل بيانات الطبيب' : 'إضافة طبيب جديد وتخصيص البيانات'}</h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">اسم الطبيب</label><input type="text" value={newDoctor.name} onChange={e => setNewDoctor({...newDoctor, name: e.target.value})} className={inputClass} placeholder="د. الاسم بالكامل" /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">التخصص الرئيسي</label><input type="text" value={newDoctor.specialty} onChange={e => setNewDoctor({...newDoctor, specialty: e.target.value})} className={inputClass} placeholder="مثال: استشاري ليزك" /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">سعر الكشف (ج.م)</label><input type="number" value={newDoctor.fee} onChange={e => setNewDoctor({...newDoctor, fee: Number(e.target.value)})} className={inputClass} /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">سنوات الخبرة</label><input type="number" value={newDoctor.experience} onChange={e => setNewDoctor({...newDoctor, experience: Number(e.target.value)})} className={inputClass} /></div>
-                                <div className="md:col-span-2"><label className="text-xs font-bold text-gray-400 mb-1 block">المؤهلات العلمية</label><input type="text" value={newDoctor.education} onChange={e => setNewDoctor({...newDoctor, education: e.target.value})} className={inputClass} placeholder="دكتوراه، ماجستير، زمالة..." /></div>
-                                <div className="md:col-span-2"><label className="text-xs font-bold text-gray-400 mb-1 block">التخصصات الدقيقة (افصل بفاصلة ,)</label><input type="text" value={newDoctor.topSpecialtiesStr} onChange={e => setNewDoctor({...newDoctor, topSpecialtiesStr: e.target.value})} className={inputClass} placeholder="مثال: تصحيح إبصار، مياه بيضاء" /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">مريض / ساعة</label><input type="number" value={newDoctor.patientsPerHour} onChange={e => setNewDoctor({...newDoctor, patientsPerHour: Number(e.target.value)})} className={inputClass} /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">صورة الطبيب (ملف)</label><input type="file" onChange={e => handleFileUpload(e, (val) => setNewDoctor({...newDoctor, image: val}))} className={`${inputClass} py-2`} /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">أقصى عدد مرضى يومياً</label><input type="number" value={newDoctor.maxPatients} onChange={e => setNewDoctor({...newDoctor, maxPatients: Number(e.target.value)})} className={inputClass} /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">عدد متابعات الكشف</label><input type="number" value={newDoctor.followUpExamCount} onChange={e => setNewDoctor({...newDoctor, followUpExamCount: Number(e.target.value)})} className={inputClass} min="0" placeholder="عدد المتابعات المجانية بعد الكشف" /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">عدد متابعات العمليات</label><input type="number" value={newDoctor.followUpSurgeryCount} onChange={e => setNewDoctor({...newDoctor, followUpSurgeryCount: Number(e.target.value)})} className={inputClass} min="0" placeholder="عدد المتابعات المجانية بعد العملية" /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">رابط فيسبوك (اختياري)</label><input type="url" dir="ltr" value={newDoctor.facebookUrl} onChange={e => setNewDoctor({...newDoctor, facebookUrl: e.target.value})} className={inputClass} placeholder="https://facebook.com/..." /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">رابط يوتيوب (اختياري)</label><input type="url" dir="ltr" value={newDoctor.youtubeUrl} onChange={e => setNewDoctor({...newDoctor, youtubeUrl: e.target.value})} className={inputClass} placeholder="https://youtube.com/..." /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">رابط تيك توك (اختياري)</label><input type="url" dir="ltr" value={newDoctor.tiktokUrl} onChange={e => setNewDoctor({...newDoctor, tiktokUrl: e.target.value})} className={inputClass} placeholder="https://tiktok.com/@..." /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">رابط الموقع الإلكتروني (اختياري)</label><input type="url" dir="ltr" value={newDoctor.websiteUrl} onChange={e => setNewDoctor({...newDoctor, websiteUrl: e.target.value})} className={inputClass} placeholder="https://..." /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">رابط إنستجرام (اختياري)</label><input type="url" dir="ltr" value={newDoctor.instagramUrl} onChange={e => setNewDoctor({...newDoctor, instagramUrl: e.target.value})} className={inputClass} placeholder="https://instagram.com/..." /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">رابط موقع إكس X (اختياري)</label><input type="url" dir="ltr" value={newDoctor.xUrl} onChange={e => setNewDoctor({...newDoctor, xUrl: e.target.value})} className={inputClass} placeholder="https://x.com/..." /></div>
-                                <div className="md:col-span-2 lg:col-span-3"><label className="text-xs font-bold text-gray-400 mb-1 block">إدارة مواعيد العمل</label><div className="flex gap-2"><input type="date" value={dateInput} onChange={e => setDateInput(e.target.value)} className={inputClass} /><button onClick={handleAddDateToNewDoctor} className="bg-blue-600 text-white px-6 rounded-xl font-bold">إضافة يوم</button></div><div className="flex wrap gap-2 mt-3">{newDoctor.availableDates.map(date => (<span key={date} className="bg-blue-50 text-blue-600 px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border border-blue-100">{date}<button onClick={() => handleRemoveDateFromNewDoctor(date)} className="text-red-500 hover:scale-110"><X size={14}/></button></span>))}</div></div>
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className={`${cardClass} ${editingDoctorId ? 'ring-2 ring-[#087F8C]' : ''}`}>
+                            <h3 className="text-lg font-black text-[#172B3A] mb-6 flex items-center gap-2">{editingDoctorId ? <Edit2 size={20} className="text-[#087F8C]"/> : <Plus size={20} className="text-[#087F8C]" />} {editingDoctorId ? 'تعديل بيانات الطبيب' : 'إضافة طبيب جديد وتخصيص البيانات'}</h3>
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">اسم الطبيب</label><input type="text" value={newDoctor.name} onChange={e => setNewDoctor({...newDoctor, name: e.target.value})} className={inputClass} placeholder="د. الاسم بالكامل" /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">التخصص الرئيسي</label><input type="text" value={newDoctor.specialty} onChange={e => setNewDoctor({...newDoctor, specialty: e.target.value})} className={inputClass} placeholder="مثال: استشاري ليزك" /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">سعر الكشف (ج.م)</label><input type="number" value={newDoctor.fee} onChange={e => setNewDoctor({...newDoctor, fee: Number(e.target.value)})} className={`${inputClass} fv-num`} /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">سنوات الخبرة</label><input type="number" value={newDoctor.experience} onChange={e => setNewDoctor({...newDoctor, experience: Number(e.target.value)})} className={`${inputClass} fv-num`} /></div>
+                                <div className="md:col-span-2"><label className="text-xs font-bold text-[#718394] mb-1.5 block">المؤهلات العلمية</label><input type="text" value={newDoctor.education} onChange={e => setNewDoctor({...newDoctor, education: e.target.value})} className={inputClass} placeholder="دكتوراه، ماجستير، زمالة..." /></div>
+                                <div className="md:col-span-2"><label className="text-xs font-bold text-[#718394] mb-1.5 block">التخصصات الدقيقة (افصل بفاصلة ,)</label><input type="text" value={newDoctor.topSpecialtiesStr} onChange={e => setNewDoctor({...newDoctor, topSpecialtiesStr: e.target.value})} className={inputClass} placeholder="مثال: تصحيح إبصار، مياه بيضاء" /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">مريض / ساعة</label><input type="number" value={newDoctor.patientsPerHour} onChange={e => setNewDoctor({...newDoctor, patientsPerHour: Number(e.target.value)})} className={`${inputClass} fv-num`} /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">صورة الطبيب (ملف)</label><input type="file" onChange={e => handleFileUpload(e, (val) => setNewDoctor({...newDoctor, image: val}))} className={`${inputClass} py-2`} /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">أقصى عدد مرضى يومياً</label><input type="number" value={newDoctor.maxPatients} onChange={e => setNewDoctor({...newDoctor, maxPatients: Number(e.target.value)})} className={`${inputClass} fv-num`} /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">عدد متابعات الكشف</label><input type="number" value={newDoctor.followUpExamCount} onChange={e => setNewDoctor({...newDoctor, followUpExamCount: Number(e.target.value)})} className={`${inputClass} fv-num`} min="0" placeholder="عدد المتابعات المجانية بعد الكشف" /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">عدد متابعات العمليات</label><input type="number" value={newDoctor.followUpSurgeryCount} onChange={e => setNewDoctor({...newDoctor, followUpSurgeryCount: Number(e.target.value)})} className={`${inputClass} fv-num`} min="0" placeholder="عدد المتابعات المجانية بعد العملية" /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">رابط فيسبوك (اختياري)</label><input type="url" dir="ltr" value={newDoctor.facebookUrl} onChange={e => setNewDoctor({...newDoctor, facebookUrl: e.target.value})} className={inputClass} placeholder="https://facebook.com/..." /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">رابط يوتيوب (اختياري)</label><input type="url" dir="ltr" value={newDoctor.youtubeUrl} onChange={e => setNewDoctor({...newDoctor, youtubeUrl: e.target.value})} className={inputClass} placeholder="https://youtube.com/..." /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">رابط تيك توك (اختياري)</label><input type="url" dir="ltr" value={newDoctor.tiktokUrl} onChange={e => setNewDoctor({...newDoctor, tiktokUrl: e.target.value})} className={inputClass} placeholder="https://tiktok.com/@..." /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">رابط الموقع الإلكتروني (اختياري)</label><input type="url" dir="ltr" value={newDoctor.websiteUrl} onChange={e => setNewDoctor({...newDoctor, websiteUrl: e.target.value})} className={inputClass} placeholder="https://..." /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">رابط إنستجرام (اختياري)</label><input type="url" dir="ltr" value={newDoctor.instagramUrl} onChange={e => setNewDoctor({...newDoctor, instagramUrl: e.target.value})} className={inputClass} placeholder="https://instagram.com/..." /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">رابط موقع إكس X (اختياري)</label><input type="url" dir="ltr" value={newDoctor.xUrl} onChange={e => setNewDoctor({...newDoctor, xUrl: e.target.value})} className={inputClass} placeholder="https://x.com/..." /></div>
+                                <div className="md:col-span-2 lg:col-span-3"><label className="text-xs font-bold text-[#718394] mb-1.5 block">إدارة مواعيد العمل</label><div className="flex gap-2"><input type="date" value={dateInput} onChange={e => setDateInput(e.target.value)} className={inputClass} /><button onClick={handleAddDateToNewDoctor} className="fv-btn-primary px-6 rounded-xl font-bold shrink-0">إضافة يوم</button></div><div className="flex wrap gap-2 mt-3">{newDoctor.availableDates.map(date => (<span key={date} className="bg-[#087F8C]/10 text-[#087F8C] px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-2 border border-[#087F8C]/20 fv-num">{date}<button onClick={() => handleRemoveDateFromNewDoctor(date)} className="text-red-500 hover:scale-110"><X size={14}/></button></span>))}</div></div>
                             </div>
-                            <div className="flex gap-4 mt-8"><button onClick={handleAddDoctor} className="bg-blue-600 text-white font-bold py-4 px-10 rounded-2xl hover:bg-blue-700 transition-all shadow-lg flex items-center gap-2">{editingDoctorId ? <Save size={20}/> : <Plus size={20} />} {editingDoctorId ? t.save : 'حفظ بيانات الطبيب'}</button>{editingDoctorId && (<button onClick={() => { setEditingDoctorId(null); setNewDoctor({ name: '', specialty: '', image: '', maxPatients: 10, fee: 150, availableDates: [], patientsPerHour: 4, topSpecialtiesStr: '', experience: 10, education: '', followUpExamCount: 2, followUpSurgeryCount: 3, facebookUrl: '', youtubeUrl: '', tiktokUrl: '', websiteUrl: '', instagramUrl: '', xUrl: '' }); }} className="bg-gray-100 text-gray-600 font-bold py-4 px-10 rounded-2xl hover:bg-gray-200 transition-all flex items-center gap-2">إلغاء التعديل</button>)}</div>
+                            <div className="flex gap-3 mt-7"><button onClick={handleAddDoctor} className="fv-btn-primary font-black py-3.5 px-8 rounded-xl flex items-center gap-2">{editingDoctorId ? <Save size={18}/> : <Plus size={18} />} {editingDoctorId ? t.save : 'حفظ بيانات الطبيب'}</button>{editingDoctorId && (<button onClick={() => { setEditingDoctorId(null); setNewDoctor({ name: '', specialty: '', image: '', maxPatients: 10, fee: 150, availableDates: [], patientsPerHour: 4, topSpecialtiesStr: '', experience: 10, education: '', followUpExamCount: 2, followUpSurgeryCount: 3, facebookUrl: '', youtubeUrl: '', tiktokUrl: '', websiteUrl: '', instagramUrl: '', xUrl: '' }); }} className="bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-bold py-3.5 px-8 rounded-xl hover:bg-white transition-all flex items-center gap-2">إلغاء التعديل</button>)}</div>
                         </div>
-                        <div className={cardClass}><div className="flex justify-between items-center mb-8"><h3 className="text-xl font-bold">قائمة الأطباء الحاليين ({doctors.length})</h3><div className="relative w-64"><Search className="absolute right-3 top-3 text-gray-400" size={18} /><input type="text" placeholder="ابحث عن طبيب..." value={doctorSearchTerm} onChange={e => setDoctorSearchTerm(e.target.value)} className={`${inputClass} pr-10 py-2`} /></div></div><div className="grid grid-cols-1 md:grid-cols-2 gap-6">{filteredDoctorsList.map(doc => (<div key={doc.id} className={`bg-gray-50/50 p-6 rounded-[2rem] border ${editingDoctorId === doc.id ? 'border-blue-500 bg-white ring-2 ring-blue-100' : 'border-gray-100'} flex gap-6 hover:bg-white hover:shadow-xl transition-all group`}><img src={doc.image} className="w-24 h-24 rounded-2xl object-cover shadow-md" /><div className="flex-1"><div className="flex justify-between items-start"><h4 className="font-bold text-lg text-gray-900">{doc.name}</h4><div className="flex gap-1"><button onClick={() => handleEditDoctorRequest(doc)} className="text-blue-500 hover:bg-blue-50 p-2 rounded-lg transition-all" title="تعديل"><Edit2 size={18}/></button><button onClick={() => setDeletingDoctorId(doc.id)} className="text-red-400 hover:bg-red-50 p-2 rounded-lg transition-all" title="حذف"><Trash2 size={18}/></button></div></div><p className="text-xs text-blue-600 font-bold mb-4">{doc.specialty}</p><div className="grid grid-cols-2 gap-3 text-[10px] font-bold text-gray-500"><div className="flex items-center gap-1"><Banknote size={12}/> {doc.fee} ج.م</div><div className="flex items-center gap-1"><Users size={12}/> {doc.patientsPerHour} / ساعة</div><div className="flex items-center gap-1"><Eye size={12}/> متابعات كشف: {doc.followUpExamCount || 0}</div><div className="flex items-center gap-1"><Scissors size={12}/> متابعات عمليات: {doc.followUpSurgeryCount || 0}</div></div><div className="mt-4 pt-4 border-t border-gray-100"><div className="flex wrap gap-1.5">{doc.topSpecialties.map(spec => (<span key={spec} className="bg-white px-2 py-0.5 rounded-md border border-gray-100 text-[9px] font-bold text-gray-600">{spec}</span>))}</div><DoctorSocialLinks doc={doc} compact /></div></div></div>))}</div></div>
+                        <div className={cardClass}><div className="flex justify-between items-center mb-6 gap-4 flex-wrap"><h3 className="text-lg font-black text-[#172B3A]">قائمة الأطباء الحاليين (<span className="fv-num">{doctors.length}</span>)</h3><div className="relative w-64"><Search className="absolute right-3 top-3 text-[#718394]" size={18} /><input type="text" placeholder="ابحث عن طبيب..." value={doctorSearchTerm} onChange={e => setDoctorSearchTerm(e.target.value)} className={`${inputClass} pr-10 py-2`} /></div></div><div className="grid grid-cols-1 md:grid-cols-2 gap-5">{filteredDoctorsList.map(doc => (<div key={doc.id} className={`bg-[#F5FAFC] p-5 rounded-2xl border ${editingDoctorId === doc.id ? 'border-[#087F8C] bg-white ring-2 ring-[#087F8C]/20' : 'border-[#DFEAF0]'} flex gap-5 hover:bg-white hover:shadow-md transition-all group`}><img src={doc.image} className="w-22 h-22 rounded-xl object-cover border border-[#DFEAF0]" /><div className="flex-1 min-w-0"><div className="flex justify-between items-start"><h4 className="font-black text-base text-[#172B3A]">{doc.name}</h4><div className="flex gap-1"><button onClick={() => handleEditDoctorRequest(doc)} className="text-[#087F8C] hover:bg-[#087F8C]/10 p-2 rounded-lg transition-all" title="تعديل"><Edit2 size={16}/></button><button onClick={() => setDeletingDoctorId(doc.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg transition-all" title="حذف"><Trash2 size={16}/></button></div></div><p className="text-xs text-[#087F8C] font-bold mb-3">{doc.specialty}</p><div className="grid grid-cols-2 gap-2 text-[11px] font-bold text-[#718394] fv-num"><div className="flex items-center gap-1"><Banknote size={12} className="text-[#087F8C]"/> {doc.fee} ج.م</div><div className="flex items-center gap-1"><Users size={12} className="text-[#1769AA]"/> {doc.patientsPerHour} / ساعة</div><div className="flex items-center gap-1"><Eye size={12}/> متابعات كشف: {doc.followUpExamCount || 0}</div><div className="flex items-center gap-1"><Scissors size={12}/> متابعات عمليات: {doc.followUpSurgeryCount || 0}</div></div><div className="mt-3 pt-3 border-t border-[#DFEAF0]"><div className="flex wrap gap-1.5">{doc.topSpecialties.map(spec => (<span key={spec} className="bg-white px-2 py-0.5 rounded-md border border-[#DFEAF0] text-[10px] font-bold text-[#172B3A]">{spec}</span>))}</div><DoctorSocialLinks doc={doc} compact /></div></div></div>))}</div></div>
                     </div>
                 )}
                 {activeTab === 'bookings' && (
-                    <div className="space-y-8 animate-in fade-in duration-300">
+                    <div className="space-y-6 animate-in fade-in duration-300">
                         <div className={cardClass}>
-                          <h3 className="text-xl font-bold mb-6 flex items-center gap-2"><Filter size={20}/> فرز الحجوزات</h3>
-                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
-                            <div><label className="text-[10px] font-bold text-gray-400 mb-1 block">البحث بالاسم</label><input type="text" value={bookingPatientName} onChange={e => setBookingPatientName(e.target.value)} className={inputClass} placeholder="ابحث عن مريض..." /></div>
-                            <div><label className="text-[10px] font-bold text-gray-400 mb-1 block">رقم الهاتف</label><input type="text" value={bookingPhoneFilter} onChange={e => setBookingPhoneFilter(e.target.value)} className={inputClass} placeholder="بحث برقم الهاتف..." /></div>
-                            <div><label className="text-[10px] font-bold text-gray-400 mb-1 block">الطبيب</label><select value={bookingDoctorId} onChange={e => setBookingDoctorId(e.target.value)} className={inputClass}><option value="">جميع الأطباء</option>{doctors.map(d => <option key={d.id} value={d.id.toString()}>{d.name}</option>)}</select></div>
-                            <div><label className="text-[10px] font-bold text-gray-400 mb-1 block">نوع الإجراء</label><select value={bookingService} onChange={e => setBookingService(e.target.value)} className={inputClass}><option value="">جميع الإجراءات</option>{services.map(s => <option key={s.id} value={s.title}>{s.title}</option>)}</select></div>
-                            <div><label className="text-[10px] font-bold text-gray-400 mb-1 block">حالة الحجز</label><select value={bookingStatus} onChange={e => setBookingStatus(e.target.value)} className={inputClass}><option value="">الكل</option><option value="confirmed">{t.confirmed}</option><option value="cancelled">{t.cancelled}</option></select></div>
-                            <div><label className="text-[10px] font-bold text-gray-400 mb-1 block">حالة الدفع</label><select value={bookingPaymentStatus} onChange={e => setBookingPaymentStatus(e.target.value)} className={inputClass}><option value="">الكل</option><option value="paid">تم الدفع</option><option value="pending">في انتظار الدفع</option></select></div>
-                            <div><label className="text-[10px] font-bold text-gray-400 mb-1 block">جهة التعاقد</label><select value={bookingContractingId} onChange={e => setBookingContractingId(e.target.value)} className={inputClass}><option value="">الكل</option><option value="-1">خاص (بدون تعاقد)</option>{contractingList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
-                            <div><label className="text-[10px] font-bold text-gray-400 mb-1 block">فلتر العنوان</label><input type="text" value={bookingAddressFilter} onChange={e => setBookingAddressFilter(e.target.value)} className={inputClass} placeholder="ابحث بالعنوان..." /></div>
-                            <div><label className="text-[10px] font-bold text-gray-400 mb-1 block">من تاريخ</label><input type="date" value={bookingStart} onChange={e => setBookingStart(e.target.value)} className={inputClass} /></div>
-                            <div><label className="text-[10px] font-bold text-gray-400 mb-1 block">إلى تاريخ</label><input type="date" value={bookingEnd} onChange={e => setBookingEnd(e.target.value)} className={inputClass} /></div>
-                            <div className="flex items-end"><button onClick={() => { setBookingPatientName(''); setBookingPhoneFilter(''); setBookingDoctorId(''); setBookingStatus(''); setBookingPaymentStatus(''); setBookingStart(''); setBookingEnd(''); setBookingAddressFilter(''); setBookingService(''); setBookingContractingId(''); }} className="text-red-500 font-bold text-xs hover:underline mb-4">مسح الفلاتر</button></div>
+                          <h3 className="text-lg font-black text-[#172B3A] mb-5 flex items-center gap-2"><Filter size={18} className="text-[#087F8C]"/> فرز الحجوزات</h3>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">البحث بالاسم</label><input type="text" value={bookingPatientName} onChange={e => setBookingPatientName(e.target.value)} className={inputClass} placeholder="ابحث عن مريض..." /></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">رقم الهاتف</label><input type="text" value={bookingPhoneFilter} onChange={e => setBookingPhoneFilter(e.target.value)} className={`${inputClass} fv-num`} placeholder="بحث برقم الهاتف..." /></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">الطبيب</label><select value={bookingDoctorId} onChange={e => setBookingDoctorId(e.target.value)} className={inputClass}><option value="">جميع الأطباء</option>{doctors.map(d => <option key={d.id} value={d.id.toString()}>{d.name}</option>)}</select></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">نوع الإجراء</label><select value={bookingService} onChange={e => setBookingService(e.target.value)} className={inputClass}><option value="">جميع الإجراءات</option>{services.map(s => <option key={s.id} value={s.title}>{s.title}</option>)}</select></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">حالة الحجز</label><select value={bookingStatus} onChange={e => setBookingStatus(e.target.value)} className={inputClass}><option value="">الكل</option><option value="confirmed">{t.confirmed}</option><option value="cancelled">{t.cancelled}</option></select></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">حالة الدفع</label><select value={bookingPaymentStatus} onChange={e => setBookingPaymentStatus(e.target.value)} className={inputClass}><option value="">الكل</option><option value="paid">تم الدفع</option><option value="pending">في انتظار الدفع</option></select></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">جهة التعاقد</label><select value={bookingContractingId} onChange={e => setBookingContractingId(e.target.value)} className={inputClass}><option value="">الكل</option><option value="-1">خاص (بدون تعاقد)</option>{contractingList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">فلتر العنوان</label><input type="text" value={bookingAddressFilter} onChange={e => setBookingAddressFilter(e.target.value)} className={inputClass} placeholder="ابحث بالعنوان..." /></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">من تاريخ</label><input type="date" value={bookingStart} onChange={e => setBookingStart(e.target.value)} className={inputClass} /></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">إلى تاريخ</label><input type="date" value={bookingEnd} onChange={e => setBookingEnd(e.target.value)} className={inputClass} /></div>
+                            <div className="flex items-end"><button onClick={() => { setBookingPatientName(''); setBookingPhoneFilter(''); setBookingDoctorId(''); setBookingStatus(''); setBookingPaymentStatus(''); setBookingStart(''); setBookingEnd(''); setBookingAddressFilter(''); setBookingService(''); setBookingContractingId(''); }} className="text-red-600 font-bold text-xs hover:underline mb-3">مسح الفلاتر</button></div>
                           </div>
                         </div>
-                        <div className={`${cardClass} overflow-x-auto p-0`}><div className="p-8 flex justify-between items-center border-b border-gray-50"><h3 className="text-xl font-bold">جدول الحجوزات ({filteredBookings.length})</h3><button onClick={() => handlePrint('تقرير الحجوزات', `<table><thead><tr><th>المريض</th><th>الهواتف</th><th>العنوان</th><th>الطبيب</th><th>اسم الإجراء</th><th>جهة التعاقد</th><th>التاريخ</th><th>الوقت</th></tr></thead><tbody>${filteredBookings.map(b => {
+                        <div className={`${cardClass} overflow-x-auto p-0`}><div className="p-6 flex justify-between items-center border-b border-[#DFEAF0]"><h3 className="text-lg font-black text-[#172B3A]">جدول الحجوزات (<span className="fv-num">{filteredBookings.length}</span>)</h3><button onClick={() => handlePrint('تقرير الحجوزات', `<table><thead><tr><th>المريض</th><th>الهواتف</th><th>العنوان</th><th>الطبيب</th><th>اسم الإجراء</th><th>جهة التعاقد</th><th>التاريخ</th><th>الوقت</th></tr></thead><tbody>${filteredBookings.map(b => {
                             const companyName = b.contractingCompanyId ? (contractingList.find(c => c.id === b.contractingCompanyId)?.name || 'تعاقد غير معروف') : 'حساب خاص';
                             return `<tr><td>${b.patientName}</td><td>${b.phone}${b.phone2 ? ` / ${b.phone2}` : ''}</td><td>${b.address || '-'}</td><td>${b.doctorName}</td><td>${b.service}</td><td>${companyName}</td><td>${b.date}</td><td>${b.time}</td></tr>`;
-                        }).join('')}</tbody></table>`)} className="text-blue-600 flex items-center gap-2 font-bold text-sm"><Printer size={16}/> طباعة التقرير</button></div><table className="w-full text-right"><thead className="bg-gray-50/50"><tr><th className="p-5 text-sm font-bold">{t.patient}</th><th className="p-5 text-sm font-bold">{t.appointment}</th><th className="p-5 text-sm font-bold">{t.doctorService}</th><th className="p-5 text-sm font-bold">{t.status}</th><th className="p-5 text-sm font-bold text-center">{t.management}</th></tr></thead><tbody className="divide-y divide-gray-50">{filteredBookings.map(booking => (<tr key={booking.id} className="hover:bg-blue-50/20 transition-colors"><td className="p-5"><div className="font-bold text-gray-900">{booking.patientName}</div><div className="text-[10px] text-gray-400" dir="ltr">{booking.phone}{booking.phone2 && ` / ${booking.phone2}`}</div><div className="text-[9px] text-gray-400 font-bold">{booking.address}</div></td><td className="p-5"><div className="text-xs font-bold text-gray-700">{booking.date}</div><div className="text-[10px] text-gray-400">{booking.time}</div></td><td className="p-5"><div className="text-xs font-bold text-blue-600">د. {booking.doctorName}</div><div className="text-[10px] text-gray-400"><span className="font-black text-gray-600">اسم الإجراء:</span> {booking.service}</div><div className="text-[10px] text-gray-400"><span className="font-black text-gray-600">نوع الكشف:</span> {booking.bookingType === 'contract' || booking.contractingCompanyId ? 'تعاقد' : 'نقدي'}</div>{(booking.bookingType === 'contract' || booking.contractingCompanyId) && <div className="text-[10px] text-gray-400"><span className="font-black text-gray-600">جهة التعاقد:</span> {contractingList.find(c => c.id === booking.contractingCompanyId)?.name || 'تعاقد غير معروف'}</div>}{booking.notes && <div className="text-[10px] text-gray-400 whitespace-pre-wrap break-words"><span className="font-black text-gray-600">ملاحظات إضافية:</span> {booking.notes}</div>}</td><td className="p-5"><span className={`inline-flex px-2 py-0.5 rounded-full text-[10px] font-bold ${booking.status === 'confirmed' ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-700'}`}>{booking.status === 'confirmed' ? t.confirmed : t.cancelled}</span>
+                        }).join('')}</tbody></table>`)} className="text-[#087F8C] bg-[#087F8C]/10 hover:bg-[#087F8C]/20 px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-xs transition-colors"><Printer size={15}/> طباعة التقرير</button></div><table className="w-full text-right"><thead className="bg-[#F5FAFC] text-[#718394] border-b border-[#DFEAF0]"><tr><th className="p-4 text-xs font-bold">{t.patient}</th><th className="p-4 text-xs font-bold">{t.appointment}</th><th className="p-4 text-xs font-bold">{t.doctorService}</th><th className="p-4 text-xs font-bold">{t.status}</th><th className="p-4 text-xs font-bold text-center">{t.management}</th></tr></thead><tbody className="divide-y divide-[#DFEAF0]">{filteredBookings.map(booking => (<tr key={booking.id} className="hover:bg-[#F5FAFC] transition-colors"><td className="p-4"><div className="font-bold text-sm text-[#172B3A]">{booking.patientName}</div><div className="text-[11px] text-[#718394] fv-num" dir="ltr">{booking.phone}{booking.phone2 && ` / ${booking.phone2}`}</div><div className="text-[10px] text-[#718394] font-semibold">{booking.address}</div></td><td className="p-4 fv-num"><div className="text-xs font-bold text-[#172B3A]">{booking.date}</div><div className="text-[11px] text-[#718394]">{booking.time}</div></td><td className="p-4"><div className="text-xs font-bold text-[#087F8C]">د. {booking.doctorName}</div><div className="text-[11px] text-[#718394]"><span className="font-bold text-[#172B3A]">اسم الإجراء:</span> {booking.service}</div><div className="text-[11px] text-[#718394]"><span className="font-bold text-[#172B3A]">نوع الكشف:</span> {booking.bookingType === 'contract' || booking.contractingCompanyId ? 'تعاقد' : 'نقدي'}</div>{(booking.bookingType === 'contract' || booking.contractingCompanyId) && <div className="text-[11px] text-[#718394]"><span className="font-bold text-[#172B3A]">جهة التعاقد:</span> {contractingList.find(c => c.id === booking.contractingCompanyId)?.name || 'تعاقد غير معروف'}</div>}{booking.notes && <div className="text-[11px] text-[#718394] whitespace-pre-wrap break-words"><span className="font-bold text-[#172B3A]">ملاحظات إضافية:</span> {booking.notes}</div>}</td><td className="p-4"><span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${booking.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{booking.status === 'confirmed' ? t.confirmed : t.cancelled}</span>
                         {booking.paymentMethod && (
-                            <div className="mt-1 flex items-center gap-1">
-                                <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold ${booking.paymentMethod === 'cash' ? 'bg-green-50 text-green-600' : booking.paymentMethod === 'instapay' ? 'bg-purple-50 text-purple-600' : 'bg-orange-50 text-orange-600'}`}>
+                            <div className="mt-1.5 flex items-center gap-1">
+                                <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${booking.paymentMethod === 'cash' ? 'bg-emerald-50 text-emerald-700' : booking.paymentMethod === 'instapay' ? 'bg-purple-50 text-purple-700' : 'bg-amber-50 text-amber-700'}`}>
                                     {booking.paymentMethod === 'cash' ? 'نقداً' : booking.paymentMethod === 'instapay' ? 'InstaPay' : booking.paymentMethod === 'paymob' ? 'Paymob' : 'Wallet'}
                                 </span>
                                 {booking.paymentMethod !== 'cash' && (
-                                    <span className={`text-[9px] px-2 py-0.5 rounded-md font-bold border ${booking.paymentStatus === 'paid' ? 'bg-green-100 text-green-700 border-green-200' : 'bg-yellow-50 text-yellow-700 border-yellow-200'}`}>
+                                    <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold border ${booking.paymentStatus === 'paid' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-amber-50 text-amber-700 border-amber-200'}`}>
                                         {booking.paymentStatus === 'paid' ? 'تم الدفع' : 'في انتظار الدفع'}
                                     </span>
                                 )}
                             </div>
                         )}
-                        </td><td className="p-5 text-center"><div className="flex justify-center gap-2">
+                        </td><td className="p-4 text-center"><div className="flex justify-center gap-1.5">
                         {booking.paymentStatus === 'pending' && booking.paymentMethod !== 'cash' && (
                             <button onClick={() => onConfirmPayment(booking.id)} className="p-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100" title="تأكيد استلام المبلغ">
-                                <Banknote size={16}/>
+                                <Banknote size={15}/>
                             </button>
                         )}
-                        <button onClick={() => onEditBooking(booking)} className="p-2 bg-blue-50 text-blue-600 rounded-lg" title="تعديل الحجز"><Edit2 size={16}/></button>{booking.status === 'confirmed' ? (<button onClick={() => onCancelBooking(booking.id)} className="p-2 bg-red-50 text-red-600 rounded-lg"><X size={16}/></button>) : (<button onClick={() => onConfirmBooking(booking.id)} className="p-2 bg-green-50 text-green-600 rounded-lg"><CheckCircle size={16}/></button>)}{currentUser.role === 'admin' && (<button onClick={() => setDeletingBookingId(booking.id)} className="p-2 bg-gray-50 text-gray-400 rounded-lg hover:bg-red-600 hover:text-white transition-all" title="حذف الحجز نهائياً"><Trash2 size={16}/></button>)}</div></td></tr>))}</tbody></table></div>
+                        <button onClick={() => onEditBooking(booking)} className="p-2 bg-[#087F8C]/10 text-[#087F8C] rounded-lg hover:bg-[#087F8C]/20" title="تعديل الحجز"><Edit2 size={15}/></button>{booking.status === 'confirmed' ? (<button onClick={() => onCancelBooking(booking.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"><X size={15}/></button>) : (<button onClick={() => onConfirmBooking(booking.id)} className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100"><CheckCircle size={15}/></button>)}{currentUser.role === 'admin' && (<button onClick={() => setDeletingBookingId(booking.id)} className="p-2 bg-[#F5FAFC] text-[#718394] rounded-lg hover:bg-red-600 hover:text-white transition-all" title="حذف الحجز نهائياً"><Trash2 size={15}/></button>)}</div></td></tr>))}</tbody></table></div>
                     </div>
                 )}
                 {activeTab === 'users' && (
@@ -2729,77 +2762,77 @@ const handlePrint = (title: string, contentHtml: string) => {
                   />
                 )}
                 {activeTab === 'hero-images' && (
-                    <div className="space-y-8 animate-in fade-in duration-300">
-                        <div className={cardClass}><h3 className="text-xl font-bold mb-6">إدارة صور الواجهة (Slider)</h3><div className="flex flex-col md:flex-row gap-4"><div className="flex-1"><label className="text-xs font-bold text-gray-400 mb-1 block">رابط الصورة (URL) أو ارفع من الجهاز</label><div className="flex gap-2"><input type="text" value={newHeroImageUrl} onChange={e => setNewHeroImageUrl(e.target.value)} className={inputClass} placeholder="https://..." /><label className="bg-gray-100 text-gray-700 px-6 py-2 rounded-xl font-bold cursor-pointer hover:bg-gray-200 flex items-center gap-2 border"><Upload size={18}/><input type="file" onChange={e => handleFileUpload(e, (val) => setNewHeroImageUrl(val))} className="hidden" /></label></div></div><div className="flex items-end"><button onClick={handleAddHeroImage} className="bg-blue-600 text-white px-8 py-3.5 rounded-xl font-bold hover:bg-blue-700 shadow-md">إضافة للواجهة</button></div></div></div>
-                        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">{heroImages.map(img => (<div key={img.id} className="relative group rounded-3xl overflow-hidden shadow-md h-48 border"><img src={img.url} className="w-full h-full object-cover" /><div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><button onClick={() => handleDeleteHeroImage(img.id)} className="bg-red-600 text-white p-3 rounded-full hover:scale-110 transition-transform shadow-lg"><Trash2 size={24}/></button></div></div>))}</div>
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className={cardClass}><h3 className="text-lg font-black text-[#172B3A] mb-5">إدارة صور الواجهة (Slider)</h3><div className="flex flex-col md:flex-row gap-4"><div className="flex-1"><label className="text-xs font-bold text-[#718394] mb-1.5 block">رابط الصورة (URL) أو ارفع من الجهاز</label><div className="flex gap-2"><input type="text" value={newHeroImageUrl} onChange={e => setNewHeroImageUrl(e.target.value)} className={inputClass} placeholder="https://..." /><label className="bg-[#F5FAFC] text-[#172B3A] px-5 py-2 rounded-xl font-bold cursor-pointer hover:bg-white flex items-center gap-2 border border-[#DFEAF0]"><Upload size={18} className="text-[#087F8C]"/><input type="file" onChange={e => handleFileUpload(e, (val) => setNewHeroImageUrl(val))} className="hidden" /></label></div></div><div className="flex items-end"><button onClick={handleAddHeroImage} className="fv-btn-primary px-7 py-3 rounded-xl font-bold">إضافة للواجهة</button></div></div></div>
+                        <div className="grid grid-cols-1 md:grid-cols-3 gap-5">{heroImages.map(img => (<div key={img.id} className="relative group rounded-2xl overflow-hidden shadow-xs h-48 border border-[#DFEAF0]"><img src={img.url} className="w-full h-full object-cover" /><div className="absolute inset-0 bg-[#0B1F35]/55 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center"><button onClick={() => handleDeleteHeroImage(img.id)} className="bg-red-600 text-white p-3 rounded-xl hover:scale-110 transition-transform shadow-lg"><Trash2 size={22}/></button></div></div>))}</div>
                     </div>
                 )}
                 {activeTab === 'partners' && (
-                    <div className="space-y-8 animate-in fade-in duration-300">
+                    <div className="space-y-6 animate-in fade-in duration-300">
                         <ContractingManagement />
-                        <div className="w-full h-px bg-gray-200 my-8"></div>
+                        <div className="w-full h-px bg-[#DFEAF0] my-6"></div>
                         <div className={cardClass}>
-                            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                <ImageIcon size={24} className="text-blue-600"/> 
+                            <h3 className="text-lg font-black text-[#172B3A] mb-5 flex items-center gap-2">
+                                <ImageIcon size={20} className="text-[#087F8C]"/> 
                                 إدارة شعارات الشركاء (الصفحة الرئيسية)
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6"><div><label className="text-xs font-bold text-gray-400 mb-1 block">اسم الجهة / الشركة</label><input type="text" value={newPartner.name} onChange={e => setNewPartner({...newPartner, name: e.target.value})} className={inputClass} /></div><div><label className="text-xs font-bold text-gray-400 mb-1 block">نوع التغطية / نسبة الخصم</label><input type="text" value={newPartner.description} onChange={e => setNewPartner({...newPartner, description: e.target.value})} className={inputClass} placeholder="مثال: تغطية 80%" /></div><div><label className="text-xs font-bold text-gray-400 mb-1 block">شعار الجهة</label><div className="flex gap-2"><input type="text" value={newPartner.logo} onChange={e => setNewPartner({...newPartner, logo: e.target.value})} className={inputClass} /><label className="bg-gray-100 p-3 rounded-xl cursor-pointer border"><Upload size={18}/><input type="file" onChange={e => handleFileUpload(e, (val) => setNewPartner({...newPartner, logo: val}))} className="hidden"/></label></div></div></div><button onClick={handleAddPartner} className="mt-8 bg-blue-600 text-white font-bold py-4 px-10 rounded-2xl flex items-center gap-2 hover:bg-blue-700 shadow-md"><Plus size={20}/> إضافة شريك (للعرض فقط)</button>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5"><div><label className="text-xs font-bold text-[#718394] mb-1.5 block">اسم الجهة / الشركة</label><input type="text" value={newPartner.name} onChange={e => setNewPartner({...newPartner, name: e.target.value})} className={inputClass} /></div><div><label className="text-xs font-bold text-[#718394] mb-1.5 block">نوع التغطية / نسبة الخصم</label><input type="text" value={newPartner.description} onChange={e => setNewPartner({...newPartner, description: e.target.value})} className={inputClass} placeholder="مثال: تغطية 80%" /></div><div><label className="text-xs font-bold text-[#718394] mb-1.5 block">شعار الجهة</label><div className="flex gap-2"><input type="text" value={newPartner.logo} onChange={e => setNewPartner({...newPartner, logo: e.target.value})} className={inputClass} /><label className="bg-[#F5FAFC] p-3 rounded-xl cursor-pointer border border-[#DFEAF0] hover:bg-white"><Upload size={18} className="text-[#087F8C]"/><input type="file" onChange={e => handleFileUpload(e, (val) => setNewPartner({...newPartner, logo: val}))} className="hidden"/></label></div></div></div><button onClick={handleAddPartner} className="mt-7 fv-btn-primary font-bold py-3.5 px-8 rounded-xl flex items-center gap-2"><Plus size={18}/> إضافة شريك (للعرض فقط)</button>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">{partners.map(p => (<div key={p.id} className="bg-white rounded-[2.5rem] border border-gray-100 shadow-xs hover:shadow-lg transition-all p-6 relative group flex items-center gap-4"><div className="w-16 h-16 rounded-full border border-gray-100 p-1 flex items-center justify-center bg-white shadow-xs overflow-hidden"><img src={p.logo} className="w-full h-full object-contain" /></div><div className="flex-1"><h4 className="font-bold text-gray-900">{p.name}</h4><p className="text-xs text-gray-500 mt-1">{p.description}</p></div><button onClick={() => setDeletingPartnerId(p.id)} className="absolute top-4 left-4 text-red-400 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={18}/></button></div>))}</div>
+                        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">{partners.map(p => (<div key={p.id} className="bg-white rounded-2xl border border-[#DFEAF0] shadow-xs hover:shadow-md transition-all p-5 relative group flex items-center gap-4"><div className="w-14 h-14 rounded-xl border border-[#DFEAF0] p-1 flex items-center justify-center bg-[#F5FAFC] overflow-hidden"><img src={p.logo} className="w-full h-full object-contain" /></div><div className="flex-1"><h4 className="font-black text-sm text-[#172B3A]">{p.name}</h4><p className="text-xs text-[#718394] mt-1">{p.description}</p></div><button onClick={() => setDeletingPartnerId(p.id)} className="absolute top-3.5 left-3.5 text-red-500 hover:text-red-600 opacity-0 group-hover:opacity-100 transition-opacity"><Trash2 size={17}/></button></div>))}</div>
                     </div>
                 )}
                 {activeTab === 'settings' && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
+                  <div className="space-y-6 animate-in fade-in duration-300">
                      <div className={cardClass}>
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-                            <div className="bg-blue-100 p-2 rounded-xl text-blue-600"><Settings size={24} /></div>
-                            <h3 className="text-xl font-bold text-gray-900">الإعدادات العامة</h3>
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DFEAF0]">
+                            <div className="bg-[#087F8C]/10 p-2.5 rounded-xl text-[#087F8C]"><Settings size={22} /></div>
+                            <h3 className="text-lg font-black text-[#172B3A]">الإعدادات العامة</h3>
                         </div>
                         
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                            <div className="md:col-span-2">
-                                <label className="text-xs font-bold text-gray-400 mb-2 block">شعار التطبيق (Logo)</label>
+                                <label className="text-xs font-bold text-[#718394] mb-2 block">شعار التطبيق (Logo)</label>
                                 <div className="flex gap-4 items-center">
-                                    <div className="w-20 h-20 bg-gray-50 rounded-2xl border border-gray-200 flex items-center justify-center overflow-hidden shrink-0">
-                                        {tempSettings.logoUrl ? <img src={tempSettings.logoUrl} className="w-full h-full object-contain" /> : <ImageIcon className="text-gray-300"/>}
+                                    <div className="w-20 h-20 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0] flex items-center justify-center overflow-hidden shrink-0">
+                                        {tempSettings.logoUrl ? <img src={tempSettings.logoUrl} className="w-full h-full object-contain" /> : <ImageIcon className="text-[#718394]"/>}
                                     </div>
                                     <div className="flex-1 space-y-2">
                                         <div className="flex gap-2">
                                             <input type="text" value={tempSettings.logoUrl} onChange={e => setTempSettings({...tempSettings, logoUrl: e.target.value})} className={inputClass} placeholder="https://..." />
-                                            <label className="bg-gray-100 text-gray-700 px-4 py-2 rounded-xl font-bold cursor-pointer hover:bg-gray-200 flex items-center gap-2 border">
-                                                <Upload size={18}/>
+                                            <label className="bg-[#F5FAFC] text-[#172B3A] px-4 py-2 rounded-xl font-bold cursor-pointer hover:bg-white flex items-center gap-2 border border-[#DFEAF0]">
+                                                <Upload size={18} className="text-[#087F8C]"/>
                                                 <input type="file" onChange={e => handleFileUpload(e, (val) => setTempSettings({...tempSettings, logoUrl: val}))} className="hidden" />
                                             </label>
                                         </div>
-                                        <p className="text-[10px] text-gray-400">يفضل استخدام صورة مربعة بخلفية شفافة (PNG)</p>
+                                        <p className="text-[11px] text-[#718394]">يفضل استخدام صورة مربعة بخلفية شفافة (PNG)</p>
                                     </div>
                                 </div>
                            </div>
 
-                           <div><label className="text-xs font-bold text-gray-400 mb-2 block">اسم المركز</label><input type="text" value={tempSettings.appName} onChange={e => setTempSettings({...tempSettings, appName: e.target.value})} className={inputClass} /></div>
-                           <div><label className="text-xs font-bold text-gray-400 mb-2 block">رقم واتساب الأساسي</label><input type="text" value={tempSettings.whatsappNumber} onChange={e => setTempSettings({...tempSettings, whatsappNumber: e.target.value})} className={inputClass} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">اسم المركز</label><input type="text" value={tempSettings.appName} onChange={e => setTempSettings({...tempSettings, appName: e.target.value})} className={inputClass} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">رقم واتساب الأساسي</label><input type="text" value={tempSettings.whatsappNumber} onChange={e => setTempSettings({...tempSettings, whatsappNumber: e.target.value})} className={`${inputClass} fv-num`} /></div>
                            
-                           <div className="md:col-span-2"><label className="text-xs font-bold text-gray-400 mb-2 block">عنوان الترحيب الرئيسي</label><input type="text" value={tempSettings.heroTitle} onChange={e => setTempSettings({...tempSettings, heroTitle: e.target.value})} className={inputClass} /></div>
-                           <div className="md:col-span-2"><label className="text-xs font-bold text-gray-400 mb-2 block">وصف الترحيب</label><textarea value={tempSettings.heroDescription} onChange={e => setTempSettings({...tempSettings, heroDescription: e.target.value})} className={inputClass} rows={2} /></div>
+                           <div className="md:col-span-2"><label className="text-xs font-bold text-[#718394] mb-1.5 block">عنوان الترحيب الرئيسي</label><input type="text" value={tempSettings.heroTitle} onChange={e => setTempSettings({...tempSettings, heroTitle: e.target.value})} className={inputClass} /></div>
+                           <div className="md:col-span-2"><label className="text-xs font-bold text-[#718394] mb-1.5 block">وصف الترحيب</label><textarea value={tempSettings.heroDescription} onChange={e => setTempSettings({...tempSettings, heroDescription: e.target.value})} className={inputClass} rows={2} /></div>
                            
-                           <div><label className="text-xs font-bold text-gray-400 mb-2 block">أرقام الهواتف (كل رقم في سطر)</label><textarea value={phonesInput} onChange={e => setPhonesInput(e.target.value)} className={inputClass} rows={3} /></div>
-                           <div><label className="text-xs font-bold text-gray-400 mb-2 block">العناوين (كل عنوان في سطر)</label><textarea value={addressesInput} onChange={e => setAddressesInput(e.target.value)} className={inputClass} rows={3} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">أرقام الهواتف (كل رقم في سطر)</label><textarea value={phonesInput} onChange={e => setPhonesInput(e.target.value)} className={`${inputClass} fv-num`} rows={3} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">العناوين (كل عنوان في سطر)</label><textarea value={addressesInput} onChange={e => setAddressesInput(e.target.value)} className={inputClass} rows={3} /></div>
                            
-                           <div><label className="text-xs font-bold text-gray-400 mb-2 block">مواعيد العمل (السبت - الخميس)</label><input type="text" value={tempSettings.workingHours.weekdays} onChange={e => setTempSettings({...tempSettings, workingHours: {...tempSettings.workingHours, weekdays: e.target.value}})} className={inputClass} /></div>
-                           <div><label className="text-xs font-bold text-gray-400 mb-2 block">مواعيد العمل (الجمعة)</label><input type="text" value={tempSettings.workingHours.friday} onChange={e => setTempSettings({...tempSettings, workingHours: {...tempSettings.workingHours, friday: e.target.value}})} className={inputClass} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">مواعيد العمل (السبت - الخميس)</label><input type="text" value={tempSettings.workingHours.weekdays} onChange={e => setTempSettings({...tempSettings, workingHours: {...tempSettings.workingHours, weekdays: e.target.value}})} className={inputClass} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">مواعيد العمل (الجمعة)</label><input type="text" value={tempSettings.workingHours.friday} onChange={e => setTempSettings({...tempSettings, workingHours: {...tempSettings.workingHours, friday: e.target.value}})} className={inputClass} /></div>
                         </div>
 
-                        <div className="space-y-6 mt-10 border-t pt-8">
+                        <div className="space-y-5 mt-8 border-t border-[#DFEAF0] pt-7">
                             <div className="flex justify-between items-center">
-                                <h4 className="font-black text-lg text-gray-800 flex items-center gap-2">
-                                <CreditCard className="text-blue-600" /> إعدادات الدفع الإلكتروني
+                                <h4 className="font-black text-base text-[#172B3A] flex items-center gap-2">
+                                <CreditCard className="text-[#087F8C]" size={20} /> إعدادات الدفع الإلكتروني
                                 </h4>
                                 <button 
                                 onClick={() => {
                                     const newMethod: PaymentMethod = { id: Date.now().toString(), type: 'wallet', label: '', detail: '' };
                                     setTempSettings({...tempSettings, paymentMethods: [...tempSettings.paymentMethods, newMethod]});
                                 }}
-                                className="bg-blue-600 text-white px-4 py-2 rounded-xl text-xs font-bold hover:bg-blue-700 transition-all"
+                                className="fv-btn-primary px-4 py-2 rounded-xl text-xs font-bold"
                                 >
                                 + إضافة وسيلة جديدة
                                 </button>
@@ -2807,11 +2840,11 @@ const handlePrint = (title: string, contentHtml: string) => {
 
                             <div className="grid gap-4">
                                 {tempSettings.paymentMethods.map((method, idx) => (
-                                <div key={method.id} className="bg-gray-50 p-5 rounded-[2rem] border border-gray-100 flex flex-wrap gap-3 items-end">
+                                <div key={method.id} className="bg-[#F5FAFC] p-4 rounded-2xl border border-[#DFEAF0] flex flex-wrap gap-3 items-end">
                                     <div className="flex-1 min-w-[150px] space-y-1">
-                                    <label className="text-[10px] font-black text-gray-400 mr-2">نوع الوسيلة</label>
+                                    <label className="text-[11px] font-bold text-[#718394] mr-1">نوع الوسيلة</label>
                                     <select 
-                                        className="w-full p-3 rounded-2xl border-none bg-white text-sm font-bold shadow-xs"
+                                        className="w-full p-2.5 rounded-xl border border-[#DFEAF0] bg-white text-sm font-bold text-[#172B3A]"
                                         value={method.type}
                                         onChange={(e) => {
                                         const updated = [...tempSettings.paymentMethods];
@@ -2827,9 +2860,9 @@ const handlePrint = (title: string, contentHtml: string) => {
                                     </div>
                                     
                                     <div className="flex-1 min-w-[150px] space-y-1">
-                                    <label className="text-[10px] font-black text-gray-400 mr-2">الاسم (Label)</label>
+                                    <label className="text-[11px] font-bold text-[#718394] mr-1">الاسم (Label)</label>
                                     <input 
-                                        className="w-full p-3 rounded-2xl border-none bg-white text-sm font-bold shadow-xs"
+                                        className="w-full p-2.5 rounded-xl border border-[#DFEAF0] bg-white text-sm font-bold text-[#172B3A]"
                                         placeholder="مثال: رقم المدير"
                                         value={method.label}
                                         onChange={(e) => {
@@ -2841,9 +2874,10 @@ const handlePrint = (title: string, contentHtml: string) => {
                                     </div>
 
                                     <div className="flex-[2] min-w-[200px] space-y-1">
-                                    <label className="text-[10px] font-black text-gray-400 mr-2">التفاصيل (الرقم/المعرف)</label>
+                                    <label className="text-[11px] font-bold text-[#718394] mr-1">التفاصيل (الرقم/المعرف)</label>
                                     <input 
-                                        className="w-full p-3 rounded-2xl border-none bg-white text-sm font-bold shadow-xs text-left dir-ltr"
+                                        className="w-full p-2.5 rounded-xl border border-[#DFEAF0] bg-white text-sm font-bold text-[#172B3A] text-left fv-num"
+                                        dir="ltr"
                                         placeholder="01xxxxxxxxx"
                                         value={method.detail}
                                         onChange={(e) => {
@@ -2859,9 +2893,9 @@ const handlePrint = (title: string, contentHtml: string) => {
                                         const updated = tempSettings.paymentMethods.filter((_, i) => i !== idx);
                                         setTempSettings({...tempSettings, paymentMethods: updated});
                                     }}
-                                    className="p-3.5 bg-red-50 text-red-500 rounded-2xl hover:bg-red-100 transition-colors"
+                                    className="p-3 bg-red-50 text-red-600 rounded-xl hover:bg-red-100 transition-colors"
                                     >
-                                    <Trash2 size={20} />
+                                    <Trash2 size={18} />
                                     </button>
                                 </div>
                                 ))}
@@ -2870,13 +2904,13 @@ const handlePrint = (title: string, contentHtml: string) => {
                      </div>
 
                      <div className={cardClass}>
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-                            <div className="bg-blue-100 p-2 rounded-xl text-blue-600"><Facebook size={24} /></div>
-                            <h3 className="text-xl font-bold text-gray-900">روابط التواصل والموقع</h3>
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DFEAF0]">
+                            <div className="bg-[#1769AA]/10 p-2.5 rounded-xl text-[#1769AA]"><Facebook size={22} /></div>
+                            <h3 className="text-lg font-black text-[#172B3A]">روابط التواصل والموقع</h3>
                         </div>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                           <div>
-                            <label className="text-xs font-bold text-gray-400 mb-2 block">رابط الفيسبوك</label>
+                            <label className="text-xs font-bold text-[#718394] mb-1.5 block">رابط الفيسبوك</label>
                             <input 
                               type="text" 
                               value={tempSettings.facebookUrl} 
@@ -2886,7 +2920,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                             />
                           </div>
                           <div>
-                            <label className="text-xs font-bold text-gray-400 mb-2 block">رابط الموقع على الخريطة</label>
+                            <label className="text-xs font-bold text-[#718394] mb-1.5 block">رابط الموقع على الخريطة</label>
                             <div className="flex gap-2">
                                 <input 
                                 type="text" 
@@ -2895,66 +2929,66 @@ const handlePrint = (title: string, contentHtml: string) => {
                                 className={inputClass}
                                 placeholder="https://maps.google.com/..."
                                 />
-                                <button onClick={handleGetCurrentLocation} className="bg-gray-100 text-gray-700 p-3 rounded-xl hover:bg-gray-200" title="تحديد موقعي"><MapPin size={20}/></button>
+                                <button onClick={handleGetCurrentLocation} className="bg-[#F5FAFC] border border-[#DFEAF0] text-[#087F8C] p-3 rounded-xl hover:bg-white" title="تحديد موقعي"><MapPin size={19}/></button>
                             </div>
                           </div>
                         </div>
                       </div>
                       
                      <div className={cardClass}>
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-                            <div className="bg-emerald-100 p-2 rounded-xl text-emerald-600"><MessageCircle size={24} /></div>
-                            <h3 className="text-xl font-bold text-gray-900">إعدادات الرسائل (SMS/WhatsApp)</h3>
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DFEAF0]">
+                            <div className="bg-emerald-50 p-2.5 rounded-xl text-emerald-600"><MessageCircle size={22} /></div>
+                            <h3 className="text-lg font-black text-[#172B3A]">إعدادات الرسائل (SMS/WhatsApp)</h3>
                         </div>
                         <div className="space-y-6">
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                              <label className="text-xs font-bold text-gray-400 mb-2 block">رسالة واتساب (للكشوفات)</label>
+                              <label className="text-xs font-bold text-[#718394] mb-1.5 block">رسالة واتساب (للكشوفات)</label>
                               <textarea 
                                 value={tempSettings.reminderSettings.whatsappBody} 
                                 onChange={e => setTempSettings({...tempSettings, reminderSettings: {...tempSettings.reminderSettings, whatsappBody: e.target.value}})}
                                 className={`${inputClass} h-32`}
                               />
-                              <p className="text-[10px] text-gray-400 mt-1">المتغيرات المتاحة: [الاسم], [التاريخ], [الوقت], [الطبيب]</p>
+                              <p className="text-[11px] text-[#718394] mt-1">المتغيرات المتاحة: [الاسم], [التاريخ], [الوقت], [الطبيب]</p>
                             </div>
                             <div>
-                              <label className="text-xs font-bold text-gray-400 mb-2 block">رسالة واتساب (للعمليات)</label>
+                              <label className="text-xs font-bold text-[#718394] mb-1.5 block">رسالة واتساب (للعمليات)</label>
                               <textarea 
                                 value={tempSettings.reminderSettings.opWhatsappBody} 
                                 onChange={e => setTempSettings({...tempSettings, reminderSettings: {...tempSettings.reminderSettings, opWhatsappBody: e.target.value}})}
                                 className={`${inputClass} h-32`}
                               />
-                              <p className="text-[10px] text-gray-400 mt-1">المتغيرات المتاحة: [الاسم], [التاريخ], [الإجراء], [الطبيب]</p>
+                              <p className="text-[11px] text-[#718394] mt-1">المتغيرات المتاحة: [الاسم], [التاريخ], [الإجراء], [الطبيب]</p>
                             </div>
                           </div>
 
-                          <div className="w-full h-px bg-gray-100 my-4"></div>
+                          <div className="w-full h-px bg-[#DFEAF0] my-4"></div>
 
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
                             <div>
-                              <label className="text-xs font-bold text-gray-400 mb-2 block">رسالة SMS (للكشوفات)</label>
+                              <label className="text-xs font-bold text-[#718394] mb-1.5 block">رسالة SMS (للكشوفات)</label>
                               <textarea 
                                 value={tempSettings.reminderSettings.smsBody} 
                                 onChange={e => setTempSettings({...tempSettings, reminderSettings: {...tempSettings.reminderSettings, smsBody: e.target.value}})}
                                 className={`${inputClass} h-32`}
                               />
-                              <p className="text-[10px] text-gray-400 mt-1">المتغيرات المتاحة: [الاسم], [التاريخ], [الوقت], [الطبيب]</p>
+                              <p className="text-[11px] text-[#718394] mt-1">المتغيرات المتاحة: [الاسم], [التاريخ], [الوقت], [الطبيب]</p>
                             </div>
                             <div>
-                              <label className="text-xs font-bold text-gray-400 mb-2 block">رسالة SMS (للعمليات)</label>
+                              <label className="text-xs font-bold text-[#718394] mb-1.5 block">رسالة SMS (للعمليات)</label>
                               <textarea 
                                 value={tempSettings.reminderSettings.opSmsBody} 
                                 onChange={e => setTempSettings({...tempSettings, reminderSettings: {...tempSettings.reminderSettings, opSmsBody: e.target.value}})}
                                 className={`${inputClass} h-32`}
                               />
-                              <p className="text-[10px] text-gray-400 mt-1">المتغيرات المتاحة: [الاسم], [التاريخ], [الإجراء], [الطبيب]</p>
+                              <p className="text-[11px] text-[#718394] mt-1">المتغيرات المتاحة: [الاسم], [التاريخ], [الإجراء], [الطبيب]</p>
                             </div>
                           </div>
                           
-                          <div className="p-6 bg-blue-50/50 rounded-2xl border border-blue-100">
-                            <label className="text-sm font-black text-blue-900 block mb-4 flex justify-between">
+                          <div className="p-5 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0]">
+                            <label className="text-sm font-black text-[#172B3A] block mb-4 flex justify-between">
                               <span>موعد إرسال التذكير تلقائياً</span>
-                              <span className="text-blue-600 bg-white px-3 py-1 rounded-lg shadow-xs">{tempSettings.reminderSettings.intervalHours} ساعة قبل الموعد</span>
+                              <span className="text-[#087F8C] bg-white px-3 py-1 rounded-lg border border-[#DFEAF0] fv-num">{tempSettings.reminderSettings.intervalHours} ساعة قبل الموعد</span>
                             </label>
                             <input 
                               type="range" 
@@ -2962,9 +2996,9 @@ const handlePrint = (title: string, contentHtml: string) => {
                               max="72" 
                               value={tempSettings.reminderSettings.intervalHours}
                               onChange={e => setTempSettings({...tempSettings, reminderSettings: {...tempSettings.reminderSettings, intervalHours: parseInt(e.target.value)}})}
-                              className="w-full h-2 bg-blue-200 rounded-lg appearance-none cursor-pointer accent-blue-600"
+                              className="w-full h-2 bg-[#DFEAF0] rounded-lg appearance-none cursor-pointer accent-[#087F8C]"
                             />
-                            <div className="flex justify-between mt-2 text-[10px] font-bold text-gray-400">
+                            <div className="flex justify-between mt-2 text-[11px] font-bold text-[#718394] fv-num">
                               <span>ساعة واحدة</span>
                               <span>72 ساعة</span>
                             </div>
@@ -2973,9 +3007,9 @@ const handlePrint = (title: string, contentHtml: string) => {
                       </div>
 
                      <div className={cardClass}>
-                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-                            <div className="bg-purple-100 p-2 rounded-xl text-purple-600"><ShieldCheck size={24} /></div>
-                            <h3 className="text-xl font-bold text-gray-900">الشروط والأحكام</h3>
+                        <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DFEAF0]">
+                            <div className="bg-purple-50 p-2.5 rounded-xl text-purple-600"><ShieldCheck size={22} /></div>
+                            <h3 className="text-lg font-black text-[#172B3A]">الشروط والأحكام</h3>
                         </div>
                         <textarea 
                           value={tempSettings.termsAr} 
@@ -2986,62 +3020,62 @@ const handlePrint = (title: string, contentHtml: string) => {
                       </div>
 
                      <div className={cardClass}>
-                         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-gray-100">
-                            <div className="bg-amber-100 p-2 rounded-xl text-amber-600"><BarChart2 size={24} /></div>
-                            <h3 className="text-xl font-bold text-gray-900">إحصائيات الصفحة الرئيسية</h3>
+                         <div className="flex items-center gap-3 mb-6 pb-4 border-b border-[#DFEAF0]">
+                            <div className="bg-amber-50 p-2.5 rounded-xl text-amber-600"><BarChart2 size={22} /></div>
+                            <h3 className="text-lg font-black text-[#172B3A]">إحصائيات الصفحة الرئيسية</h3>
                          </div>
                          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
                             {tempSettings.stats.map((stat, idx) => (
-                               <div key={idx} className="bg-gray-50 p-4 rounded-xl space-y-2 border border-gray-100">
-                                  <input type="text" value={stat.label} onChange={e => handleUpdateStat(idx, 'label', e.target.value)} className="w-full bg-white p-2 rounded-sm text-xs font-bold border border-gray-200" placeholder="العنوان" />
-                                  <input type="text" value={stat.value} onChange={e => handleUpdateStat(idx, 'value', e.target.value)} className="w-full bg-white p-2 rounded-sm text-xs font-bold border border-gray-200" placeholder="القيمة" />
-                                  <input type="text" value={stat.trend} onChange={e => handleUpdateStat(idx, 'trend', e.target.value)} className="w-full bg-white p-2 rounded-sm text-xs font-bold border border-gray-200" placeholder="الوصف" />
+                               <div key={idx} className="bg-[#F5FAFC] p-4 rounded-xl space-y-2 border border-[#DFEAF0]">
+                                  <input type="text" value={stat.label} onChange={e => handleUpdateStat(idx, 'label', e.target.value)} className="w-full bg-white p-2 rounded-lg text-xs font-bold border border-[#DFEAF0] text-[#172B3A]" placeholder="العنوان" />
+                                  <input type="text" value={stat.value} onChange={e => handleUpdateStat(idx, 'value', e.target.value)} className="w-full bg-white p-2 rounded-lg text-xs font-bold border border-[#DFEAF0] text-[#172B3A] fv-num" placeholder="القيمة" />
+                                  <input type="text" value={stat.trend} onChange={e => handleUpdateStat(idx, 'trend', e.target.value)} className="w-full bg-white p-2 rounded-lg text-xs font-bold border border-[#DFEAF0] text-[#172B3A]" placeholder="الوصف" />
                                </div>
                             ))}
                          </div>
                      </div>
 
                      <div className="sticky bottom-4 z-10 flex justify-end">
-                        <button onClick={handleSaveSettings} className="bg-blue-600 text-white font-bold py-4 px-12 rounded-2xl hover:bg-blue-700 shadow-xl shadow-blue-500/20 active:scale-95 flex items-center gap-3 transition-all">
-                           <Save size={20}/> حفظ كافة الإعدادات
+                        <button onClick={handleSaveSettings} className="fv-btn-primary font-black py-3.5 px-10 rounded-xl flex items-center gap-2.5">
+                           <Save size={18}/> حفظ كافة الإعدادات
                         </button>
                      </div>
                   </div>
                 )}
                 {activeTab === 'services' && (
-                    <div className="space-y-8 animate-in fade-in duration-300">
-                        <div className={`${cardClass} ${editingServiceId ? 'ring-2 ring-blue-500' : ''}`}>
-                            <h3 className="text-xl font-bold mb-6 flex items-center gap-2">
-                                {editingServiceId ? <Edit2 size={24} className="text-blue-600" /> : <Plus size={24} className="text-blue-600" />}
+                    <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className={`${cardClass} ${editingServiceId ? 'ring-2 ring-[#087F8C]' : ''}`}>
+                            <h3 className="text-lg font-black text-[#172B3A] mb-6 flex items-center gap-2">
+                                {editingServiceId ? <Edit2 size={20} className="text-[#087F8C]" /> : <Plus size={20} className="text-[#087F8C]" />}
                                 {editingServiceId ? 'تعديل الخدمة الطبية' : 'إضافة خدمة طبية جديدة'}
                             </h3>
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">عنوان الخدمة</label><input type="text" value={newService.title} onChange={e => setNewService({...newService, title: e.target.value})} className={inputClass} /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-1 block">السعر (ج.م)</label><input type="number" value={newService.price} onChange={e => setNewService({...newService, price: Number(e.target.value)})} className={inputClass} /></div>
-                                <div className="md:col-span-2"><label className="text-xs font-bold text-gray-400 mb-1 block">وصف الخدمة</label><input type="text" value={newService.description} onChange={e => setNewService({...newService, description: e.target.value})} className={inputClass} /></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-2 block">اختر أيقونة للخدمة</label><div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-2 p-4 bg-gray-50 rounded-2xl border max-h-60 overflow-y-auto">{Object.keys(ICON_MAP).map(icon => { const Icon = ICON_MAP[icon]; return (<button key={icon} onClick={() => setNewService({...newService, iconName: icon})} className={`p-3 rounded-xl transition-all flex flex-col items-center justify-center gap-1 ${newService.iconName === icon ? 'bg-blue-600 text-white scale-105 shadow-lg' : 'bg-white text-gray-400 border border-gray-100 hover:bg-blue-50 hover:text-blue-600'}`} title={icon}><Icon size={20}/><span className="text-[7px] truncate w-full text-center">{icon}</span></button>) })}</div></div>
-                                <div><label className="text-xs font-bold text-gray-400 mb-2 block">اللون المميز</label><div className="flex flex-wrap gap-3 p-4 bg-gray-50 rounded-2xl border">{AVAILABLE_COLORS.map(color => (<button key={color.value} onClick={() => setNewService({...newService, color: color.value})} className={`w-10 h-10 rounded-full ${color.bg} transition-all ${newService.color === color.value ? 'ring-4 ring-blue-300 scale-110' : 'hover:scale-105 opacity-80'}`} title={color.name}></button>))}</div></div>
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">عنوان الخدمة</label><input type="text" value={newService.title} onChange={e => setNewService({...newService, title: e.target.value})} className={inputClass} /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">السعر (ج.م)</label><input type="number" value={newService.price} onChange={e => setNewService({...newService, price: Number(e.target.value)})} className={`${inputClass} fv-num`} /></div>
+                                <div className="md:col-span-2"><label className="text-xs font-bold text-[#718394] mb-1.5 block">وصف الخدمة</label><input type="text" value={newService.description} onChange={e => setNewService({...newService, description: e.target.value})} className={inputClass} /></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-2 block">اختر أيقونة للخدمة</label><div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-2 p-4 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0] max-h-60 overflow-y-auto">{Object.keys(ICON_MAP).map(icon => { const Icon = ICON_MAP[icon]; return (<button key={icon} onClick={() => setNewService({...newService, iconName: icon})} className={`p-3 rounded-xl transition-all flex flex-col items-center justify-center gap-1 ${newService.iconName === icon ? 'bg-[#087F8C] text-white scale-105 shadow-md' : 'bg-white text-[#718394] border border-[#DFEAF0] hover:border-[#087F8C] hover:text-[#087F8C]'}`} title={icon}><Icon size={20}/><span className="text-[7px] truncate w-full text-center">{icon}</span></button>) })}</div></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-2 block">اللون المميز</label><div className="flex flex-wrap gap-3 p-4 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0]">{AVAILABLE_COLORS.map(color => (<button key={color.value} onClick={() => setNewService({...newService, color: color.value})} className={`w-10 h-10 rounded-full ${color.bg} transition-all ${newService.color === color.value ? 'ring-4 ring-[#25B8C7]/50 scale-110' : 'hover:scale-105 opacity-80'}`} title={color.name}></button>))}</div></div>
                             </div>
-                            <div className="flex gap-4 mt-8">
-                                <button onClick={handleAddService} className="bg-blue-600 text-white px-10 py-4 rounded-2xl font-bold flex items-center gap-2 hover:bg-blue-700 shadow-lg">
-                                    {editingServiceId ? <Save size={20}/> : <Plus size={20}/>}
+                            <div className="flex gap-3 mt-7">
+                                <button onClick={handleAddService} className="fv-btn-primary px-8 py-3.5 rounded-xl font-bold flex items-center gap-2">
+                                    {editingServiceId ? <Save size={18}/> : <Plus size={18}/>}
                                     {editingServiceId ? 'حفظ التعديلات' : 'إضافة الخدمة'}
                                 </button>
                                 {editingServiceId && (
-                                    <button onClick={() => { setEditingServiceId(null); setNewService({ title: '', description: '', iconName: 'Eye', color: 'text-blue-600', price: 200 }); }} className="bg-gray-100 text-gray-600 px-6 py-4 rounded-2xl font-bold">إلغاء</button>
+                                    <button onClick={() => { setEditingServiceId(null); setNewService({ title: '', description: '', iconName: 'Eye', color: 'text-blue-600', price: 200 }); }} className="bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] px-6 py-3.5 rounded-xl font-bold hover:bg-white">إلغاء</button>
                                 )}
                             </div>
                         </div>
-                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {services.map(service => { 
                                 const Icon = ICON_MAP[service.iconName] || Eye; 
                                 return (
-                                    <div key={service.id} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-xs hover:shadow-lg transition-all flex items-center gap-6 relative group">
-                                        <div className={`p-4 rounded-2xl bg-gray-50 ${service.color}`}><Icon size={32}/></div>
-                                        <div className="flex-1"><h4 className="font-bold text-gray-900">{service.title}</h4><p className="text-[10px] text-gray-400">{service.price} ج.م</p></div>
+                                    <div key={service.id} className="bg-white p-5 rounded-2xl border border-[#DFEAF0] shadow-xs hover:shadow-md transition-all flex items-center gap-4 relative group">
+                                        <div className={`p-3.5 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] ${service.color}`}><Icon size={28}/></div>
+                                        <div className="flex-1 min-w-0"><h4 className="font-black text-sm text-[#172B3A]">{service.title}</h4><p className="text-xs font-bold text-[#087F8C] fv-num">{service.price} ج.م</p></div>
                                         <div className="flex flex-col gap-1">
-                                            <button onClick={() => handleEditServiceClick(service)} className="text-blue-500 hover:bg-blue-50 p-2 rounded-lg" title="تعديل"><Edit2 size={18}/></button>
-                                            <button onClick={() => setDeletingServiceId(service.id)} className="text-red-400 hover:bg-red-50 p-2 rounded-lg" title="حذف"><Trash2 size={18}/></button>
+                                            <button onClick={() => handleEditServiceClick(service)} className="text-[#087F8C] hover:bg-[#087F8C]/10 p-2 rounded-lg" title="تعديل"><Edit2 size={16}/></button>
+                                            <button onClick={() => setDeletingServiceId(service.id)} className="text-red-500 hover:bg-red-50 p-2 rounded-lg" title="حذف"><Trash2 size={16}/></button>
                                         </div>
                                     </div>
                                 ) 
@@ -3050,30 +3084,30 @@ const handlePrint = (title: string, contentHtml: string) => {
                     </div>
                 )}
                 {activeTab === 'complaints' && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
+                  <div className="space-y-6 animate-in fade-in duration-300">
                     <div className={cardClass}>
                        <div className="flex justify-between items-center mb-6">
-                          <h3 className="text-xl font-bold">صندوق الشكاوى والمقترحات ({filteredComplaints.length})</h3>
+                          <h3 className="text-lg font-black text-[#172B3A]">صندوق الشكاوى والمقترحات (<span className="fv-num">{filteredComplaints.length}</span>)</h3>
                           <button onClick={() => {
                               const esc = (v: string) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                               handlePrint('تقرير الشكاوى والمقترحات', `<table><thead><tr><th>النوع</th><th>الاسم</th><th>الهاتف</th><th>التاريخ</th><th>الرسالة</th></tr></thead><tbody>${filteredComplaints.map(c => `<tr><td>${c.type === 'complaint' ? 'شكوى' : 'اقتراح'}</td><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.date)}</td><td>${esc(c.message)}</td></tr>`).join('')}</tbody></table>`);
-                          }} className="text-blue-600 flex items-center gap-2 font-bold text-sm"><Printer size={16}/> طباعة التقرير</button>
+                          }} className="text-[#087F8C] bg-[#087F8C]/10 hover:bg-[#087F8C]/20 px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-xs transition-colors"><Printer size={15}/> طباعة التقرير</button>
                        </div>
                        <div className="flex gap-4 mb-6">
                           <input type="text" placeholder="بحث بالاسم أو الهاتف..." value={complaintSearch} onChange={e => setComplaintSearch(e.target.value)} className={inputClass} />
                           <input type="date" value={complaintStart} onChange={e => setComplaintStart(e.target.value)} className={inputClass} />
                        </div>
                        <div className="grid grid-cols-1 gap-4">
-                          {filteredComplaints.length === 0 && <p className="text-gray-400 text-center py-8">لا توجد رسائل</p>}
+                          {filteredComplaints.length === 0 && <p className="text-[#718394] text-center py-8 font-medium">لا توجد رسائل</p>}
                           {filteredComplaints.map(c => (
-                            <div key={c.id} className={`p-6 rounded-2xl border ${c.type === 'complaint' ? 'bg-red-50 border-red-100' : 'bg-blue-50 border-blue-100'} relative`}>
-                               <button onClick={() => handleDeleteComplaint(c.id)} className="absolute top-4 left-4 text-gray-400 hover:text-red-600"><Trash2 size={18}/></button>
+                            <div key={c.id} className={`p-5 rounded-2xl border ${c.type === 'complaint' ? 'bg-red-50/70 border-red-200' : 'bg-[#F5FAFC] border-[#DFEAF0]'} relative`}>
+                               <button onClick={() => handleDeleteComplaint(c.id)} className="absolute top-4 left-4 text-[#718394] hover:text-red-600"><Trash2 size={17}/></button>
                                <div className="flex items-center gap-3 mb-2">
-                                  <span className={`px-3 py-1 rounded-full text-[10px] font-black ${c.type === 'complaint' ? 'bg-red-200 text-red-800' : 'bg-blue-200 text-blue-800'}`}>{c.type === 'complaint' ? 'شكوى' : 'اقتراح'}</span>
-                                  <span className="text-xs font-bold text-gray-500">{c.date}</span>
+                                  <span className={`px-3 py-0.5 rounded-full text-[10px] font-black ${c.type === 'complaint' ? 'bg-red-100 text-red-700' : 'bg-[#087F8C]/10 text-[#087F8C]'}`}>{c.type === 'complaint' ? 'شكوى' : 'اقتراح'}</span>
+                                  <span className="text-xs font-bold text-[#718394] fv-num">{c.date}</span>
                                </div>
-                               <h4 className="font-bold text-gray-900 mb-1">{c.name} <span className="text-gray-400 text-xs mx-2">{c.phone}</span></h4>
-                               <p className="text-gray-700 mt-2 leading-relaxed bg-white/50 p-3 rounded-xl">{c.message}</p>
+                               <h4 className="font-black text-[#172B3A] mb-1">{c.name} <span className="text-[#718394] text-xs mx-2 fv-num">{c.phone}</span></h4>
+                               <p className="text-[#172B3A] text-sm mt-2 leading-relaxed bg-white p-3.5 rounded-xl border border-[#DFEAF0]">{c.message}</p>
                             </div>
                           ))}
                        </div>
@@ -3081,32 +3115,32 @@ const handlePrint = (title: string, contentHtml: string) => {
                   </div>
                 )}
                 {activeTab === 'reminders' && (
-                  <div className="space-y-8 animate-in fade-in duration-300">
+                  <div className="space-y-6 animate-in fade-in duration-300">
                      <div className={cardClass}>
-                        <div className="flex justify-between items-center mb-6">
-                           <h3 className="text-xl font-bold flex items-center gap-2"><Smartphone className="text-blue-600"/> مركز التذكيرات (واتساب / SMS)</h3>
+                        <div className="flex justify-between items-center mb-5 flex-wrap gap-3">
+                           <h3 className="text-lg font-black text-[#172B3A] flex items-center gap-2"><Smartphone className="text-[#087F8C]" size={20}/> مركز التذكيرات (واتساب / SMS)</h3>
                            <div className="flex gap-2">
-                              <select value={reminderFilterService} onChange={e => setReminderFilterService(e.target.value)} className="bg-gray-50 border border-gray-200 rounded-lg p-2 text-xs font-bold outline-hidden"><option value="">كل الخدمات</option>{services.map(s => <option key={s.id} value={s.title}>{s.title}</option>)}</select>
+                              <select value={reminderFilterService} onChange={e => setReminderFilterService(e.target.value)} className="bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl px-3 py-2 text-xs font-bold text-[#172B3A] outline-hidden"><option value="">كل الخدمات</option>{services.map(s => <option key={s.id} value={s.title}>{s.title}</option>)}</select>
                            </div>
                         </div>
-                        <p className="text-sm text-gray-500 mb-6 font-bold bg-blue-50 p-3 rounded-xl border border-blue-100">💡 يتم عرض الحجوزات والعمليات المؤكدة لليوم التالي فقط لإرسال التذكيرات.</p>
+                        <p className="text-xs text-[#172B3A] mb-5 font-bold bg-[#087F8C]/8 p-3.5 rounded-xl border border-[#087F8C]/20 flex items-center gap-2"><Info size={16} className="text-[#087F8C] shrink-0" /> يتم عرض الحجوزات والعمليات المؤكدة لليوم التالي فقط لإرسال التذكيرات.</p>
                         <div className="space-y-3">
-                           {getUpcomingReminders().length === 0 && <p className="text-center text-gray-400 py-10">لا توجد مواعيد تتطلب التذكير للغد</p>}
-                           {getUpcomingReminders().map((item, idx) => (
-                              <div key={`${item.itemType}-${item.id}`} className="flex items-center justify-between p-4 bg-white border border-gray-100 rounded-2xl shadow-xs hover:bg-gray-50 transition-colors">
-                                 <div className="flex items-center gap-4">
-                                    <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white ${item.itemType === 'booking' ? 'bg-blue-500' : 'bg-purple-500'}`}>{item.itemType === 'booking' ? <Calendar size={18}/> : <Scissors size={18}/>}</div>
+                           {getUpcomingReminders().length === 0 && <p className="text-center text-[#718394] py-10 font-medium">لا توجد مواعيد تتطلب التذكير للغد</p>}
+                           {getUpcomingReminders().map((item) => (
+                              <div key={`${item.itemType}-${item.id}`} className="flex items-center justify-between p-4 bg-[#F5FAFC] border border-[#DFEAF0] rounded-2xl hover:bg-white transition-colors gap-3 flex-wrap">
+                                 <div className="flex items-center gap-3.5">
+                                    <div className={`w-10 h-10 rounded-xl flex items-center justify-center text-white ${item.itemType === 'booking' ? 'bg-[#087F8C]' : 'bg-[#1769AA]'}`}>{item.itemType === 'booking' ? <Calendar size={18}/> : <Scissors size={18}/>}</div>
                                     <div>
-                                       <h4 className="font-bold text-gray-900">{item.patientName}</h4>
-                                       <p className="text-xs text-gray-500">{item.phone} • {item.time} • {item.doctorName}</p>
+                                       <h4 className="font-black text-sm text-[#172B3A]">{item.patientName}</h4>
+                                       <p className="text-xs text-[#718394] fv-num">{item.phone} • {item.time} • {item.doctorName}</p>
                                     </div>
                                  </div>
                                  <div className="flex gap-2">
-                                     <button onClick={() => handleSmsReminder(item)} className="bg-amber-500 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-amber-600 shadow-lg shadow-amber-100 hover:scale-105 transition-all"><Mail size={16}/> إرسال SMS</button>
+                                     <button onClick={() => handleSmsReminder(item)} className="bg-amber-500 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 hover:bg-amber-600 transition-all"><Mail size={15}/> إرسال SMS</button>
                                      {item.phone && item.phone.replace(/\D/g, '').length >= 10 ? (
-                                       <button onClick={() => handleWhatsAppReminder(item)} className="bg-green-600 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-green-700 shadow-lg shadow-green-100 hover:scale-105 transition-all"><MessageCircle size={16}/> واتساب</button>
+                                       <button onClick={() => handleWhatsAppReminder(item)} className="bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 hover:bg-emerald-700 transition-all"><MessageCircle size={15}/> واتساب</button>
                                      ) : (
-                                       <button disabled title="رقم الهاتف غير متوفر" className="bg-gray-300 text-gray-500 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 cursor-not-allowed opacity-60"><MessageCircle size={16}/> واتساب</button>
+                                       <button disabled title="رقم الهاتف غير متوفر" className="bg-slate-200 text-slate-500 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-1.5 cursor-not-allowed opacity-70"><MessageCircle size={15}/> واتساب</button>
                                      )}
                                   </div>
                               </div>
@@ -3118,23 +3152,23 @@ const handlePrint = (title: string, contentHtml: string) => {
                 {activeTab === 'backup' && (
                   <div className="space-y-8 animate-in fade-in duration-300">
                      <div className={cardClass}>
-                        <h3 className="text-xl font-bold mb-6">النسخ الاحتياطي واستعادة البيانات</h3>
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                           <div className="bg-blue-50 p-8 rounded-3xl border border-blue-100 text-center">
-                              <div className="w-16 h-16 bg-blue-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-blue-200"><Download size={32}/></div>
-                              <h4 className="font-bold text-lg mb-2">تصدير قاعدة البيانات</h4>
-                              <p className="text-xs text-gray-500 mb-6">حفظ نسخة كاملة من كل بيانات النظام على جهازك. بيتم كمان حفظ نسخة تلقائية كل يوم على Google Drive الخاص بالمركز.</p>
+                        <h3 className="text-xl font-black text-[#172B3A] mb-6">النسخ الاحتياطي واستعادة البيانات</h3>
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                           <div className="bg-[#F5FAFC] p-7 rounded-2xl border border-[#DFEAF0] text-center">
+                              <div className="w-14 h-14 bg-[#087F8C] text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm"><Download size={28}/></div>
+                              <h4 className="font-black text-[#172B3A] text-lg mb-2">تصدير قاعدة البيانات</h4>
+                              <p className="text-xs text-[#718394] mb-6 leading-relaxed">حفظ نسخة كاملة من كل بيانات النظام على جهازك. بيتم كمان حفظ نسخة تلقائية كل يوم على Google Drive الخاص بالمركز.</p>
                               <div className="flex gap-2 max-w-xs mx-auto">
-                                 <input type="text" value={backupFileName} onChange={e => setBackupFileName(e.target.value)} className="flex-1 p-2 rounded-lg border border-gray-200 text-xs font-bold text-center" />
-                                 <button onClick={handleExportData} className="bg-blue-600 text-white px-4 py-2 rounded-lg font-bold hover:bg-blue-700">تصدير</button>
+                                 <input type="text" value={backupFileName} onChange={e => setBackupFileName(e.target.value)} className="flex-1 p-2.5 rounded-xl border border-[#DFEAF0] bg-white text-[#172B3A] text-xs font-bold text-center outline-hidden focus:border-[#087F8C] fv-mono" />
+                                 <button onClick={handleExportData} className="fv-btn-primary text-white px-5 py-2.5 rounded-xl font-bold text-xs cursor-pointer">تصدير</button>
                               </div>
                            </div>
-                           <div className="bg-emerald-50 p-8 rounded-3xl border border-emerald-100 text-center">
-                              <div className="w-16 h-16 bg-emerald-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg shadow-emerald-200"><Upload size={32}/></div>
-                              <h4 className="font-bold text-lg mb-2">استعادة نسخة احتياطية</h4>
-                              <p className="text-xs text-gray-500 mb-6">اختار ملف نسخة احتياطية (من Google Drive أو من زرار التصدير). البيانات اللي اتمسحت أو اتعدلت هترجع، واللي اتضاف بعد النسخة هيفضل موجود.</p>
-                              <label className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold hover:bg-emerald-700 cursor-pointer inline-flex items-center gap-2 shadow-lg shadow-emerald-200">
-                                 <Upload size={18}/> رفع ملف النسخة الاحتياطية
+                           <div className="bg-emerald-50/70 p-7 rounded-2xl border border-emerald-200/80 text-center">
+                              <div className="w-14 h-14 bg-emerald-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-sm"><Upload size={28}/></div>
+                              <h4 className="font-black text-[#172B3A] text-lg mb-2">استعادة نسخة احتياطية</h4>
+                              <p className="text-xs text-[#718394] mb-6 leading-relaxed">اختار ملف نسخة احتياطية (من Google Drive أو من زرار التصدير). البيانات اللي اتمسحت أو اتعدلت هترجع، واللي اتضاف بعد النسخة هيفضل موجود.</p>
+                              <label className="bg-emerald-600 text-white px-6 py-3 rounded-xl font-bold text-xs hover:bg-emerald-700 cursor-pointer inline-flex items-center gap-2 shadow-sm transition-colors">
+                                 <Upload size={16}/> رفع ملف النسخة الاحتياطية
                                  <input type="file" className="hidden" accept=".json" onChange={handleImportData} />
                               </label>
                            </div>
@@ -3146,17 +3180,34 @@ const handlePrint = (title: string, contentHtml: string) => {
                 {activeTab === 'contact-logs' && (
                   <div className="space-y-8 animate-in fade-in duration-300">
                      <div className={cardClass}>
-                        <div className="flex justify-between items-center mb-6">
-                           <h3 className="text-xl font-bold flex items-center gap-2"><History className="text-blue-600"/> سجل الاتصالات والتذكيرات</h3>
-                           <div className="flex items-center gap-2">
+                        <div className="flex flex-wrap justify-between items-center gap-3 mb-6">
+                           <h3 className="text-xl font-black text-[#172B3A] flex items-center gap-2"><History className="text-[#087F8C]"/> سجل الاتصالات والتذكيرات</h3>
+                           <div className="flex flex-wrap items-center gap-2">
                              <button onClick={() => {
                                const esc = (v: unknown) => String(v ?? '-').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                                handlePrint('تقرير سجل الاتصالات والتذكيرات', `<table><thead><tr><th>الموظف</th><th>المريض</th><th>الهاتف</th><th>النوع</th><th>القسم</th><th>الطبيب</th><th>التاريخ</th></tr></thead><tbody>${filteredContactLogs.map(log => `<tr><td>${esc(log.staff_name)}</td><td>${esc(log.patient_name)}</td><td>${esc(log.patient_phone)}</td><td>${log.contact_type === 'whatsapp' ? 'واتساب' : 'SMS'}</td><td>${log.item_type === 'booking' ? 'حجز' : 'عملية'}</td><td>${esc(log.doctor_name)}</td><td>${esc(new Date(log.created_at).toLocaleString('ar-EG'))}</td></tr>`).join('')}</tbody></table>`);
-                             }} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 hover:bg-blue-100"><Printer size={16}/> طباعة</button>
-                             <button onClick={fetchContactLogs} className="bg-blue-50 text-blue-600 px-4 py-2 rounded-lg font-bold text-xs flex items-center gap-2 hover:bg-blue-100"><RotateCcw size={16}/> تحديث</button>
+                             }} className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#087F8C]/10 cursor-pointer transition-colors"><Printer size={15}/> طباعة</button>
+                             <button onClick={fetchContactLogs} className="bg-[#F5FAFC] text-[#1769AA] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#1769AA]/10 cursor-pointer transition-colors"><RotateCcw size={15}/> تحديث</button>
+                             {currentUser?.role === 'admin' && (
+                               <button
+                                 onClick={() => setClearingContactLogsModal(true)}
+                                 disabled={contactLogsLoading || contactLogs.length === 0}
+                                 className="bg-red-50 text-red-600 border border-red-200/80 px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-red-100 disabled:opacity-50 disabled:cursor-not-allowed cursor-pointer transition-colors"
+                               >
+                                 <Trash2 size={15}/> مسح السجل
+                               </button>
+                             )}
                            </div>
                         </div>
-                        <p className="text-sm text-gray-500 mb-6 font-bold bg-blue-50 p-3 rounded-xl border border-blue-100">📋 يعرض هذا السجل جميع عمليات الاتصال والتذكير التي قام بها كل موظف مع المرضى.</p>
+                        {contactLogsNotice && (
+                          <div className={`mb-4 p-3 rounded-xl text-xs font-bold border ${contactLogsNotice.type === 'success' ? 'bg-emerald-50 text-emerald-700 border-emerald-200' : 'bg-red-50 text-red-700 border-red-200'}`}>
+                            {contactLogsNotice.message}
+                          </div>
+                        )}
+                        <p className="text-xs text-[#172B3A] mb-6 font-bold bg-[#F5FAFC] p-3.5 rounded-xl border border-[#DFEAF0] flex items-center gap-2">
+                          <Info size={16} className="text-[#087F8C] shrink-0" />
+                          <span>يعرض هذا السجل جميع عمليات الاتصال والتذكير التي قام بها كل موظف مع المرضى.</span>
+                        </p>
                         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
                           <select value={contactStaffFilter} onChange={e => setContactStaffFilter(e.target.value)} className={inputClass} aria-label="الموظف">
                             <option value="">كل الموظفين</option>
@@ -3166,36 +3217,36 @@ const handlePrint = (title: string, contentHtml: string) => {
                             <option value="">كل الأطباء</option>
                             {contactDoctorOptions.map(d => <option key={d} value={d}>{d}</option>)}
                           </select>
-                          <input type="date" value={contactDateFrom} onChange={e => setContactDateFrom(e.target.value)} className={inputClass} aria-label="من تاريخ" title="من تاريخ" />
-                          <input type="date" value={contactDateTo} onChange={e => setContactDateTo(e.target.value)} className={inputClass} aria-label="إلى تاريخ" title="إلى تاريخ" />
-                          <div className="flex items-center"><button onClick={() => { setContactStaffFilter(''); setContactDoctorFilter(''); setContactDateFrom(''); setContactDateTo(''); }} className="text-red-500 font-bold text-xs hover:underline">مسح الفلاتر</button></div>
+                          <input type="date" value={contactDateFrom} onChange={e => setContactDateFrom(e.target.value)} className={`${inputClass} fv-num`} aria-label="من تاريخ" title="من تاريخ" />
+                          <input type="date" value={contactDateTo} onChange={e => setContactDateTo(e.target.value)} className={`${inputClass} fv-num`} aria-label="إلى تاريخ" title="إلى تاريخ" />
+                          <div className="flex items-center"><button onClick={() => { setContactStaffFilter(''); setContactDoctorFilter(''); setContactDateFrom(''); setContactDateTo(''); }} className="text-red-600 font-bold text-xs hover:underline cursor-pointer">مسح الفلاتر</button></div>
                         </div>
                         {contactLogsLoading ? (
-                          <p className="text-center text-gray-400 py-10">جاري التحميل...</p>
+                          <p className="text-center text-[#718394] py-10 font-bold text-sm">جاري التحميل...</p>
                         ) : filteredContactLogs.length === 0 ? (
-                          <p className="text-center text-gray-400 py-10">لا توجد سجلات اتصال بعد</p>
+                          <p className="text-center text-[#718394] py-10 font-bold text-sm">لا توجد سجلات اتصال بعد</p>
                         ) : (
-                          <div className="overflow-x-auto rounded-2xl border border-gray-100">
+                          <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
                             <table className="w-full text-sm">
-                              <thead><tr className="bg-gray-50 text-gray-500 text-xs font-bold">
-                                <th className="p-4 text-right">الموظف</th>
-                                <th className="p-4 text-right">المريض</th>
-                                <th className="p-4 text-right">الهاتف</th>
-                                <th className="p-4 text-right">النوع</th>
-                                <th className="p-4 text-right">القسم</th>
-                                <th className="p-4 text-right">الطبيب</th>
-                                <th className="p-4 text-right">التاريخ</th>
+                              <thead><tr className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]">
+                                <th className="p-3.5 text-right">الموظف</th>
+                                <th className="p-3.5 text-right">المريض</th>
+                                <th className="p-3.5 text-right">الهاتف</th>
+                                <th className="p-3.5 text-right">النوع</th>
+                                <th className="p-3.5 text-right">القسم</th>
+                                <th className="p-3.5 text-right">الطبيب</th>
+                                <th className="p-3.5 text-right">التاريخ</th>
                               </tr></thead>
-                              <tbody>
+                              <tbody className="divide-y divide-[#DFEAF0]/70">
                                 {filteredContactLogs.map(log => (
-                                  <tr key={log.id} className="border-t border-gray-50 hover:bg-gray-50">
-                                    <td className="p-4 font-bold text-gray-900">{log.staff_name}</td>
-                                    <td className="p-4">{log.patient_name}</td>
-                                    <td className="p-4 text-xs text-gray-500 font-mono">{log.patient_phone}</td>
-                                    <td className="p-4"><span className={`px-2 py-1 rounded-full text-[10px] font-black ${log.contact_type === 'whatsapp' ? 'bg-green-100 text-green-700' : 'bg-amber-100 text-amber-700'}`}>{log.contact_type === 'whatsapp' ? 'واتساب' : 'SMS'}</span></td>
-                                    <td className="p-4"><span className={`px-2 py-1 rounded-full text-[10px] font-black ${log.item_type === 'booking' ? 'bg-blue-100 text-blue-700' : 'bg-purple-100 text-purple-700'}`}>{log.item_type === 'booking' ? 'حجز' : 'عملية'}</span></td>
-                                    <td className="p-4 text-xs">{log.doctor_name || '-'}</td>
-                                    <td className="p-4 text-xs text-gray-500">{new Date(log.created_at).toLocaleString('ar-EG')}</td>
+                                  <tr key={log.id} className="hover:bg-[#F5FAFC] transition-colors">
+                                    <td className="p-3.5 font-bold text-[#172B3A]">{log.staff_name}</td>
+                                    <td className="p-3.5 text-[#172B3A] font-medium">{log.patient_name}</td>
+                                    <td className="p-3.5 text-xs text-[#718394] fv-mono" dir="ltr">{log.patient_phone}</td>
+                                    <td className="p-3.5"><span className={`px-2.5 py-1 rounded-md text-[10px] font-black ${log.contact_type === 'whatsapp' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80' : 'bg-amber-50 text-amber-700 border border-amber-200/80'}`}>{log.contact_type === 'whatsapp' ? 'واتساب' : 'SMS'}</span></td>
+                                    <td className="p-3.5"><span className={`px-2.5 py-1 rounded-md text-[10px] font-black ${log.item_type === 'booking' ? 'bg-[#087F8C]/10 text-[#087F8C] border border-[#087F8C]/20' : 'bg-[#1769AA]/10 text-[#1769AA] border border-[#1769AA]/20'}`}>{log.item_type === 'booking' ? 'حجز' : 'عملية'}</span></td>
+                                    <td className="p-3.5 text-xs text-[#172B3A]">{log.doctor_name || '-'}</td>
+                                    <td className="p-3.5 text-xs text-[#718394] fv-num">{new Date(log.created_at).toLocaleString('ar-EG')}</td>
                                   </tr>
                                 ))}
                               </tbody>
@@ -3208,20 +3259,20 @@ const handlePrint = (title: string, contentHtml: string) => {
                 {activeTab === 'operations' && (
                   <div className="space-y-8 animate-in fade-in duration-300">
                      <div className={cardClass}>
-                        <h3 className="text-xl font-bold mb-6 flex items-center gap-2">{editingOpId ? <Edit2 size={24} className="text-blue-600"/> : <Plus size={24} className="text-blue-600"/>} {editingOpId ? 'تعديل سجل عملية' : 'تسجيل عملية جراحية جديدة'}</h3>
+                        <h3 className="text-xl font-black text-[#172B3A] mb-6 flex items-center gap-2">{editingOpId ? <Edit2 size={22} className="text-[#087F8C]"/> : <Plus size={22} className="text-[#087F8C]"/>} {editingOpId ? 'تعديل سجل عملية' : 'تسجيل عملية جراحية جديدة'}</h3>
                         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                           <div><label className="text-xs font-bold text-gray-400 mb-1 block">اسم المريض</label><input type="text" value={newOp.patientName} onChange={e => setNewOp({...newOp, patientName: e.target.value})} className={inputClass} /></div>
-                           <div><label className="text-xs font-bold text-gray-400 mb-1 block">رقم الهاتف</label><input type="text" value={newOp.patientPhone} onChange={e => setNewOp({...newOp, patientPhone: e.target.value})} className={inputClass} /></div>
-                           <div><label className="text-xs font-bold text-gray-400 mb-1 block">رقم الهاتف 2 (اختياري)</label><input type="text" value={newOp.patientPhone2 || ''} onChange={e => setNewOp({...newOp, patientPhone2: e.target.value})} className={inputClass} /></div>
-                           <div><label className="text-xs font-bold text-gray-400 mb-1 block">السن</label><input type="number" min={1} max={120} value={newOp.patientAge ?? ''} onChange={e => setNewOp({...newOp, patientAge: e.target.value ? Number(e.target.value) : undefined})} className={inputClass} placeholder="السن" /></div>
-                           <div><label className="text-xs font-bold text-gray-400 mb-1 block">الطبيب الجراح</label><select value={newOp.doctorName} onChange={e => setNewOp({...newOp, doctorName: e.target.value})} className={inputClass}><option value="">اختر الطبيب</option>{doctors.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}</select></div>
-                           <div><label className="text-xs font-bold text-gray-400 mb-1 block">نوع العملية</label><input type="text" value={newOp.surgeryType} onChange={e => setNewOp({...newOp, surgeryType: e.target.value})} className={inputClass} placeholder="مياه بيضاء، ليزك..." /></div>
-                           <div><label className="text-xs font-bold text-gray-400 mb-1 block">تاريخ العملية</label><input type="date" value={newOp.date} onChange={e => setNewOp({...newOp, date: e.target.value})} className={inputClass} /></div>
-                           <div><label className="text-xs font-bold text-gray-400 mb-1 block">التكلفة (ج.م)</label><input type="number" value={newOp.cost} onChange={e => setNewOp({...newOp, cost: Number(e.target.value)})} className={inputClass} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">اسم المريض</label><input type="text" value={newOp.patientName} onChange={e => setNewOp({...newOp, patientName: e.target.value})} className={inputClass} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">رقم الهاتف</label><input type="text" value={newOp.patientPhone} onChange={e => setNewOp({...newOp, patientPhone: e.target.value})} className={`${inputClass} fv-num`} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">رقم الهاتف 2 (اختياري)</label><input type="text" value={newOp.patientPhone2 || ''} onChange={e => setNewOp({...newOp, patientPhone2: e.target.value})} className={`${inputClass} fv-num`} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">السن</label><input type="number" min={1} max={120} value={newOp.patientAge ?? ''} onChange={e => setNewOp({...newOp, patientAge: e.target.value ? Number(e.target.value) : undefined})} className={`${inputClass} fv-num`} placeholder="السن" /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">الطبيب الجراح</label><select value={newOp.doctorName} onChange={e => setNewOp({...newOp, doctorName: e.target.value})} className={inputClass}><option value="">اختر الطبيب</option>{doctors.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}</select></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">نوع العملية</label><input type="text" value={newOp.surgeryType} onChange={e => setNewOp({...newOp, surgeryType: e.target.value})} className={inputClass} placeholder="مياه بيضاء، ليزك..." /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">تاريخ العملية</label><input type="date" value={newOp.date} onChange={e => setNewOp({...newOp, date: e.target.value})} className={`${inputClass} fv-num`} /></div>
+                           <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">التكلفة (ج.م)</label><input type="number" value={newOp.cost} onChange={e => setNewOp({...newOp, cost: Number(e.target.value)})} className={`${inputClass} fv-num`} /></div>
                            
                            {/* Integrated Contracting Selector for Operations */}
                            <div className="lg:col-span-1">
-                                <label className="text-xs font-bold text-gray-400 mb-1 block">جهة التعاقد (اختياري)</label>
+                                <label className="text-xs font-bold text-[#718394] mb-1.5 block">جهة التعاقد (اختياري)</label>
                                 <select 
                                     value={newOp.contractingCompanyId || ''} 
                                     onChange={e => setNewOp({...newOp, contractingCompanyId: e.target.value ? Number(e.target.value) : undefined})} 
@@ -3232,75 +3283,75 @@ const handlePrint = (title: string, contentHtml: string) => {
                                 </select>
                            </div>
 
-                           <div className="md:col-span-3"><label className="text-xs font-bold text-gray-400 mb-1 block">ملاحظات طبية</label><textarea value={newOp.notes} onChange={e => setNewOp({...newOp, notes: e.target.value})} className={inputClass} rows={2} /></div>
+                           <div className="md:col-span-3"><label className="text-xs font-bold text-[#718394] mb-1.5 block">ملاحظات طبية</label><textarea value={newOp.notes} onChange={e => setNewOp({...newOp, notes: e.target.value})} className={inputClass} rows={2} /></div>
                         </div>
-                        <div className="mt-8 flex gap-4">
-                           <button onClick={editingOpId ? handleSaveOpEdit : handleAddOp} className="bg-blue-600 text-white font-bold py-3 px-8 rounded-xl hover:bg-blue-700 flex items-center gap-2">{editingOpId ? 'حفظ التعديلات' : 'تسجيل العملية'}</button>
-                           {editingOpId && <button onClick={() => { setEditingOpId(null); setNewOp({ patientName: '', patientPhone: '', patientPhone2: '', patientEmail: '', patientAge: undefined, doctorName: '', surgeryType: '', date: '', cost: 0, notes: '', contractingCompanyId: undefined }); }} className="bg-gray-100 text-gray-600 font-bold py-3 px-8 rounded-xl">إلغاء</button>}
+                        <div className="mt-8 flex gap-3">
+                           <button onClick={editingOpId ? handleSaveOpEdit : handleAddOp} className="fv-btn-primary text-white font-bold py-3 px-8 rounded-xl flex items-center gap-2 cursor-pointer">{editingOpId ? 'حفظ التعديلات' : 'تسجيل العملية'}</button>
+                           {editingOpId && <button onClick={() => { setEditingOpId(null); setNewOp({ patientName: '', patientPhone: '', patientPhone2: '', patientEmail: '', patientAge: undefined, doctorName: '', surgeryType: '', date: '', cost: 0, notes: '', contractingCompanyId: undefined }); }} className="bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-bold py-3 px-8 rounded-xl hover:text-[#172B3A] cursor-pointer">إلغاء</button>}
                         </div>
                      </div>
                      <div className={cardClass}>
                         <div className="flex flex-col xl:flex-row justify-between items-start xl:items-center mb-6 gap-4">
-                           <h3 className="text-xl font-bold">سجل العمليات الجراحية ({filteredOperations.length})</h3>
+                           <h3 className="text-xl font-black text-[#172B3A]">سجل العمليات الجراحية <span className="text-[#087F8C] fv-num">({filteredOperations.length})</span></h3>
                            <div className="flex flex-wrap gap-2 items-center">
-                              <input type="date" value={opFilterStart} onChange={e => setOpFilterStart(e.target.value)} className="bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold" title="من تاريخ" />
-                              <span className="text-gray-400 font-bold">-</span>
-                              <input type="date" value={opFilterEnd} onChange={e => setOpFilterEnd(e.target.value)} className="bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold" title="إلى تاريخ" />
+                              <input type="date" value={opFilterStart} onChange={e => setOpFilterStart(e.target.value)} className="bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-2 text-xs font-bold text-[#172B3A] fv-num outline-hidden focus:border-[#087F8C]" title="من تاريخ" />
+                              <span className="text-[#718394] font-bold">-</span>
+                              <input type="date" value={opFilterEnd} onChange={e => setOpFilterEnd(e.target.value)} className="bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-2 text-xs font-bold text-[#172B3A] fv-num outline-hidden focus:border-[#087F8C]" title="إلى تاريخ" />
                               
-                              <select value={opFilterDoctor} onChange={e => setOpFilterDoctor(e.target.value)} className="bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold outline-hidden max-w-[150px]">
+                              <select value={opFilterDoctor} onChange={e => setOpFilterDoctor(e.target.value)} className="bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-2 text-xs font-bold text-[#172B3A] outline-hidden focus:border-[#087F8C] max-w-[150px]">
                                   <option value="">كل الأطباء</option>
                                   {doctors.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}
                               </select>
 
-                              <select value={opFilterContracting} onChange={e => setOpFilterContracting(e.target.value)} className="bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold outline-hidden">
+                              <select value={opFilterContracting} onChange={e => setOpFilterContracting(e.target.value)} className="bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-2 text-xs font-bold text-[#172B3A] outline-hidden focus:border-[#087F8C]">
                                   <option value="">كل التعاقدات</option>
                                   <option value="-1">حساب خاص</option>
                                   {contractingList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}
                               </select>
 
-                              <select value={opFilterStatus} onChange={e => setOpFilterStatus(e.target.value)} className="bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold outline-hidden">
+                              <select value={opFilterStatus} onChange={e => setOpFilterStatus(e.target.value)} className="bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-2 text-xs font-bold text-[#172B3A] outline-hidden focus:border-[#087F8C]">
                                   <option value="">كل الحالات</option>
                                   <option value="confirmed">ناجحة/مؤكدة</option>
                                   <option value="pending">مجدولة</option>
                                   <option value="cancelled">ملغاة</option>
                               </select>
 
-                              <input type="text" placeholder="بحث باسم المريض..." value={opSearchName} onChange={e => setOpSearchName(e.target.value)} className="bg-white border border-gray-200 rounded-lg p-2 text-xs font-bold w-32" />
+                              <input type="text" placeholder="بحث باسم المريض..." value={opSearchName} onChange={e => setOpSearchName(e.target.value)} className="bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-2 text-xs font-bold text-[#172B3A] outline-hidden focus:border-[#087F8C] w-36" />
                               
                               <button onClick={() => handlePrint('تقرير سجل العمليات', `<table><thead><tr><th>المريض</th><th>الهواتف</th><th>العملية</th><th>جهة التعاقد</th><th>الطبيب</th><th>التاريخ</th><th>التكلفة</th><th>الحالة</th></tr></thead><tbody>${filteredOperations.map(op => {
                                   const company = contractingList.find(c => c.id === op.contractingCompanyId);
                                   return `<tr><td>${op.patientName}</td><td>${op.patientPhone} ${op.patientPhone2 ? '/ ' + op.patientPhone2 : ''}</td><td>${op.surgeryType}</td><td>${company ? company.name : 'حساب خاص'}</td><td>${op.doctorName}</td><td>${op.date}</td><td>${op.cost}</td><td>${op.status === 'confirmed' ? 'ناجحة' : op.status === 'cancelled' ? 'ملغاة' : 'مجدولة'}</td></tr>`;
-                              }).join('')}</tbody></table>`)} className="bg-blue-100 text-blue-600 p-2 rounded-lg hover:bg-blue-200" title="طباعة السجل"><Printer size={18}/></button>
+                              }).join('')}</tbody></table>`)} className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] p-2 rounded-xl hover:bg-[#087F8C]/10 cursor-pointer transition-colors" title="طباعة السجل"><Printer size={18}/></button>
                            </div>
                         </div>
-                        <div className="overflow-x-auto">
+                        <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
                            <table className="w-full text-right">
-                              <thead className="bg-gray-50 text-gray-500 text-xs uppercase"><tr><th className="p-4">المريض / التعاقد</th><th className="p-4">العملية</th><th className="p-4">الطبيب</th><th className="p-4">التاريخ</th><th className="p-4">الحالة</th><th className="p-4 text-center">إجراءات</th></tr></thead>
-                              <tbody className="divide-y divide-gray-50">
+                              <thead className="bg-[#F5FAFC] text-[#718394] text-xs font-bold border-b border-[#DFEAF0]"><tr><th className="p-3.5">المريض / التعاقد</th><th className="p-3.5">العملية</th><th className="p-3.5">الطبيب</th><th className="p-3.5">التاريخ</th><th className="p-3.5">الحالة</th><th className="p-3.5 text-center">إجراءات</th></tr></thead>
+                              <tbody className="divide-y divide-[#DFEAF0]/70">
                                  {filteredOperations.map(op => (
-                                    <tr key={op.id} className="hover:bg-blue-50/10 transition-colors">
-                                       <td className="p-4 font-bold text-gray-900">
+                                    <tr key={op.id} className="hover:bg-[#F5FAFC] transition-colors">
+                                       <td className="p-3.5 font-bold text-[#172B3A]">
                                          <div>{op.patientName}</div>
-                                         <div className="flex gap-2 items-center mt-1">
-                                            <span className="text-[10px] text-gray-400 font-medium" dir="ltr">{op.patientPhone}</span>
-                                            {op.patientAge ? <span className="text-[10px] text-gray-500 font-medium">({op.patientAge} سنة)</span> : null}
+                                         <div className="flex flex-wrap gap-2 items-center mt-1">
+                                            <span className="text-[11px] text-[#718394] font-medium fv-mono" dir="ltr">{op.patientPhone}</span>
+                                            {op.patientAge ? <span className="text-[11px] text-[#718394] font-medium fv-num">({op.patientAge} سنة)</span> : null}
                                             {op.contractingCompanyId ? (
-                                                <span className="px-2 py-0.5 bg-blue-50 text-blue-600 rounded-md text-[9px] font-black border border-blue-100">
+                                                <span className="px-2 py-0.5 bg-[#087F8C]/10 text-[#087F8C] rounded-md text-[10px] font-black border border-[#087F8C]/20">
                                                     {contractingList.find(c => c.id === op.contractingCompanyId)?.name || 'تعاقد'}
                                                 </span>
                                             ) : (
-                                                <span className="px-2 py-0.5 bg-gray-50 text-gray-400 rounded-md text-[9px] font-black border border-gray-100">حساب خاص</span>
+                                                <span className="px-2 py-0.5 bg-[#F5FAFC] text-[#718394] rounded-md text-[10px] font-bold border border-[#DFEAF0]">حساب خاص</span>
                                             )}
                                          </div>
                                        </td>
-                                       <td className="p-4 text-sm font-bold text-blue-600">{op.surgeryType}</td>
-                                       <td className="p-4 text-sm text-gray-600">{op.doctorName}</td>
-                                       <td className="p-4 text-sm font-bold">{op.date}</td>
-                                       <td className="p-4"><span className={`px-2 py-1 rounded-full text-[10px] font-black ${op.status === 'confirmed' ? 'bg-green-100 text-green-700' : op.status === 'cancelled' ? 'bg-red-100 text-red-700' : 'bg-yellow-100 text-yellow-700'}`}>{op.status === 'confirmed' ? 'تمت بنجاح' : op.status === 'cancelled' ? 'ملغاة' : 'مجدولة'}</span></td>
-                                       <td className="p-4 flex justify-center gap-2">
-                                          <button onClick={() => handleStartEditOp(op)} className="p-2 text-blue-600 hover:bg-blue-50 rounded-lg"><Edit2 size={16}/></button>
-                                          <button onClick={() => handleToggleOpStatus(op.id, op.status === 'confirmed' ? 'pending' : 'confirmed')} className={`p-2 rounded-lg ${op.status === 'confirmed' ? 'text-yellow-600 hover:bg-yellow-50' : 'text-green-600 hover:bg-green-50'}`}>{op.status === 'confirmed' ? <RotateCcw size={16}/> : <CheckCircle size={16}/>}</button>
-                                          {currentUser.role === 'admin' && (<button onClick={() => setDeletingOpIdModal(op.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg"><Trash2 size={16}/></button>)}
+                                       <td className="p-3.5 text-sm font-bold text-[#087F8C]">{op.surgeryType}</td>
+                                       <td className="p-3.5 text-sm text-[#172B3A]">{op.doctorName}</td>
+                                       <td className="p-3.5 text-sm font-bold text-[#172B3A] fv-num">{op.date}</td>
+                                       <td className="p-3.5"><span className={`px-2.5 py-1 rounded-md text-[10px] font-black ${op.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80' : op.status === 'cancelled' ? 'bg-red-50 text-red-700 border border-red-200/80' : 'bg-amber-50 text-amber-700 border border-amber-200/80'}`}>{op.status === 'confirmed' ? 'تمت بنجاح' : op.status === 'cancelled' ? 'ملغاة' : 'مجدولة'}</span></td>
+                                       <td className="p-3.5 flex justify-center gap-1.5">
+                                          <button onClick={() => handleStartEditOp(op)} className="p-2 text-[#1769AA] hover:bg-[#1769AA]/10 rounded-lg cursor-pointer transition-colors" title="تعديل"><Edit2 size={16}/></button>
+                                          <button onClick={() => handleToggleOpStatus(op.id, op.status === 'confirmed' ? 'pending' : 'confirmed')} className={`p-2 rounded-lg cursor-pointer transition-colors ${op.status === 'confirmed' ? 'text-amber-600 hover:bg-amber-50' : 'text-emerald-600 hover:bg-emerald-50'}`}>{op.status === 'confirmed' ? <RotateCcw size={16}/> : <CheckCircle size={16}/>}</button>
+                                          {currentUser.role === 'admin' && (<button onClick={() => setDeletingOpIdModal(op.id)} className="p-2 text-red-600 hover:bg-red-50 rounded-lg cursor-pointer transition-colors" title="حذف"><Trash2 size={16}/></button>)}
                                        </td>
                                     </tr>
                                  ))}
@@ -3354,72 +3405,72 @@ const handlePrint = (title: string, contentHtml: string) => {
 // Shown in a home page section while its items are still loading from the database.
 const SectionLoading = ({ language }: { language: 'ar' | 'en' }) => (
   <div className="py-12 text-center" role="status">
-    <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-    <p className="text-gray-500 font-bold">{language === 'ar' ? 'جاري التحميل…' : 'Loading…'}</p>
+    <div className="w-10 h-10 border-4 border-[#087F8C] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+    <p className="text-[#718394] font-bold text-sm">{language === 'ar' ? 'جاري التحميل…' : 'Loading…'}</p>
   </div>
 );
 
-const DoctorsList = ({ doctors, onBook, language, t, isLoading = false }: { doctors: Doctor[], onBook: (doctor: Doctor) => void, language: 'ar' | 'en', t: any, isLoading?: boolean }) => {
-  const [searchTerm, setSearchTerm] = useState('');
+const DoctorsList = ({ doctors, onBook, language, isLoading = false }: { doctors: Doctor[], onBook: (doctor: Doctor) => void, language: 'ar' | 'en', t: any, isLoading?: boolean }) => {
+  const [searchTerm] = useState('');
   const filteredDoctors = doctors.filter(doc => doc.name.toLowerCase().includes(searchTerm.toLowerCase()) || doc.specialty.toLowerCase().includes(searchTerm.toLowerCase()));
   return (
-    <div id="doctors" className="py-24 relative overflow-hidden">
-      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 opacity-60"></div>
+    <div id="doctors" className="py-24 relative overflow-hidden scroll-mt-20">
+      <div className="pointer-events-none absolute -top-16 right-[-8%] w-[28rem] h-[28rem] rounded-full bg-[#25B8C7]/12 blur-3xl"></div>
+      <div className="pointer-events-none absolute bottom-0 left-[-6%] w-[26rem] h-[26rem] rounded-full bg-[#1769AA]/10 blur-3xl"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-        <div className="text-center mb-16">
-          <span className="text-blue-600 text-xs font-black uppercase tracking-widest mb-4 inline-block bg-blue-50 px-4 py-2 rounded-full border border-blue-100">
+        <div className="text-center mb-14">
+          <span className="text-[#066D78] text-xs font-extrabold uppercase tracking-widest mb-3 inline-block">
             {language === 'ar' ? 'نخبة من الاستشاريين' : 'Elite Consultants'}
           </span>
-          <h2 className="text-5xl font-black text-gray-900 mb-6 tracking-tight leading-tight">
+          <h2 className="text-3xl md:text-5xl font-black text-[#172B3A] mb-4 tracking-tight leading-tight fv-balance">
             {language === 'ar' ? 'تعرف على فريقنا الطبي' : 'Meet Our Medical Team'}
           </h2>
-          <p className="text-gray-500 text-lg font-medium max-w-2xl mx-auto">
+          <p className="text-[#4A5F72] text-base md:text-lg font-medium max-w-2xl mx-auto">
             {language === 'ar' ? 'نضم مجموعة من أمهر الأطباء الحاصلين على أعلى المؤهلات العلمية لتقديم رعاية طبية متميزة لعينيك.' : 'We host a group of the most skilled doctors with the highest scientific qualifications to provide distinguished medical care for your eyes.'}
           </p>
-          <div className="w-20 h-1.5 bg-blue-600 mx-auto mt-8 rounded-full shadow-lg shadow-blue-200"></div>
+          <div className="w-16 h-1 bg-gradient-to-r from-[#087F8C] to-[#25B8C7] mx-auto mt-6 rounded-full"></div>
         </div>
 
         {isLoading && <SectionLoading language={language} />}
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8">
           {filteredDoctors.map(doctor => (
-              <div key={doctor.id} className="group relative glass-doctor-card rounded-[3.5rem] overflow-hidden transition-all duration-700 flex flex-col h-full">
-                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+              <div key={doctor.id} className="group relative glass-doctor-card rounded-3xl overflow-hidden transition-all duration-300 flex flex-col h-full">
+                <div className="h-1.5 w-full bg-gradient-to-r from-[#087F8C] via-[#25B8C7] to-[#1769AA]"></div>
                 
-                <div className="p-10 grow flex flex-col">
-                  <div className="relative mx-auto mb-10 group-hover:scale-105 transition-transform duration-700">
-                    <div className="w-44 h-44 rounded-[3.5rem] overflow-hidden border-4 border-white shadow-2xl relative z-10">
+                <div className="p-7 md:p-8 grow flex flex-col">
+                  <div className="relative mx-auto mb-7 group-hover:scale-[1.03] transition-transform duration-300">
+                    <div className="w-36 h-36 rounded-2xl overflow-hidden border-2 border-white/85 shadow-[0_14px_30px_-14px_rgba(11,31,53,0.2)] relative z-10 bg-white/80">
                         <img src={doctor.image} alt={doctor.name} className="w-full h-full object-cover" />
                     </div>
-                    <div className="absolute -inset-4 bg-blue-50 rounded-[4rem] -z-10 group-hover:bg-blue-100 transition-colors"></div>
-                    <div className="absolute -bottom-4 -right-4 w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-xl border-4 border-white z-20">
-                        <CheckCircle size={28} />
+                    <div className="absolute -bottom-2.5 -right-2.5 w-10 h-10 bg-[#087F8C] text-white rounded-xl flex items-center justify-center shadow-md border-2 border-white z-20">
+                        <CheckCircle size={20} />
                     </div>
                   </div>
 
-                  <div className="text-center mb-8">
-                    <h3 className="text-3xl font-black text-gray-900 mb-2 group-hover:text-blue-700 transition-colors leading-tight">{doctor.name}</h3>
-                    <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full font-black text-xs border border-blue-100">
+                  <div className="text-center mb-6">
+                    <h3 className="text-2xl font-black text-[#172B3A] mb-2 group-hover:text-[#066D78] transition-colors leading-tight">{doctor.name}</h3>
+                    <div className="inline-flex items-center gap-2 bg-[#087F8C]/12 text-[#066D78] px-3.5 py-1.5 rounded-xl font-bold text-xs border border-[#087F8C]/25">
                         <StethoscopeIcon size={14} />
                         {doctor.specialty}
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-4 mb-8">
-                    <div className="bg-gray-50/50 p-4 rounded-3xl border border-gray-100 text-center hover:bg-white hover:shadow-md transition-all">
-                        <div className="flex justify-center text-blue-600 mb-2"><Briefcase size={20} /></div>
-                        <p className="text-[10px] font-black text-gray-400 uppercase mb-1">{language === 'ar' ? 'الخبرة' : 'Experience'}</p>
-                        <p className="text-base font-black text-gray-900">{doctor.experience} {language === 'ar' ? 'سنة' : 'Years'}</p>
+                  <div className="grid grid-cols-1 gap-3 mb-6">
+                    <div className="bg-white/60 backdrop-blur-xs p-3.5 rounded-2xl border border-[#DFEAF0]/85 text-center shadow-[0_2px_10px_-6px_rgba(11,31,53,0.08)]">
+                        <div className="flex justify-center text-[#1769AA] mb-1.5"><Briefcase size={18} /></div>
+                        <p className="text-[10px] font-bold text-[#4A5F72] uppercase mb-0.5">{language === 'ar' ? 'الخبرة' : 'Experience'}</p>
+                        <p className="text-base font-black text-[#172B3A] fv-num">{doctor.experience} {language === 'ar' ? 'سنة' : 'Years'}</p>
                     </div>
                   </div>
 
-                  <div className="space-y-4 mb-10">
-                    <div className="flex items-start gap-3">
-                        <GraduationCap className="text-blue-500 shrink-0 mt-0.5" size={18} />
-                        <p className="text-xs font-bold text-gray-600 leading-relaxed">{doctor.education}</p>
+                  <div className="space-y-3.5 mb-7">
+                    <div className="flex items-start gap-2.5">
+                        <GraduationCap className="text-[#066D78] shrink-0 mt-0.5" size={17} />
+                        <p className="text-xs font-semibold text-[#3B5062] leading-relaxed">{doctor.education}</p>
                     </div>
-                    <div className="flex flex-wrap gap-2 pt-2">
+                    <div className="flex flex-wrap gap-1.5 pt-1">
                         {doctor.topSpecialties.map((spec, i) => (
-                            <span key={i} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-xl text-[9px] font-black border border-gray-200">
+                            <span key={i} className="bg-white/65 text-[#172B3A] px-2.5 py-1 rounded-lg text-[10px] font-bold border border-[#DFEAF0]/85">
                                 {spec}
                             </span>
                         ))}
@@ -3427,16 +3478,16 @@ const DoctorsList = ({ doctors, onBook, language, t, isLoading = false }: { doct
                     <DoctorSocialLinks doc={doctor} />
                   </div>
 
-                  <div className="mt-auto pt-8 border-t border-gray-50 flex items-center justify-between gap-6">
+                  <div className="mt-auto pt-5 border-t border-[#DFEAF0]/80 flex items-center justify-between gap-4">
                     <div className="shrink-0">
-                        <p className="text-[10px] font-black text-gray-400 uppercase mb-1">{language === 'ar' ? 'سعر الكشف' : 'Booking Fee'}</p>
-                        <p className="text-2xl font-black text-emerald-600">{doctor.fee} <span className="text-xs">ج.م</span></p>
+                        <p className="text-[10px] font-bold text-[#4A5F72] uppercase mb-0.5">{language === 'ar' ? 'سعر الكشف' : 'Booking Fee'}</p>
+                        <p className="text-xl font-black text-[#066D78] fv-num">{doctor.fee} <span className="text-xs font-bold text-[#4A5F72]">ج.م</span></p>
                     </div>
                     <button 
                         onClick={() => onBook(doctor)} 
-                        className="flex-1 bg-blue-600 text-white py-5 rounded-[2rem] font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2 text-sm"
+                        className="flex-1 fv-btn-primary py-3.5 px-4 rounded-xl font-black flex items-center justify-center gap-2 text-sm"
                     >
-                        <Calendar size={20} />
+                        <Calendar size={18} />
                         {language === 'ar' ? 'احجز موعدك' : 'Book Appointment'}
                     </button>
                   </div>
@@ -3452,22 +3503,22 @@ const DoctorsList = ({ doctors, onBook, language, t, isLoading = false }: { doct
 const PartnersSection = ({ partners, language }: { partners: Partner[], language: 'ar' | 'en' }) => {
   if (partners.length === 0) return null;
   return (
-    <div id="partners" className="py-16 relative">
+    <div id="partners" className="py-16 relative scroll-mt-20">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3 tracking-tight">{language === 'ar' ? 'شركاء النجاح' : 'Our Partners'}</h2>
-            <p className="text-gray-500 text-sm font-medium max-w-xl mx-auto">{language === 'ar' ? 'نتشرف بالتعاون مع كبرى شركات التأمين والنقابات لتوفير رعاية صحية متميزة' : 'We are honored to cooperate with major insurance companies and unions to provide distinguished health care.'}</p>
-            <div className="w-16 h-1 bg-blue-600 mx-auto mt-6 rounded-full shadow-lg shadow-blue-500/20"></div>
+            <span className="text-[#087F8C] text-xs font-extrabold uppercase tracking-widest mb-2.5 inline-block">{language === 'ar' ? 'التعاقدات والتأمين الطبي' : 'Medical Insurance & Partners'}</span>
+            <h2 className="text-3xl md:text-4xl font-black text-[#172B3A] mb-3 tracking-tight fv-balance">{language === 'ar' ? 'شركاء النجاح' : 'Our Partners'}</h2>
+            <p className="text-[#718394] text-sm md:text-base font-medium max-w-xl mx-auto">{language === 'ar' ? 'نتشرف بالتعاون مع كبرى شركات التأمين والنقابات لتوفير رعاية صحية متميزة' : 'We are honored to cooperate with major insurance companies and unions to provide distinguished health care.'}</p>
+            <div className="w-16 h-1 bg-gradient-to-r from-[#087F8C] to-[#25B8C7] mx-auto mt-6 rounded-full"></div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
           {partners.map((partner) => (
-            <div key={partner.id} className="glass-service-card p-5 rounded-2xl transition-all duration-500 text-center group relative overflow-hidden flex flex-col h-full">
-              <div className="absolute -top-16 -right-16 w-32 h-32 rounded-full opacity-0 group-hover:opacity-10 transition-opacity duration-700 blur-2xl bg-blue-500"></div>
-              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
-                {partner.logo ? <img src={partner.logo} alt={partner.name} className="w-full h-full object-contain rounded-xl" /> : <Handshake size={26} className="text-blue-600" />}
+            <div key={partner.id} className="glass-service-card p-5 rounded-2xl transition-all duration-300 text-center group relative overflow-hidden flex flex-col h-full">
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] flex items-center justify-center group-hover:scale-105 transition-transform duration-300 overflow-hidden p-1.5">
+                {partner.logo ? <img src={partner.logo} alt={partner.name} className="w-full h-full object-contain rounded-lg" /> : <Handshake size={26} className="text-[#087F8C]" />}
               </div>
-              <h3 className="text-sm font-black text-gray-900 mb-2 group-hover:text-blue-600 leading-tight">{partner.name}</h3>
-              <p className="text-gray-500 leading-relaxed text-xs font-medium grow line-clamp-2">{partner.description}</p>
+              <h3 className="text-sm font-black text-[#172B3A] mb-1.5 group-hover:text-[#087F8C] transition-colors leading-tight">{partner.name}</h3>
+              <p className="text-[#718394] leading-relaxed text-xs font-medium grow line-clamp-2">{partner.description}</p>
             </div>
           ))}
         </div>
@@ -3477,30 +3528,30 @@ const PartnersSection = ({ partners, language }: { partners: Partner[], language
 };
 
 const Services = ({ services, language, isLoading = false }: { services: ServiceItem[], language: 'ar' | 'en', isLoading?: boolean }) => (
-    <div id="services" className="py-16 relative overflow-hidden">
-      <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-40"><div className="absolute top-20 right-10 w-64 h-64 bg-blue-100 rounded-full blur-3xl"></div><div className="absolute bottom-20 left-10 w-48 h-48 bg-emerald-50 rounded-full blur-3xl"></div></div>
+    <div id="services" className="py-20 relative overflow-hidden scroll-mt-20">
+      <div className="pointer-events-none absolute top-4 left-[-6%] w-[24rem] h-[24rem] rounded-full bg-[#25B8C7]/12 blur-3xl"></div>
+      <div className="pointer-events-none absolute -bottom-10 right-[-6%] w-[24rem] h-[24rem] rounded-full bg-[#1769AA]/10 blur-3xl"></div>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-12">
-            <span className="text-blue-600 text-xs font-black uppercase tracking-widest mb-3 inline-block bg-blue-50 px-4 py-2 rounded-full border border-blue-100">{language === 'ar' ? 'ما نقدمه لعينيك' : 'What we offer your eyes'}</span>
-            <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight">{language === 'ar' ? 'خدماتنا الطبية المتكاملة' : 'Integrated Medical Services'}</h2>
-            <p className="text-gray-500 mt-3 max-w-2xl mx-auto text-base font-medium">{language === 'ar' ? 'نقدم مجموعة واسعة من الخدمات المتخصصة بأعلى معايير الجودة العالمية وأحدث التقنيات.' : 'We offer a wide range of specialized services with the highest international quality standards and latest technology.'}</p>
-            <div className="w-16 h-1 bg-blue-600 mx-auto mt-6 rounded-full shadow-lg shadow-blue-200"></div>
+            <span className="text-[#066D78] text-xs font-extrabold uppercase tracking-widest mb-2.5 inline-block">{language === 'ar' ? 'ما نقدمه لعينيك' : 'What we offer your eyes'}</span>
+            <h2 className="text-3xl md:text-4xl font-black text-[#172B3A] tracking-tight leading-tight fv-balance">{language === 'ar' ? 'خدماتنا الطبية المتكاملة' : 'Integrated Medical Services'}</h2>
+            <p className="text-[#4A5F72] mt-3 max-w-2xl mx-auto text-base font-medium">{language === 'ar' ? 'نقدم مجموعة واسعة من الخدمات المتخصصة بأعلى معايير الجودة العالمية وأحدث التقنيات.' : 'We offer a wide range of specialized services with the highest international quality standards and latest technology.'}</p>
+            <div className="w-16 h-1 bg-gradient-to-r from-[#087F8C] to-[#25B8C7] mx-auto mt-6 rounded-full"></div>
         </div>
         {isLoading && <SectionLoading language={language} />}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
           {services.map((service) => {
              const IconComp = ICON_MAP[service.iconName] || Eye;
              return (
-                <div key={service.id} className="glass-service-card p-5 rounded-2xl transition-all duration-500 text-center group relative overflow-hidden flex flex-col h-full">
-                    <div className={`absolute -top-16 -right-16 w-32 h-32 rounded-full opacity-0 group-hover:opacity-10 transition-opacity duration-700 blur-2xl ${service.color.replace('text', 'bg')}`}></div>
-                    <div className={`w-14 h-14 mx-auto mb-4 rounded-xl ${service.color.replace('text', 'bg')}/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500`}>
-                        <IconComp size={26} className={service.color} />
+                <div key={service.id} className="glass-service-card p-5 rounded-3xl transition-all duration-300 text-center group relative overflow-hidden flex flex-col h-full">
+                    <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-white/75 backdrop-blur-xs border border-[#DFEAF0]/90 shadow-[0_4px_12px_-6px_rgba(11,31,53,0.1)] flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                        <IconComp size={25} className={service.color} />
                     </div>
-                    <h3 className="text-sm font-black text-gray-900 mb-2 leading-tight">{service.title}</h3>
-                    <p className="text-gray-500 mb-4 leading-relaxed text-xs font-medium grow line-clamp-2">{service.description}</p>
+                    <h3 className="text-sm font-black text-[#172B3A] mb-2 leading-tight">{service.title}</h3>
+                    <p className="text-[#3B5062] mb-4 leading-relaxed text-xs font-medium grow line-clamp-2">{service.description}</p>
                     <div className="mt-auto">
-                        <div className="w-full h-px bg-gray-100 mb-3"></div>
-                        <p className="text-lg font-black text-blue-600">{service.price} <span className="text-[10px] text-gray-400 font-bold">ج.م</span></p>
+                        <div className="w-full h-px bg-[#DFEAF0]/80 mb-3"></div>
+                        <p className="text-lg font-black text-[#066D78] fv-num">{service.price} <span className="text-[11px] text-[#4A5F72] font-bold">ج.م</span></p>
                     </div>
                 </div>
              );
@@ -3511,68 +3562,69 @@ const Services = ({ services, language, isLoading = false }: { services: Service
 );
 
 const Footer = ({ settings, t, onNavigate }: { settings: AppSettings, t: any, onNavigate: (section: string) => void }) => (
-    <footer className="bg-gray-900 text-white pt-24 pb-12 rounded-t-[3rem] mt-12 relative overflow-hidden">
-        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600"></div>
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
+    <footer className="fv-dark-surface text-white pt-20 pb-10 mt-16 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#087F8C] via-[#25B8C7] to-[#1769AA]"></div>
+        <div className="absolute inset-0 fv-grid-pattern opacity-25 pointer-events-none"></div>
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
                 <div>
-                    <div className="flex items-center gap-2 mb-6">
-                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
-                             {settings.logoUrl ? <img src={settings.logoUrl} className="w-8 h-8 object-contain" /> : <Eye size={24} />}
+                    <div className="flex items-center gap-2.5 mb-5">
+                        <div className="w-10 h-10 bg-white/10 border border-white/15 rounded-xl flex items-center justify-center overflow-hidden p-1">
+                             {settings.logoUrl ? <img src={settings.logoUrl} className="w-full h-full object-contain" alt="Logo" /> : <Eye size={22} className="text-[#25B8C7]" />}
                         </div>
-                        <span className="text-2xl font-black tracking-tight">{settings.appName}</span>
+                        <span className="text-xl font-black tracking-tight">{settings.appName}</span>
                     </div>
-                    <p className="text-gray-400 leading-relaxed font-bold mb-6">{settings.heroDescription}</p>
-                    <div className="flex gap-4">
-                        <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 hover:bg-blue-600 flex items-center justify-center transition-all hover:-translate-y-1"><Facebook size={20} /></a>
-                        <a href={`https://wa.me/${settings.whatsappNumber.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 hover:bg-green-600 flex items-center justify-center transition-all hover:-translate-y-1"><MessageCircle size={20} /></a>
+                    <p className="text-slate-300 leading-relaxed text-sm font-medium mb-6">{settings.heroDescription}</p>
+                    <div className="flex gap-3">
+                        <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 hover:bg-[#1769AA] flex items-center justify-center transition-all hover:-translate-y-0.5"><Facebook size={18} /></a>
+                        <a href={`https://wa.me/${settings.whatsappNumber.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 hover:bg-[#087F8C] flex items-center justify-center transition-all hover:-translate-y-0.5"><MessageCircle size={18} /></a>
                     </div>
                 </div>
                 <div>
-                    <h4 className="text-lg font-black mb-6 flex items-center gap-2"><List size={18} className="text-blue-500"/> {settings.language === 'ar' ? 'روابط سريعة' : 'Quick Links'}</h4>
-                    <ul className="space-y-3 text-gray-400 font-bold text-sm">
-                        <li><button onClick={() => onNavigate('home')} className="hover:text-blue-500 transition-colors">{t.home}</button></li>
-                        <li><button onClick={() => onNavigate('about')} className="hover:text-blue-500 transition-colors">{t.about}</button></li>
-                        <li><button onClick={() => onNavigate('partners')} className="hover:text-blue-500 transition-colors">{t.partners}</button></li>
-                        <li><button onClick={() => onNavigate('doctors')} className="hover:text-blue-500 transition-colors">{t.doctors}</button></li>
-                        <li><button onClick={() => onNavigate('services')} className="hover:text-blue-500 transition-colors">{t.services}</button></li>
-                        <li><button onClick={() => onNavigate('my-bookings')} className="hover:text-blue-500 transition-colors">{t.myBookings}</button></li>
-                        <li><button onClick={() => onNavigate('contact')} className="hover:text-blue-500 transition-colors">{t.contact}</button></li>
-                        <li><button onClick={() => onNavigate('terms')} className="hover:text-blue-500 transition-colors">{t.terms}</button></li>
+                    <h4 className="text-base font-black mb-5 flex items-center gap-2 text-white"><List size={17} className="text-[#25B8C7]"/> {settings.language === 'ar' ? 'روابط سريعة' : 'Quick Links'}</h4>
+                    <ul className="space-y-2.5 text-slate-300 font-semibold text-sm">
+                        <li><button onClick={() => onNavigate('home')} className="hover:text-[#25B8C7] transition-colors">{t.home}</button></li>
+                        <li><button onClick={() => onNavigate('about')} className="hover:text-[#25B8C7] transition-colors">{t.about}</button></li>
+                        <li><button onClick={() => onNavigate('partners')} className="hover:text-[#25B8C7] transition-colors">{t.partners}</button></li>
+                        <li><button onClick={() => onNavigate('doctors')} className="hover:text-[#25B8C7] transition-colors">{t.doctors}</button></li>
+                        <li><button onClick={() => onNavigate('services')} className="hover:text-[#25B8C7] transition-colors">{t.services}</button></li>
+                        <li><button onClick={() => onNavigate('my-bookings')} className="hover:text-[#25B8C7] transition-colors">{t.myBookings}</button></li>
+                        <li><button onClick={() => onNavigate('contact')} className="hover:text-[#25B8C7] transition-colors">{t.contact}</button></li>
+                        <li><button onClick={() => onNavigate('terms')} className="hover:text-[#25B8C7] transition-colors">{t.terms}</button></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 className="text-lg font-black mb-6 flex items-center gap-2"><Phone size={18} className="text-emerald-500"/> {settings.language === 'ar' ? 'أرقام التواصل والعناوين' : 'Contact & Address'}</h4>
-                    <ul className="space-y-4 text-gray-400 font-bold text-sm">
-                        {settings.phones.map((phone, i) => <li key={i} dir="ltr" className="text-right">{phone}</li>)}
-                        <li className="mt-4 pt-4 border-t border-white/5">
-                            {settings.addresses.map((addr, i) => <p key={i} className="mb-2 flex items-start gap-2"><MapPin size={14} className="mt-1 shrink-0 text-blue-500"/> {addr}</p>)}
+                    <h4 className="text-base font-black mb-5 flex items-center gap-2 text-white"><Phone size={17} className="text-[#25B8C7]"/> {settings.language === 'ar' ? 'أرقام التواصل والعناوين' : 'Contact & Address'}</h4>
+                    <ul className="space-y-3 text-slate-300 font-semibold text-sm">
+                        {settings.phones.map((phone, i) => <li key={i} dir="ltr" className="text-right fv-num">{phone}</li>)}
+                        <li className="mt-4 pt-4 border-t border-white/10">
+                            {settings.addresses.map((addr, i) => <p key={i} className="mb-2 flex items-start gap-2 text-slate-300"><MapPin size={15} className="mt-0.5 shrink-0 text-[#25B8C7]"/> {addr}</p>)}
                         </li>
                     </ul>
                 </div>
                 <div>
-                     <h4 className="text-lg font-black mb-6 flex items-center gap-2"><Clock size={18} className="text-amber-500"/> {settings.language === 'ar' ? 'مواعيد العمل' : 'Working Hours'}</h4>
-                     <ul className="space-y-4 text-gray-400 font-bold text-sm">
+                     <h4 className="text-base font-black mb-5 flex items-center gap-2 text-white"><Clock size={17} className="text-[#25B8C7]"/> {settings.language === 'ar' ? 'مواعيد العمل' : 'Working Hours'}</h4>
+                     <ul className="space-y-3.5 text-slate-300 font-semibold text-sm">
                         {settings.language === 'ar' ? (
                             <>
-                                <li className="flex justify-between"><span>السبت - الخميس:</span> <span>{settings.workingHours.weekdays}</span></li>
-                                <li className="flex justify-between"><span>الجمعة:</span> <span>{settings.workingHours.friday}</span></li>
+                                <li className="flex justify-between gap-2"><span>السبت - الخميس:</span> <span className="fv-num">{settings.workingHours.weekdays}</span></li>
+                                <li className="flex justify-between gap-2"><span>الجمعة:</span> <span className="fv-num">{settings.workingHours.friday}</span></li>
                             </>
                         ) : (
                             <>
-                                <li className="flex justify-between"><span>Sat - Thu:</span> <span>{settings.workingHours.weekdays}</span></li>
-                                <li className="flex justify-between"><span>Friday:</span> <span>{settings.workingHours.friday}</span></li>
+                                <li className="flex justify-between gap-2"><span>Sat - Thu:</span> <span className="fv-num">{settings.workingHours.weekdays}</span></li>
+                                <li className="flex justify-between gap-2"><span>Friday:</span> <span className="fv-num">{settings.workingHours.friday}</span></li>
                             </>
                         )}
                      </ul>
                 </div>
             </div>
-            <div className="border-t border-white/10 pt-8 text-center text-gray-500 text-sm font-bold flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="border-t border-white/10 pt-7 text-center text-slate-400 text-xs font-semibold flex flex-col md:flex-row justify-between items-center gap-4">
                 <p>&copy; {new Date().getFullYear()} {settings.appName}. {settings.language === 'ar' ? 'جميع الحقوق محفوظة' : 'All rights reserved'}.</p>
                 <div className="flex gap-4">
-                    <button onClick={() => onNavigate('terms')} className="hover:text-blue-500 transition-colors underline-offset-4 hover:underline">{t.terms}</button>
+                    <button onClick={() => onNavigate('terms')} className="hover:text-[#25B8C7] transition-colors underline-offset-4 hover:underline">{t.terms}</button>
                     <span>|</span>
-                    <p>Designed for Excellence</p>
+                    <p>Designed for Clinical Excellence</p>
                 </div>
             </div>
         </div>
@@ -3588,10 +3640,11 @@ const MyBookingsView = ({ bookings, phone, setPhone, onSearch, onEditBooking, on
   onCancelBooking: (id: number) => void; 
 }) => {
   return (
-    <section className="py-20 px-4 max-w-7xl mx-auto">
-      <div className="text-center mb-12">
-        <h2 className="text-4xl font-black text-gray-900 mb-4">حجوزاتي</h2>
-        <p className="text-gray-500">تابع حالة حجوزاتك وقم بإدارتها بكل سهولة</p>
+    <section className="py-16 md:py-20 px-4 max-w-7xl mx-auto min-h-[75vh]">
+      <div className="text-center mb-10">
+        <span className="text-[#087F8C] text-xs font-extrabold uppercase tracking-widest mb-2 block">إدارة المواعيد</span>
+        <h2 className="text-3xl md:text-4xl font-black text-[#172B3A] mb-3 fv-balance">حجوزاتي</h2>
+        <p className="text-[#718394] font-medium">تابع حالة حجوزاتك وقم بإدارتها بكل سهولة</p>
       </div>
 
       <div className="max-w-md mx-auto mb-12">
@@ -3601,11 +3654,12 @@ const MyBookingsView = ({ bookings, phone, setPhone, onSearch, onEditBooking, on
             placeholder="أدخل رقم الهاتف للبحث..."
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="flex-1 p-4 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-blue-500 outline-hidden font-bold"
+            dir="ltr"
+            className="flex-1 p-3.5 rounded-xl bg-white border border-[#DFEAF0] text-[#172B3A] focus:ring-2 focus:ring-[#25B8C7]/25 focus:border-[#087F8C] outline-hidden font-bold text-left fv-num"
           />
           <button
             onClick={onSearch}
-            className="bg-blue-600 text-white px-6 rounded-2xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+            className="fv-btn-primary px-6 rounded-xl font-black text-sm"
           >
             بحث
           </button>
@@ -3614,56 +3668,56 @@ const MyBookingsView = ({ bookings, phone, setPhone, onSearch, onEditBooking, on
 
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {bookings.map((booking: Booking) => (
-          <div key={booking.id} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-xs relative group overflow-hidden">
+          <div key={booking.id} className="bg-white p-6 rounded-2xl border border-[#DFEAF0] shadow-[0_10px_28px_-16px_rgba(11,31,53,0.1)] relative group overflow-hidden">
             <div className="flex justify-between items-start mb-4">
               <div>
-                <div className="flex items-center gap-2 mb-1">
-                  <span className="text-blue-600 font-black">#{booking.id.toString().slice(-4)}</span>
-                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${
-                    booking.status === 'confirmed' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
+                <div className="flex items-center gap-2 mb-1.5">
+                  <span className="text-[#087F8C] font-black fv-mono text-sm">#{booking.id.toString().slice(-4)}</span>
+                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                    booking.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
                   }`}>
                     {booking.status === 'confirmed' ? 'مؤكد' : 'ملغي'}
                   </span>
                 </div>
-                <h3 className="font-black text-gray-900">{booking.patientName}</h3>
+                <h3 className="font-black text-[#172B3A]">{booking.patientName}</h3>
               </div>
-              <div className="bg-blue-50 p-2 rounded-xl text-blue-600">
+              <div className="bg-[#087F8C]/10 p-2.5 rounded-xl text-[#087F8C]">
                 <Calendar size={20} />
               </div>
             </div>
 
             <div className="space-y-2 mb-6">
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Clock size={14} /> <span>{booking.date} - {booking.time}</span>
+              <div className="flex items-center gap-2 text-sm text-[#718394] font-medium fv-num">
+                <Clock size={14} className="text-[#087F8C]" /> <span>{booking.date} - {booking.time}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <Stethoscope size={14} /> <span>{booking.service}</span>
+              <div className="flex items-center gap-2 text-sm text-[#718394] font-medium">
+                <Stethoscope size={14} className="text-[#1769AA]" /> <span>{booking.service}</span>
               </div>
-              <div className="flex items-center gap-2 text-sm text-gray-500">
-                <User size={14} /> <span>{booking.doctorName}</span>
+              <div className="flex items-center gap-2 text-sm text-[#718394] font-medium">
+                <User size={14} className="text-[#087F8C]" /> <span>{booking.doctorName}</span>
               </div>
             </div>
 
             {/* أزرار الإدارة للمريض - تعديل وإلغاء */}
             {booking.status === 'confirmed' && (
-              <div className="flex gap-2 pt-4 border-t border-gray-50">
+              <div className="flex gap-2 pt-4 border-t border-[#DFEAF0]">
                 <button 
                   onClick={() => onEditBooking(booking)}
-                  className="flex-1 flex items-center justify-center gap-1 bg-blue-50 text-blue-600 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-100 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-[#087F8C]/10 text-[#087F8C] py-2.5 rounded-xl text-sm font-bold hover:bg-[#087F8C]/20 transition-colors"
                 >
                   <Edit2 size={14} /> تعديل
                 </button>
                 <button 
                   onClick={() => { if(confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) onCancelBooking(booking.id); }}
-                  className="flex-1 flex items-center justify-center gap-1 bg-red-50 text-red-500 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors"
+                  className="flex-1 flex items-center justify-center gap-1.5 bg-red-50 text-red-600 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors"
                 >
                   <Trash2 size={14} /> إلغاء
                 </button>
               </div>
             )}
             {booking.status === 'cancelled' && (
-              <div className="pt-4 border-t border-gray-50 text-center">
-                <span className="text-red-500 text-sm font-bold">تم إلغاء هذا الحجز</span>
+              <div className="pt-4 border-t border-[#DFEAF0] text-center">
+                <span className="text-red-600 text-xs font-bold">تم إلغاء هذا الحجز</span>
               </div>
             )}
           </div>
@@ -3671,11 +3725,11 @@ const MyBookingsView = ({ bookings, phone, setPhone, onSearch, onEditBooking, on
       </div>
       
       {bookings.length === 0 && phone && (
-        <div className="text-center py-20 bg-gray-50 rounded-[3rem] border border-dashed border-gray-200">
-          <div className="w-16 h-16 bg-white rounded-2xl shadow-xs flex items-center justify-center mx-auto mb-4 text-gray-300">
-            <Search size={32} />
+        <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-[#DFEAF0]">
+          <div className="w-14 h-14 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0] flex items-center justify-center mx-auto mb-4 text-[#718394]">
+            <Search size={28} />
           </div>
-          <p className="text-gray-500 font-bold">لم يتم العثور على حجوزات لهذا الرقم</p>
+          <p className="text-[#718394] font-bold">لم يتم العثور على حجوزات لهذا الرقم</p>
         </div>
       )}
 
@@ -4268,10 +4322,10 @@ const handleNavigate = (sectionId: string) => {
       <InstapaySubmittedDialog result={instapayResult} onClose={() => setInstapayResult(null)} />
       <PaymobResultDialog />
       {paymobRedirecting && (
-        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-black/60 backdrop-blur-xs" role="status" dir="rtl">
-          <div className="bg-white rounded-[2rem] shadow-2xl max-w-sm w-full p-8 text-center">
-            <div className="w-10 h-10 border-4 border-blue-600 border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
-            <p className="font-black text-gray-900">جاري تحويلك إلى صفحة الدفع الآمنة…</p>
+        <div className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs" role="status" dir="rtl">
+          <div className="bg-white rounded-3xl border border-[#DFEAF0] shadow-2xl max-w-sm w-full p-8 text-center">
+            <div className="w-10 h-10 border-4 border-[#087F8C] border-t-transparent rounded-full animate-spin mx-auto mb-4"></div>
+            <p className="font-black text-[#172B3A]">جاري تحويلك إلى صفحة الدفع الآمنة…</p>
           </div>
         </div>
       )}
