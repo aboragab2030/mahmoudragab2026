@@ -1,0 +1,258 @@
+/* --- Base Styles --- */
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;500;600;700;800;900&display=swap');
+
+:root {
+  --print-font-size: 10pt;
+  --print-margin: 15mm;
+}
+
+body {
+  margin: 0;
+  padding: 0;
+  font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  background-color: #f8fafc;
+  color: #0f172a;
+}
+
+.font-cairo {
+  font-family: 'Cairo', system-ui, -apple-system, sans-serif;
+}
+
+/* --- Clinical Precision Design System --- */
+
+/* Main page background canvas */
+.barada-app-bg {
+  background-color: #f8fafc;
+  background-image:
+    radial-gradient(at 10% 0%, rgba(29, 78, 216, 0.04) 0px, transparent 50%),
+    radial-gradient(at 90% 10%, rgba(5, 150, 105, 0.03) 0px, transparent 45%);
+  min-height: 100vh;
+}
+
+/* Elevated clean surface */
+.glass-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  border-radius: 16px !important;
+  box-shadow: 0 1px 3px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Top navigation bar */
+.glass-navbar {
+  background: rgba(255, 255, 255, 0.92) !important;
+  backdrop-filter: blur(16px) !important;
+  -webkit-backdrop-filter: blur(16px) !important;
+  border-bottom: 1px solid #e2e8f0 !important;
+  box-shadow: 0 4px 20px rgba(15, 23, 42, 0.04) !important;
+}
+
+/* Home page: transparent top bar with dark scrim for crisp contrast over hero imagery */
+.glass-navbar.navbar-clear {
+  background: linear-gradient(to bottom, rgba(15, 23, 42, 0.65), rgba(15, 23, 42, 0.15)) !important;
+  backdrop-filter: blur(4px) !important;
+  -webkit-backdrop-filter: blur(4px) !important;
+  border-bottom-color: rgba(255, 255, 255, 0.1) !important;
+  box-shadow: none !important;
+}
+
+/* Logo lockup */
+.glass-logo {
+  background: transparent;
+  padding: 0.25rem 0;
+  border: none;
+  box-shadow: none;
+}
+
+/* Section surface */
+.glass-section {
+  background: transparent !important;
+}
+
+/* Service & partner cards */
+.glass-service-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 1px 2px rgba(15, 23, 42, 0.03) !important;
+  transition: transform 180ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 180ms cubic-bezier(0.16, 1, 0.3, 1), border-color 180ms ease !important;
+}
+
+.glass-service-card:hover {
+  background: #ffffff !important;
+  border-color: #cbd5e1 !important;
+  transform: translateY(-3px) !important;
+  box-shadow: 0 12px 28px -8px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Doctor cards */
+.glass-doctor-card {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.03) !important;
+  transition: transform 200ms cubic-bezier(0.16, 1, 0.3, 1), box-shadow 200ms cubic-bezier(0.16, 1, 0.3, 1), border-color 200ms ease !important;
+}
+
+.glass-doctor-card:hover {
+  background: #ffffff !important;
+  border-color: #bfdbfe !important;
+  transform: translateY(-4px) !important;
+  box-shadow: 0 18px 36px -12px rgba(15, 23, 42, 0.1) !important;
+}
+
+/* Stats bar */
+.glass-stats {
+  background: #ffffff !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: 0 16px 40px -12px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Smooth hover for interactive links/buttons */
+.glass-btn-hover {
+  transition: color 150ms ease, opacity 150ms ease, transform 150ms cubic-bezier(0.16, 1, 0.3, 1) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-service-card,
+  .glass-doctor-card,
+  .glass-btn-hover,
+  .animate-bounce {
+    animation: none !important;
+    transition: none !important;
+  }
+}
+
+/* --- Print Strategy --- */
+@media print {
+  /* 1. Global Reset for Print */
+  @page {
+    margin: var(--print-margin);
+    size: auto;
+  }
+
+  .barada-app-bg {
+    background: #fff !important;
+  }
+
+  /* 2. Remove Non-Essential UI Elements */
+  nav, 
+  footer, 
+  aside, 
+  button,
+  .no-print,
+  #ai-assistant,
+  [role="button"],
+  .fixed,
+  .sticky {
+    display: none !important;
+  }
+
+  /* 3. Layout Optimization */
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    font-size: var(--print-font-size);
+    line-height: 1.4;
+  }
+
+  main, 
+  .max-w-7xl,
+  #admin,
+  #home {
+    width: 100% !important;
+    max-width: 100% !important;
+    margin: 0 !important;
+    padding: 0 !important;
+    box-shadow: none !important;
+    border: none !important;
+    float: none !important;
+    position: static !important;
+  }
+
+  /* 4. Medical Data Density (Tables & Lists) */
+  table {
+    width: 100% !important;
+    border-collapse: collapse !important;
+    margin-bottom: 1em !important;
+    page-break-inside: auto;
+  }
+
+  tr {
+    page-break-inside: avoid;
+    page-break-after: auto;
+  }
+
+  th, td {
+    border: 0.5pt solid #ccc !important;
+    padding: 4pt 6pt !important;
+    text-align: right !important;
+    font-size: 9pt !important;
+  }
+
+  th {
+    background-color: #f0f0f0 !important;
+    font-weight: bold !important;
+  }
+
+  /* 5. Content Visuals */
+  .bg-white, .bg-gray-50, .bg-blue-50 {
+    background-color: transparent !important;
+  }
+
+  .shadow-xl, .shadow-2xl, .shadow-sm, .shadow-xs, .shadow-lg {
+    box-shadow: none !important;
+  }
+
+  .rounded-2xl, .rounded-3xl, .rounded-\[2\.5rem\], .rounded-\[3rem\] {
+    border-radius: 0 !important;
+  }
+
+  .border {
+    border: 0.5pt solid #eee !important;
+  }
+
+  img {
+    max-width: 100px !important;
+    filter: grayscale(100%);
+  }
+
+  /* 6. Typography & Clarity */
+  h1, h2, h3, h4 {
+    color: #000 !important;
+    margin-top: 0.5em !important;
+    margin-bottom: 0.3em !important;
+    page-break-after: avoid;
+  }
+
+  h1 { font-size: 18pt; }
+  h2 { font-size: 16pt; }
+  h3 { font-size: 14pt; }
+
+  /* 7. Ensure URL and internal links are clean */
+  a[href^="http"]::after {
+    content: " (" attr(href) ")";
+    font-size: 8pt;
+    color: #666;
+  }
+
+  /* 8. Breakpoints */
+  .grid {
+    display: block !important;
+  }
+
+  .flex {
+    display: block !important;
+  }
+
+  .shrink-0 {
+    display: none !important;
+  }
+
+  /* Remove glass effects in print */
+  .glass-card, .glass-navbar, .glass-service-card, .glass-doctor-card, .glass-stats {
+    background: #fff !important;
+    backdrop-filter: none !important;
+    -webkit-backdrop-filter: none !important;
+    border: 0.5pt solid #eee !important;
+    box-shadow: none !important;
+  }
+}

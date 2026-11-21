@@ -1,0 +1,92 @@
+# Nightly backup of the production Supabase database.
+#
+# Saves one artifact per night (kept 30 days) named barrada-backup-YYYY-MM-DD containing:
+#   app.dump   – all clinic tables in the public schema (structure + data) and ops
+#   auth.dump  – staff login accounts (auth.users, auth.identities), data only
+#   extras.sql – Storage bucket settings + access rules and the clinic triggers on login
+#                accounts (needed to rebuild a new project)
+# Uploaded files themselves (InstaPay receipt images) are NOT included.
+# The repository is private, so only people with access to it can download backups.
+#
+# Secret: PROD_DATABASE_URL (already used by the migrations workflow).
+# Restore steps: see the "Data recovery guide" document kept with the client.
+
+name: Nightly DB backup
+
+on:
+  schedule:
+    - cron: "30 0 * * *" # 02:30 Cairo time
+  workflow_dispatch:
+
+concurrency:
+  group: prod-db-backup
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  backup:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check secret
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: |
+          [ -n "$DATABASE_URL" ] || { echo "::error::Secret PROD_DATABASE_URL is not set"; exit 1; }
+
+      - name: Install PostgreSQL client matching the server
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          major=$(psql "$DATABASE_URL" -Atc "SELECT current_setting('server_version_num')::int / 10000")
+          echo "Server major version: $major"
+          sudo install -d /usr/share/postgresql-common/pgdg
+          sudo curl -fsSL -o /usr/share/postgresql-common/pgdg/apt.postgresql.org.asc https://www.postgresql.org/media/keys/ACCC4CF8.asc
+          echo "deb [signed-by=/usr/share/postgresql-common/pgdg/apt.postgresql.org.asc] https://apt.postgresql.org/pub/repos/apt $(lsb_release -cs)-pgdg main" | sudo tee /etc/apt/sources.list.d/pgdg.list >/dev/null
+          sudo apt-get update -qq
+          sudo apt-get install -y -qq "postgresql-client-$major" >/dev/null
+          echo "PGBIN=/usr/lib/postgresql/$major/bin" >> "$GITHUB_ENV"
+
+      - name: Dump and check
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          umask 077
+          mkdir -p out
+          "$PGBIN/pg_dump" "$DATABASE_URL" -Fc --no-owner --schema=public --schema=ops -f out/app.dump
+          "$PGBIN/pg_dump" "$DATABASE_URL" -Fc --data-only --table=auth.users --table=auth.identities -f out/auth.dump
+
+          psql "$DATABASE_URL" -X -q -At -v ON_ERROR_STOP=1 -o out/extras.sql <<'SQL'
+          SET search_path = ''; -- so the definitions below come out schema-qualified
+          SELECT format('INSERT INTO storage.buckets (id, name, public, file_size_limit, allowed_mime_types) VALUES (%L, %L, %s, %s, %s) ON CONFLICT (id) DO NOTHING;',
+                        id, name, CASE WHEN public THEN 'true' ELSE 'false' END, coalesce(file_size_limit::text, 'NULL'), coalesce(quote_literal(allowed_mime_types::text) || '::text[]', 'NULL'))
+          FROM storage.buckets ORDER BY id;
+          SELECT format('DROP POLICY IF EXISTS %I ON storage.objects; CREATE POLICY %I ON storage.objects AS %s FOR %s TO %s%s%s;',
+                        policyname, policyname, permissive, cmd, array_to_string(roles, ', '),
+                        coalesce(' USING (' || qual || ')', ''), coalesce(' WITH CHECK (' || with_check || ')', ''))
+          FROM pg_policies WHERE schemaname = 'storage' AND tablename = 'objects' ORDER BY policyname;
+          SELECT format('DROP TRIGGER IF EXISTS %I ON %s; %s;', t.tgname, t.tgrelid::regclass, pg_get_triggerdef(t.oid))
+          FROM pg_trigger t
+          JOIN pg_class c ON c.oid = t.tgrelid JOIN pg_namespace n ON n.oid = c.relnamespace
+          JOIN pg_proc f ON f.oid = t.tgfoid JOIN pg_namespace fn ON fn.oid = f.pronamespace
+          WHERE n.nspname IN ('auth', 'storage') AND fn.nspname = 'public' AND NOT t.tgisinternal
+          ORDER BY t.tgname;
+          SQL
+
+          # Sanity check: the dump must contain the core tables.
+          for t in bookings doctors services profiles; do
+            "$PGBIN/pg_restore" -l out/app.dump | grep -q "TABLE DATA public $t " || { echo "::error::Backup is missing table $t"; exit 1; }
+          done
+
+          echo "STAMP=$(TZ=Africa/Cairo date +%F)" >> "$GITHUB_ENV"
+          ls -l out
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: barrada-backup-${{ env.STAMP }}
+          path: out/
+          retention-days: 30
+          if-no-files-found: error

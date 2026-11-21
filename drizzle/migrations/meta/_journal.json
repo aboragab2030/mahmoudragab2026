@@ -1,0 +1,97 @@
+{
+  "version": "7",
+  "dialect": "postgresql",
+  "entries": [
+    {
+      "idx": 0,
+      "version": "7",
+      "when": 1792500116771,
+      "tag": "0000_barada_full_schema",
+      "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1792566031137,
+      "tag": "0001_migration",
+      "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1792667162277,
+      "tag": "0002_enforce_doctor_hourly_capacity",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "7",
+      "when": 1792743081867,
+      "tag": "0003_enforce_doctor_daily_capacity",
+      "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1792828307926,
+      "tag": "0004_public_payment_methods",
+      "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "7",
+      "when": 1792910527690,
+      "tag": "0005_admin_delete_payments_and_cancel_notice",
+      "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "7",
+      "when": 1793517663065,
+      "tag": "0006_public_settings_view_for_visitors",
+      "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "7",
+      "when": 1793517680902,
+      "tag": "0007_initial_hero_images_and_partners",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "7",
+      "when": 1793605422036,
+      "tag": "0008_public_contracting_companies_view",
+      "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "7",
+      "when": 1793696965105,
+      "tag": "0009_dashboard_section_permissions",
+      "breakpoints": true
+    },
+    {
+      "idx": 10,
+      "version": "7",
+      "when": 1793697206871,
+      "tag": "0010_profiles_changes_admin_only",
+      "breakpoints": true
+    },
+    {
+      "idx": 11,
+      "version": "7",
+      "when": 1793759468336,
+      "tag": "0011_instapay_receipt_required_and_cash_choice",
+      "breakpoints": true
+    },
+    {
+      "idx": 12,
+      "version": "7",
+      "when": 1793863193695,
+      "tag": "0012_patient_booking_cancellation",
+      "breakpoints": true
+    }
+  ]
+}

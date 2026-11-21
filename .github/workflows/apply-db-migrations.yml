@@ -1,0 +1,60 @@
+# Applies new database migrations (drizzle/migrations/*.sql) to the production Supabase
+# database whenever they reach main — including migrations Lovable writes, which Lovable
+# itself only applies to Lovable Cloud.
+#
+# Each file runs once, in name order, inside its own transaction. Applied files are recorded
+# in ops.applied_migrations; a file that fails stops the run and is retried on the next push.
+#
+# Needs one repository secret: PROD_DATABASE_URL = the Supabase "Session pooler" connection
+# string (Project → Connect → Session pooler), with the database password filled in.
+
+name: Apply DB migrations to production
+
+on:
+  push:
+    branches: ["main"]
+    paths: ["drizzle/migrations/**.sql"]
+  workflow_dispatch:
+
+concurrency:
+  group: prod-db-migrations
+  cancel-in-progress: false
+
+permissions:
+  contents: read
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Apply pending migrations
+        env:
+          DATABASE_URL: ${{ secrets.PROD_DATABASE_URL }}
+        run: |
+          set -euo pipefail
+          if [ -z "${DATABASE_URL}" ]; then
+            echo "::error::Secret PROD_DATABASE_URL is not set"; exit 1
+          fi
+          PSQL="psql $DATABASE_URL -v ON_ERROR_STOP=1 -X -q"
+
+          $PSQL -c "CREATE SCHEMA IF NOT EXISTS ops;
+                    CREATE TABLE IF NOT EXISTS ops.applied_migrations (name text PRIMARY KEY, applied_at timestamptz NOT NULL DEFAULT now());
+                    ALTER TABLE ops.applied_migrations ENABLE ROW LEVEL SECURITY;"
+
+          applied=$($PSQL -At -c "SELECT name FROM ops.applied_migrations")
+          count=0
+          for file in $(ls drizzle/migrations/*.sql | sort); do
+            name=$(basename "$file")
+            if grep -qxF "$name" <<< "$applied"; then continue; fi
+            echo "::group::Applying $name"
+            { cat "$file"; echo; echo "INSERT INTO ops.applied_migrations (name) VALUES ('$name');"; } | $PSQL -1 -f -
+            echo "::endgroup::"
+            count=$((count + 1))
+          done
+
+          if [ "$count" -gt 0 ]; then
+            $PSQL -c "NOTIFY pgrst, 'reload schema';"
+          fi
+          echo "Applied $count new migration(s)."
