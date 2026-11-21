@@ -52,6 +52,12 @@ const ALL_PERMISSIONS = [
   'view_contact_logs',
   'manage_hero_images',
   'manage_backup',
+  'view_offers',
+  'create_offers',
+  'edit_offers',
+  'delete_offers',
+  'manage_offer_visibility',
+  'upload_offer_images',
 ];
 
 // Helper function to check if user has specific permission

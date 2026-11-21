@@ -4,10 +4,19 @@
 
 export type DashboardSection =
   | 'overview' | 'doctors' | 'bookings' | 'operations' | 'reminders' | 'patient-stats'
-  | 'intelligence' | 'payments' | 'contact-logs' | 'partners' | 'services' | 'hero-images'
+  | 'intelligence' | 'payments' | 'contact-logs' | 'partners' | 'services' | 'offers' | 'hero-images'
   | 'complaints' | 'settings' | 'backup' | 'reports' | 'users' | 'paymob-settings';
 
-export const DASHBOARD_PERMISSIONS: { id: string; label: string }[] = [
+export const OFFER_PERMISSIONS: { id: string; label: string; group: string }[] = [
+  { id: 'view_offers', label: 'عرض العروض', group: 'العروض' },
+  { id: 'create_offers', label: 'إضافة العروض', group: 'العروض' },
+  { id: 'edit_offers', label: 'تعديل العروض', group: 'العروض' },
+  { id: 'delete_offers', label: 'حذف العروض', group: 'العروض' },
+  { id: 'manage_offer_visibility', label: 'التحكم في ظهور العروض', group: 'العروض' },
+  { id: 'upload_offer_images', label: 'رفع وتغيير صور العروض', group: 'العروض' },
+];
+
+export const DASHBOARD_PERMISSIONS: { id: string; label: string; group?: string }[] = [
   { id: 'view_overview', label: 'نظرة عامة' },
   { id: 'manage_doctors', label: 'إدارة الأطباء' },
   { id: 'manage_bookings', label: 'إدارة الحجوزات' },
@@ -20,6 +29,7 @@ export const DASHBOARD_PERMISSIONS: { id: string; label: string }[] = [
   { id: 'view_contact_logs', label: 'سجل الاتصالات والتذكيرات' },
   { id: 'manage_partners', label: 'إدارة التعاقدات' },
   { id: 'manage_content', label: 'إدارة الخدمات' },
+  ...OFFER_PERMISSIONS,
   { id: 'manage_hero_images', label: 'إدارة الصور' },
   { id: 'manage_complaints', label: 'إدارة الشكاوى والمقترحات' },
   { id: 'manage_settings', label: 'الإعدادات العامة' },
@@ -40,6 +50,7 @@ export const SECTION_PERMISSIONS: Record<DashboardSection, string[]> = {
   'contact-logs': ['view_contact_logs'],
   partners: ['manage_partners'],
   services: ['manage_content'],
+  offers: OFFER_PERMISSIONS.map(p => p.id),
   'hero-images': ['manage_hero_images'],
   complaints: ['manage_complaints'],
   settings: ['manage_settings'],
@@ -51,7 +62,7 @@ export const SECTION_PERMISSIONS: Record<DashboardSection, string[]> = {
 // Side menu order, used to pick the first section a staff member may open.
 export const SECTION_ORDER: DashboardSection[] = [
   'overview', 'doctors', 'bookings', 'operations', 'reminders', 'patient-stats', 'intelligence',
-  'payments', 'contact-logs', 'partners', 'services', 'hero-images', 'complaints', 'users',
+  'payments', 'contact-logs', 'partners', 'services', 'offers', 'hero-images', 'complaints', 'users',
   'settings', 'backup', 'paymob-settings',
 ];
 

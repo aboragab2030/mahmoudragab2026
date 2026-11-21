@@ -22,6 +22,7 @@ export interface RealtimeData {
   complaints: any[];
   doctors: any[];
   services: any[];
+  offers: any[];
   contractingCompanies: any[];
   staffMembers: StaffMember[];
 }
@@ -35,6 +36,7 @@ interface UseRealtimeSyncOptions {
   onComplaintsChange?: (complaints: any[]) => void;
   onDoctorsChange?: (doctors: any[]) => void;
   onServicesChange?: (services: any[]) => void;
+  onOffersChange?: (offers: any[]) => void;
   onContractingCompaniesChange?: (companies: any[]) => void;
   onStaffMembersChange?: (staffMembers: StaffMember[]) => void;
 }
@@ -75,6 +77,7 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
     complaints: [],
     doctors: [],
     services: [],
+    offers: [],
     contractingCompanies: [],
     staffMembers: [],
   });
@@ -108,6 +111,7 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
         complaintsRes,
         doctorsRes,
         servicesRes,
+        offersRes,
         contractingCompaniesRes,
         profilesRes,
         rolesRes,
@@ -120,6 +124,7 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
         supabase.from('complaints').select('*').order('created_at', { ascending: false }),
         supabase.from('doctors').select('*').order('name', { ascending: true }),
         supabase.from('services').select('*').order('title', { ascending: true }),
+        supabase.from('offers').select('*').order('display_order', { ascending: true }).order('created_at', { ascending: false }),
         supabase.from('contracting_companies').select('*').order('name', { ascending: true }),
         supabase.from('profiles').select('user_id, name, username, login_username, permissions, is_active'),
         supabase.from('user_roles').select('user_id, role'),
@@ -140,6 +145,7 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
         complaints: complaintsRes.data || [],
         doctors: doctorsRes.data || [],
         services: servicesRes.data || [],
+        offers: offersRes.data || [],
         contractingCompanies: contractingCompaniesRes.data || [],
         staffMembers,
       };
@@ -154,6 +160,7 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
       optionsRef.current.onComplaintsChange?.(newData.complaints);
       optionsRef.current.onDoctorsChange?.(newData.doctors);
       optionsRef.current.onServicesChange?.(newData.services);
+      optionsRef.current.onOffersChange?.(newData.offers);
       optionsRef.current.onContractingCompaniesChange?.(newData.contractingCompanies);
       optionsRef.current.onStaffMembersChange?.(newData.staffMembers);
       
@@ -243,6 +250,9 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
         case 'services':
           optionsRef.current.onServicesChange?.(newData.services);
           break;
+        case 'offers':
+          optionsRef.current.onOffersChange?.(newData.offers);
+          break;
         case 'contractingCompanies':
           optionsRef.current.onContractingCompaniesChange?.(newData.contractingCompanies);
           break;
@@ -308,6 +318,11 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'services' },
           (payload) => handleRealtimeChange('services', payload)
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'offers' },
+          (payload) => handleRealtimeChange('offers', payload)
         )
         .on(
           'postgres_changes',

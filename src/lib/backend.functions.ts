@@ -182,15 +182,23 @@ export const aiChat = createServerFn({ method: "POST" })
       const sanitizedMessage = message.trim();
       if (!sanitizedMessage) return reply({ error: "Message cannot be empty" }, 400);
 
-      const { generateClinicReply, sanitizeHistory } = await import("@/lib/aiChat.server");
-      const content = await generateClinicReply(
-        sanitizedMessage,
-        language === "en" ? "en" : "ar",
-        sanitizeHistory(data.history),
-      );
-      return reply({ response: content });
+      const { generateClinicReply, sanitizeHistory, GeminiApiError } = await import("@/lib/aiChat.server");
+      try {
+        const content = await generateClinicReply(
+          sanitizedMessage,
+          language === "en" ? "en" : "ar",
+          sanitizeHistory(data.history),
+        );
+        return reply({ response: content });
+      } catch (innerError) {
+        if (innerError instanceof GeminiApiError) {
+          console.error(`ai-chat error (${innerError.status}${innerError.reason ? `/${innerError.reason}` : ""}): ${innerError.message}`);
+          return reply({ error: innerError.message, code: innerError.reason ?? "GEMINI_ERROR" }, innerError.status);
+        }
+        throw innerError;
+      }
     } catch (error) {
-      console.error("ai-chat error:", error instanceof Error ? error.message : "Unknown error");
+      console.error("ai-chat error:", error instanceof Error ? error.message.replace(/\s+/g, " ") : "Unknown error");
       return reply({ error: "An unexpected error occurred" }, 500);
     }
   });

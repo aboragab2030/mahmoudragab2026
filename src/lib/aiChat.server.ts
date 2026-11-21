@@ -5,21 +5,51 @@
 // otherwise the Lovable AI Gateway (Lovable preview, uses LOVABLE_API_KEY).
 // GEMINI_MODEL optionally overrides the default model; GEMINI_BASE_URL optionally routes
 // through a Cloudflare AI Gateway (CF_AIG_TOKEN = the gateway's authentication token).
+import { GoogleGenAI, ThinkingLevel } from "@google/genai";
 import { serviceClient } from "@/lib/paymob/paymob.server";
 
 export type ChatTurn = { role: "user" | "model"; text: string };
 
-const DEFAULT_GEMINI_MODEL = "gemini-3.5-flash-lite";
+export const DEFAULT_GEMINI_MODEL = "gemini-4-hydrogen";
+const DEPRECATED_OR_INVALID_MODELS = new Set([
+  "gemini-3.5-flash-lite",
+  "gemini-1.5-flash",
+  "gemini-1.5-pro",
+  "gemini-pro",
+  "gemini-2.0-flash",
+  "gemini-2.0-pro",
+  "gemini-2.0-flash-thinking",
+]);
 const CONTEXT_TTL_MS = 5 * 60 * 1000;
 const MAX_HISTORY = 6;
 const MAX_TURN_LENGTH = 1000;
 const GEMINI_TIMEOUT_MS = 25_000;
 const CONTEXT_TIMEOUT_MS = 8_000;
+const MAX_TRANSIENT_RETRIES = 2;
 
 let cachedContext: { text: string; at: number } | null = null;
 
 const clean = (v: unknown) => (typeof v === "string" ? v.trim() : "");
 const list = (v: unknown) => (Array.isArray(v) ? v.map(clean).filter(Boolean) : []);
+
+export class GeminiApiError extends Error {
+  status: number;
+  reason?: string;
+  constructor(status: number, message: string, reason?: string) {
+    super(message);
+    this.name = "GeminiApiError";
+    this.status = status;
+    this.reason = reason;
+  }
+}
+
+export function resolveGeminiModel(rawModel?: string): string {
+  const candidate = clean(rawModel);
+  if (!candidate || DEPRECATED_OR_INVALID_MODELS.has(candidate)) {
+    return DEFAULT_GEMINI_MODEL;
+  }
+  return candidate;
+}
 
 /** Public clinic facts as plain text for the model. Cached briefly per server instance. */
 export async function loadClinicContext(): Promise<string> {
@@ -38,18 +68,18 @@ export async function loadClinicContext(): Promise<string> {
 
   const today = new Date().toISOString().slice(0, 10);
   const lines: string[] = [];
-  const s: any = settingsRes.data ?? {};
+  const s = (settingsRes.data ?? {}) as Record<string, unknown>;
   lines.push(`اسم المركز: ${clean(s.app_name) || "مركز براده للعيون"}`);
   if (list(s.addresses).length) lines.push(`العنوان: ${list(s.addresses).join(" / ")}`);
   if (list(s.phones).length) lines.push(`أرقام التليفون: ${list(s.phones).join(" ، ")}`);
   if (clean(s.whatsapp_number)) lines.push(`واتساب: ${clean(s.whatsapp_number)}`);
   if (clean(s.map_location_url)) lines.push(`الموقع على الخريطة: ${clean(s.map_location_url)}`);
-  const hours = s.working_hours ?? {};
+  const hours = (s.working_hours ?? {}) as Record<string, unknown>;
   if (clean(hours.weekdays) || clean(hours.friday)) {
     lines.push(`مواعيد العمل: باقي الأيام ${clean(hours.weekdays) || "غير محدد"}، الجمعة ${clean(hours.friday) || "غير محدد"}`);
   }
 
-  const doctors = (doctorsRes.data ?? []) as any[];
+  const doctors = (doctorsRes.data ?? []) as Array<Record<string, unknown>>;
   if (doctors.length) {
     lines.push("", "الأطباء:");
     for (const d of doctors) {
@@ -64,7 +94,7 @@ export async function loadClinicContext(): Promise<string> {
     }
   }
 
-  const services = (servicesRes.data ?? []) as any[];
+  const services = (servicesRes.data ?? []) as Array<Record<string, unknown>>;
   if (services.length) {
     lines.push("", "الخدمات:");
     for (const sv of services) {
@@ -103,55 +133,140 @@ export function buildSystemPrompt(language: string, clinicContext: string): stri
 export function sanitizeHistory(raw: unknown): ChatTurn[] {
   if (!Array.isArray(raw)) return [];
   return raw
-    .filter((t: any) => t && (t.role === "user" || t.role === "model") && typeof t.text === "string" && t.text.trim())
+    .filter((t): t is { role: "user" | "model"; text: string } => {
+      if (!t || typeof t !== "object") return false;
+      const rec = t as Record<string, unknown>;
+      return (rec.role === "user" || rec.role === "model") && typeof rec.text === "string" && rec.text.trim().length > 0;
+    })
     .slice(-MAX_HISTORY)
-    .map((t: any) => ({ role: t.role, text: t.text.trim().slice(0, MAX_TURN_LENGTH) }));
+    .map((t) => ({ role: t.role, text: t.text.trim().slice(0, MAX_TURN_LENGTH) }));
 }
 
+function normalizeGeminiError(err: unknown): GeminiApiError {
+  if (err instanceof GeminiApiError) return err;
+  const rawMessage = err instanceof Error ? err.message : String(err ?? "Unknown Gemini error");
+  const errObj = err && typeof err === "object" ? (err as Record<string, unknown>) : null;
+  const statusFromErr = typeof errObj?.status === "number" ? errObj.status : undefined;
+
+  let parsed: Record<string, unknown> | null = null;
+  try {
+    const jsonStart = rawMessage.indexOf("{");
+    if (jsonStart !== -1) {
+      const candidate = JSON.parse(rawMessage.slice(jsonStart)) as unknown;
+      if (candidate && typeof candidate === "object") parsed = candidate as Record<string, unknown>;
+    }
+  } catch {
+    parsed = null;
+  }
+
+  const apiErr = (parsed?.error && typeof parsed.error === "object" ? parsed.error : parsed) as Record<string, unknown> | null;
+  const code = typeof apiErr?.code === "number" ? apiErr.code : statusFromErr ?? 500;
+  const apiStatus = clean(apiErr?.status);
+  const details = Array.isArray(apiErr?.details) ? apiErr.details : [];
+  const reasonDetail = details.find(
+    (d): d is Record<string, unknown> => Boolean(d && typeof d === "object" && typeof (d as Record<string, unknown>).reason === "string"),
+  );
+  const reason = clean(reasonDetail?.reason) || apiStatus || undefined;
+  const msg = clean(apiErr?.message) || rawMessage.replace(/\s+/g, " ").slice(0, 240);
+
+  if (reason === "API_KEY_INVALID" || /API key not valid/i.test(msg)) {
+    return new GeminiApiError(
+      400,
+      "Gemini API key is invalid. Please check GEMINI_API_KEY in Settings > Secrets.",
+      "API_KEY_INVALID",
+    );
+  }
+  if (code === 403 || reason === "PERMISSION_DENIED") {
+    return new GeminiApiError(
+      403,
+      "Gemini API permission denied. Please verify your API key in Settings > Secrets.",
+      "PERMISSION_DENIED",
+    );
+  }
+  if (code === 429 || reason === "RESOURCE_EXHAUSTED") {
+    return new GeminiApiError(
+      429,
+      "Gemini API quota exceeded. Please try again shortly or upgrade your key in Settings > Secrets.",
+      "RESOURCE_EXHAUSTED",
+    );
+  }
+  if (code === 404 || reason === "NOT_FOUND") {
+    return new GeminiApiError(404, `Gemini model error: ${msg}`, "NOT_FOUND");
+  }
+  return new GeminiApiError(code >= 400 && code < 600 ? code : 500, `Gemini ${code}: ${msg}`, reason);
+}
+
+function formatReplyText(raw: string | undefined): string {
+  return (raw ?? "")
+    .trim()
+    .replace(/\*\*(.+?)\*\*/g, "$1")
+    .replace(/^[ \t]*[*-][ \t]+/gm, "• ");
+}
+
+const wait = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
 async function callGemini(apiKey: string, system: string, turns: ChatTurn[]): Promise<string> {
-  const model = clean(process.env["GEMINI_MODEL"]) || DEFAULT_GEMINI_MODEL;
+  const model = resolveGeminiModel(process.env["GEMINI_MODEL"]);
   // Optional Cloudflare AI Gateway in front of Google (…/google-ai-studio); direct calls from
   // Workers to Google can stall.
-  const baseUrl = (clean(process.env["GEMINI_BASE_URL"]) || "https://generativelanguage.googleapis.com").replace(/\/+$/, "");
+  const baseUrl = clean(process.env["GEMINI_BASE_URL"]).replace(/\/+$/, "");
   const gatewayToken = clean(process.env["CF_AIG_TOKEN"]);
-  const request = (withThinkingLevel: boolean) =>
-    fetch(`${baseUrl}/v1beta/models/${encodeURIComponent(model)}:generateContent`, {
-      method: "POST",
+
+  const ai = new GoogleGenAI({
+    apiKey,
+    httpOptions: {
+      timeout: GEMINI_TIMEOUT_MS,
+      ...(baseUrl ? { baseUrl } : {}),
       headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
+        "User-Agent": "aistudio-build",
         ...(gatewayToken ? { "cf-aig-authorization": `Bearer ${gatewayToken}` } : {}),
       },
-      signal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
-      body: JSON.stringify({
-        systemInstruction: { parts: [{ text: system }] },
-        contents: turns.map((t) => ({ role: t.role, parts: [{ text: t.text }] })),
-        generationConfig: {
-          maxOutputTokens: 1024,
-          temperature: 0.4,
-          // Short answers need little reasoning; keeps replies fast.
-          ...(withThinkingLevel ? { thinkingConfig: { thinkingLevel: "low" } } : {}),
-        },
-      }),
+    },
+  });
+
+  const invoke = (withThinkingLevel: boolean) =>
+    ai.models.generateContent({
+      model,
+      contents: turns.map((t) => ({ role: t.role, parts: [{ text: t.text }] })),
+      config: {
+        systemInstruction: system,
+        abortSignal: AbortSignal.timeout(GEMINI_TIMEOUT_MS),
+        ...(withThinkingLevel ? { thinkingConfig: { thinkingLevel: ThinkingLevel.LOW } } : {}),
+      },
     });
 
   const started = Date.now();
-  let res = await request(true);
-  let body = await res.text();
-  if (res.status === 400 && /thinking/i.test(body)) {
-    console.warn("Gemini rejected thinkingLevel, retrying without it");
-    res = await request(false);
-    body = await res.text();
+  let useThinkingLevel = true;
+  let lastError: GeminiApiError | null = null;
+
+  for (let attempt = 0; attempt <= MAX_TRANSIENT_RETRIES; attempt++) {
+    try {
+      const response = await invoke(useThinkingLevel);
+      const text = formatReplyText(response.text);
+      console.log(`Gemini ${model} answered in ${Date.now() - started} ms`);
+      if (!text) console.warn(`Gemini ${model} returned empty text`);
+      return text;
+    } catch (err) {
+      const normalized = normalizeGeminiError(err);
+      lastError = normalized;
+
+      if (useThinkingLevel && normalized.status === 400 && /thinking/i.test(normalized.message)) {
+        console.warn(`Gemini ${model} rejected thinkingConfig, retrying without it`);
+        useThinkingLevel = false;
+        continue;
+      }
+
+      const transient = normalized.status === 429 || normalized.status >= 500 || /timeout|aborted|fetch/i.test(normalized.message);
+      if (transient && attempt < MAX_TRANSIENT_RETRIES) {
+        await wait(400 * 2 ** attempt);
+        continue;
+      }
+
+      throw normalized;
+    }
   }
-  console.log(`Gemini ${model} answered ${res.status} in ${Date.now() - started} ms`);
-  if (!res.ok) throw new Error(`Gemini ${res.status}: ${body.slice(0, 300)}`);
-  const json = JSON.parse(body);
-  const parts = json?.candidates?.[0]?.content?.parts;
-  const text = Array.isArray(parts)
-    ? parts.filter((p: any) => !p?.thought).map((p: any) => (typeof p?.text === "string" ? p.text : "")).join("").trim().replace(/\*\*(.+?)\*\*/g, "$1").replace(/^[ \t]*[*-][ \t]+/gm, "• ")
-    : "";
-  if (!text) console.warn("Gemini returned no text:", body.slice(0, 300));
-  return text;
+
+  throw lastError ?? new GeminiApiError(500, "Gemini request failed");
 }
 
 async function callLovableGateway(system: string, turns: ChatTurn[]): Promise<string> {
@@ -164,7 +279,8 @@ async function callLovableGateway(system: string, turns: ChatTurn[]): Promise<st
     ],
     max_tokens: 1000,
   });
-  const content = (completion as any)?.choices?.[0]?.message?.content;
+  const choices = (completion as { choices?: Array<{ message?: { content?: unknown } }> } | null)?.choices;
+  const content = choices?.[0]?.message?.content;
   return typeof content === "string" ? content : "";
 }
 

@@ -6,10 +6,11 @@ import { toast } from 'sonner';
 import type { StaffMember } from '@/hooks/useRealtimeSync';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
-import { DASHBOARD_PERMISSIONS } from './permissions';
+import { DASHBOARD_PERMISSIONS, OFFER_PERMISSIONS } from './permissions';
 
 // Available permissions for staff members: one per dashboard section
 const AVAILABLE_PERMISSIONS = DASHBOARD_PERMISSIONS;
+const GENERAL_PERMISSIONS = DASHBOARD_PERMISSIONS.filter(p => !p.group);
 
 interface StaffManagementProps {
   inputClass: string;
@@ -536,8 +537,8 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
             {addUserForm.role === 'staff' && (
               <div>
                 <label className="text-xs font-bold text-[#718394] mb-2 block">الصلاحيات</label>
-                <div className="max-h-48 overflow-y-auto bg-white rounded-xl p-3 border border-[#DFEAF0] space-y-1.5">
-                  {AVAILABLE_PERMISSIONS.map(perm => (
+                <div className="max-h-56 overflow-y-auto bg-white rounded-xl p-3 border border-[#DFEAF0] space-y-1.5">
+                  {GENERAL_PERMISSIONS.map(perm => (
                     <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
                       <input
                         type="checkbox"
@@ -548,6 +549,20 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                       <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
                     </label>
                   ))}
+                  <div className="pt-2 mt-2 border-t border-[#DFEAF0]">
+                    <p className="text-xs font-black text-[#087F8C] px-2 py-1">العروض</p>
+                    {OFFER_PERMISSIONS.map(perm => (
+                      <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={addUserForm.permissions.includes(perm.id)}
+                          onChange={() => handleToggleAddPermission(perm.id)}
+                          className="w-4 h-4 text-[#087F8C] rounded-sm border-[#DFEAF0] focus:ring-[#087F8C]"
+                        />
+                        <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -712,8 +727,8 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                           <label className="text-xs font-bold text-[#718394] mb-2 block">
                             الصلاحيات (للموظفين فقط)
                           </label>
-                          <div className="max-h-48 overflow-y-auto bg-white rounded-xl p-3 border border-[#DFEAF0] space-y-1.5">
-                            {AVAILABLE_PERMISSIONS.map(perm => (
+                          <div className="max-h-56 overflow-y-auto bg-white rounded-xl p-3 border border-[#DFEAF0] space-y-1.5">
+                            {GENERAL_PERMISSIONS.map(perm => (
                               <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
                                 <input
                                   type="checkbox"
@@ -724,6 +739,20 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                                 <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
                               </label>
                             ))}
+                            <div className="pt-2 mt-2 border-t border-[#DFEAF0]">
+                              <p className="text-xs font-black text-[#087F8C] px-2 py-1">العروض</p>
+                              {OFFER_PERMISSIONS.map(perm => (
+                                <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
+                                  <input
+                                    type="checkbox"
+                                    checked={editForm.permissions.includes(perm.id)}
+                                    onChange={() => handleTogglePermission(perm.id)}
+                                    className="w-4 h-4 text-[#087F8C] rounded-sm border-[#DFEAF0] focus:ring-[#087F8C]"
+                                  />
+                                  <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
+                                </label>
+                              ))}
+                            </div>
                           </div>
                           <p className="text-xs text-[#718394] mt-2">المدير يملك كل الصلاحيات تلقائياً</p>
                         </div>

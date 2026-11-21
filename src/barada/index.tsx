@@ -18,6 +18,7 @@ import { EGYPT_CENTERS } from './egyptData';
 import PatientStats from './PatientStats';
 import ManagementIntelligence from './ManagementIntelligence';
 import clinicFacilityImg from '../assets/images/clinic_facility_modern_1795257432732.jpg';
+import { SERVICE_3D_ICONS, SERVICE_3D_ICON_LABELS, getService3DIcon } from './EyeCare3DIcons';
 import { 
   Eye, Calendar, Phone, MapPin, Send, Menu, X, 
   Activity, Clock, UserPlus, Users, Settings, Trash2, 
@@ -48,6 +49,9 @@ import { StaffManagement } from './StaffManagement';
 import { canAccessSection, firstAccessibleSection } from './permissions';
 import OverviewDashboard from './OverviewDashboard';
 import { createOperation, updateOperation, setOperationFields, deleteOperation, submitComplaint, deleteComplaint, markBookingReminderSent, mapOperationRow, mapComplaintRow, numericId, readLocalOperations, readLocalComplaints, importLocalRecords } from './clinicRecords';
+import { OffersSection } from './OffersSection';
+import { OffersManagement } from './OffersManagement';
+import { mapOfferRow, type OfferRecord } from './offers';
 
 // Constants for input validation
 const MAX_AI_MESSAGE_LENGTH = 500;
@@ -385,12 +389,7 @@ const TRANSLATIONS = {
 
 // --- Constants ---
 
-const ICON_MAP: Record<string, any> = {
-  Eye, Zap, Droplets, Activity, Baby, Ambulance, Stethoscope,
-  Microscope, Glasses, Syringe, Thermometer, Pill, Heart, Brain, Bone, ScanEye,
-  ShieldCheck, ZapIcon, HeartPulse, Hospital, Tablet, ActivityIcon,
-  ClipboardList, Scan, UserRound, BriefcaseMedical, Bandage, MicroscopeIcon
-};
+const ICON_MAP = SERVICE_3D_ICONS;
 
 
 const AVAILABLE_COLORS = [
@@ -583,7 +582,8 @@ const BookingModal = ({
     initialData,
     doctors,
     bookings,
-    settings
+    settings,
+    selectedOffer
 }: { 
     isOpen: boolean; 
     onClose: () => void; 
@@ -594,6 +594,7 @@ const BookingModal = ({
     doctors: Doctor[];
     bookings: Booking[];
     settings: AppSettings;
+    selectedOffer?: OfferRecord | null;
 }) => {
     // Form State
     const [name, setName] = useState('');
@@ -811,7 +812,11 @@ const BookingModal = ({
             setAge('');
             setGovernorate('');
             setCenter('');
-            setBookingNotes('');
+            setBookingNotes(
+                selectedOffer
+                    ? `حجز عبر العرض: ${selectedOffer.title} (سعر العرض: ${selectedOffer.offerPrice} ج.م)`
+                    : ''
+            );
             setBookingType('cash');
             setService(services[0]?.title || '');
             // لا يتم تحديد طبيب افتراضي — يجب الاختيار يدوياً
@@ -823,7 +828,7 @@ const BookingModal = ({
             setTime('');
             setContractingId(undefined);
         }
-    }, [isOpen, initialData, doctor, services, realtimeDoctors]);
+    }, [isOpen, initialData, doctor, services, realtimeDoctors, selectedOffer]);
 
     if (!isOpen) return null;
 
@@ -1131,6 +1136,23 @@ const BookingModal = ({
         const modalLabelClass = "text-xs font-bold text-[#718394] mr-1 block";
         return (
         <form onSubmit={handleNextStep} className="space-y-4">
+            {selectedOffer && !initialData && (
+                <div className="bg-[#EBF8FA] border border-[#25B8C7]/40 rounded-2xl p-4 flex items-center justify-between gap-3">
+                    <div>
+                        <p className="text-[11px] font-bold text-[#087F8C] mb-0.5">حجز ضمن العرض الطبي</p>
+                        <p className="text-sm font-black text-[#172B3A]">{selectedOffer.title}</p>
+                        {selectedOffer.doctorName && (
+                            <p className="text-xs font-bold text-[#718394] mt-0.5">{selectedOffer.doctorName}</p>
+                        )}
+                    </div>
+                    <div className="text-left shrink-0">
+                        <span className="text-base font-black text-[#087F8C] fv-num">{selectedOffer.offerPrice} ج.م</span>
+                        {selectedOffer.originalPrice !== null && selectedOffer.originalPrice > selectedOffer.offerPrice && (
+                            <div className="text-[11px] text-[#718394] line-through fv-num">{selectedOffer.originalPrice} ج.م</div>
+                        )}
+                    </div>
+                </div>
+            )}
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div className="space-y-1.5">
                     <label className={modalLabelClass}>الاسم بالكامل</label>
@@ -1980,9 +2002,22 @@ const AiAssistant = ({ language }: { language: 'ar' | 'en' }) => {
       }
       
       setMessages(prev => [...prev, { role: 'model', text: data?.response || '' }]);
-    } catch {
-      // Don't log error details to console in production - handled by vite.config.ts
-      setMessages(prev => [...prev, { role: 'model', text: language === 'ar' ? 'عذراً، حدث خطأ أثناء الاتصال بالمساعد الذكي.' : 'Sorry, an error occurred while connecting to the smart assistant.' }]);
+    } catch (err) {
+      const status = typeof (err as any)?.status === 'number' ? (err as any).status : undefined;
+      const errMsg = err instanceof Error ? err.message : '';
+      let fallback = language === 'ar'
+        ? 'عذراً، حدث خطأ أثناء الاتصال بالمساعد الذكي.'
+        : 'Sorry, an error occurred while connecting to the smart assistant.';
+      if (status === 429) {
+        fallback = language === 'ar'
+          ? 'تم تجاوز الحد المسموح حالياً. يرجى المحاولة مرة أخرى بعد قليل.'
+          : 'Too many requests right now. Please try again in a moment.';
+      } else if (/Settings > Secrets|API key/i.test(errMsg)) {
+        fallback = language === 'ar'
+          ? 'خدمة المساعد الذكي غير مفعّلة حالياً (يرجى التحقق من مفتاح Gemini API في Settings > Secrets).'
+          : errMsg;
+      }
+      setMessages(prev => [...prev, { role: 'model', text: fallback }]);
     } finally { setIsLoading(false); }
   };
   return (
@@ -2037,14 +2072,14 @@ const AiAssistant = ({ language }: { language: 'ar' | 'en' }) => {
 const AdminPanel = ({ 
   doctors, setDoctors, users, setUsers, currentUser, currentUserUuid, allBookings, setBookings, operations, setOperations,
   onCancelBooking, onConfirmBooking, onEditBooking, onDeleteBooking, onSendReminder,
-  complaints, setComplaints, heroImages, setHeroImages, partners, setPartners, settings, setSettings, services, setServices, t, handleWhatsAppReminder, handleSmsReminder, onConfirmPayment
+  complaints, setComplaints, heroImages, setHeroImages, partners, setPartners, settings, setSettings, services, setServices, t, handleWhatsAppReminder, handleSmsReminder, onConfirmPayment, onOffersChanged
 }: { 
-  doctors: Doctor[], setDoctors: React.Dispatch<React.SetStateAction<Doctor[]>>, users: User[], setUsers: React.Dispatch<React.SetStateAction<User[]>>, currentUser: User, currentUserUuid?: string, allBookings: Booking[], setBookings: React.Dispatch<React.SetStateAction<Booking[]>>, operations: Operation[], setOperations: React.Dispatch<React.SetStateAction<Operation[]>>, onCancelBooking: (id: number) => void, onConfirmBooking: (id: number) => void, onEditBooking: (booking: Booking) => void, onDeleteBooking: (id: number) => void, onSendReminder: (id: number, itemType: 'booking' | 'operation') => void, complaints: Complaint[], setComplaints: React.Dispatch<React.SetStateAction<Complaint[]>>, heroImages: HeroImage[], setHeroImages: React.Dispatch<React.SetStateAction<HeroImage[]>>, partners: Partner[], setPartners: React.Dispatch<React.SetStateAction<Partner[]>>, settings: AppSettings, setSettings: React.Dispatch<React.SetStateAction<AppSettings>>, services: ServiceItem[], setServices: React.Dispatch<React.SetStateAction<ServiceItem[]>>, t: any, handleWhatsAppReminder: (rem: any) => void, handleSmsReminder: (rem: any) => void, onConfirmPayment: (id: number) => void
+  doctors: Doctor[], setDoctors: React.Dispatch<React.SetStateAction<Doctor[]>>, users: User[], setUsers: React.Dispatch<React.SetStateAction<User[]>>, currentUser: User, currentUserUuid?: string, allBookings: Booking[], setBookings: React.Dispatch<React.SetStateAction<Booking[]>>, operations: Operation[], setOperations: React.Dispatch<React.SetStateAction<Operation[]>>, onCancelBooking: (id: number) => void, onConfirmBooking: (id: number) => void, onEditBooking: (booking: Booking) => void, onDeleteBooking: (id: number) => void, onSendReminder: (id: number, itemType: 'booking' | 'operation') => void, complaints: Complaint[], setComplaints: React.Dispatch<React.SetStateAction<Complaint[]>>, heroImages: HeroImage[], setHeroImages: React.Dispatch<React.SetStateAction<HeroImage[]>>, partners: Partner[], setPartners: React.Dispatch<React.SetStateAction<Partner[]>>, settings: AppSettings, setSettings: React.Dispatch<React.SetStateAction<AppSettings>>, services: ServiceItem[], setServices: React.Dispatch<React.SetStateAction<ServiceItem[]>>, t: any, handleWhatsAppReminder: (rem: any) => void, handleSmsReminder: (rem: any) => void, onConfirmPayment: (id: number) => void, onOffersChanged?: () => void
 }) => {
   // Access realtime data for Supabase operations
-  const { data: realtimeData } = useRealtimeSync({ enabled: true });
+  const { data: realtimeData, isLoading: realtimeLoading } = useRealtimeSync({ enabled: true });
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'doctors' | 'users' | 'bookings' | 'reports' | 'hero-images' | 'partners' | 'settings' | 'services' | 'complaints' | 'reminders' | 'backup' | 'operations' | 'patient-stats' | 'intelligence' | 'payments' | 'contact-logs' | 'paymob-settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'doctors' | 'users' | 'bookings' | 'reports' | 'hero-images' | 'partners' | 'settings' | 'services' | 'offers' | 'complaints' | 'reminders' | 'backup' | 'operations' | 'patient-stats' | 'intelligence' | 'payments' | 'contact-logs' | 'paymob-settings'>('overview');
   const [contactLogs, setContactLogs] = useState<any[]>([]);
   const [contactLogsLoading, setContactLogsLoading] = useState(false);
   const [contactStaffFilter, setContactStaffFilter] = useState('');
@@ -2652,6 +2687,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                     <div className="h-px bg-[#DFEAF0] mx-3 my-3"></div>
                     {canAccessSection(currentUser, 'partners') && (<button onClick={() => setActiveTab('partners')} className={tabClass('partners')}><Building2 size={18} /> {t.partners}</button>)}
                     {canAccessSection(currentUser, 'services') && (<button onClick={() => setActiveTab('services')} className={tabClass('services')}><LayoutTemplate size={18} /> {t.services}</button>)}
+                    {canAccessSection(currentUser, 'offers') && (<button onClick={() => setActiveTab('offers')} className={tabClass('offers')}><Tag size={18} /> إدارة العروض</button>)}
                     {canAccessSection(currentUser, 'hero-images') && (<button onClick={() => setActiveTab('hero-images')} className={tabClass('hero-images')}><ImageIcon size={18} /> الصور</button>)}
                     {canAccessSection(currentUser, 'complaints') && (<button onClick={() => setActiveTab('complaints')} className={tabClass('complaints')}><MessageSquare size={18} /> الشكاوى</button>)}
                     <div className="h-px bg-[#DFEAF0] mx-3 my-3"></div>
@@ -3053,7 +3089,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                                 <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">عنوان الخدمة</label><input type="text" value={newService.title} onChange={e => setNewService({...newService, title: e.target.value})} className={inputClass} /></div>
                                 <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">السعر (ج.م)</label><input type="number" value={newService.price} onChange={e => setNewService({...newService, price: Number(e.target.value)})} className={`${inputClass} fv-num`} /></div>
                                 <div className="md:col-span-2"><label className="text-xs font-bold text-[#718394] mb-1.5 block">وصف الخدمة</label><input type="text" value={newService.description} onChange={e => setNewService({...newService, description: e.target.value})} className={inputClass} /></div>
-                                <div><label className="text-xs font-bold text-[#718394] mb-2 block">اختر أيقونة للخدمة</label><div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-2 p-4 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0] max-h-60 overflow-y-auto">{Object.keys(ICON_MAP).map(icon => { const Icon = ICON_MAP[icon]; return (<button key={icon} onClick={() => setNewService({...newService, iconName: icon})} className={`p-3 rounded-xl transition-all flex flex-col items-center justify-center gap-1 ${newService.iconName === icon ? 'bg-[#087F8C] text-white scale-105 shadow-md' : 'bg-white text-[#718394] border border-[#DFEAF0] hover:border-[#087F8C] hover:text-[#087F8C]'}`} title={icon}><Icon size={20}/><span className="text-[7px] truncate w-full text-center">{icon}</span></button>) })}</div></div>
+                                <div><label className="text-xs font-bold text-[#718394] mb-2 block">اختر أيقونة للخدمة</label><div className="grid grid-cols-4 sm:grid-cols-6 lg:grid-cols-7 gap-2 p-4 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0] max-h-60 overflow-y-auto">{Object.keys(ICON_MAP).map(icon => { const Icon = ICON_MAP[icon]; const iconLabel = SERVICE_3D_ICON_LABELS[icon] || icon; return (<button key={icon} type="button" onClick={() => setNewService({...newService, iconName: icon})} className={`p-2.5 rounded-xl transition-all flex flex-col items-center justify-center gap-1 ${newService.iconName === icon ? 'bg-[#EBF8FA] text-[#087F8C] border-2 border-[#087F8C] scale-105 shadow-md' : 'bg-white text-[#718394] border border-[#DFEAF0] hover:border-[#087F8C] hover:text-[#087F8C]'}`} title={iconLabel}><Icon size={26}/><span className="text-[8px] font-bold truncate w-full text-center">{iconLabel}</span></button>) })}</div></div>
                                 <div><label className="text-xs font-bold text-[#718394] mb-2 block">اللون المميز</label><div className="flex flex-wrap gap-3 p-4 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0]">{AVAILABLE_COLORS.map(color => (<button key={color.value} onClick={() => setNewService({...newService, color: color.value})} className={`w-10 h-10 rounded-full ${color.bg} transition-all ${newService.color === color.value ? 'ring-4 ring-[#25B8C7]/50 scale-110' : 'hover:scale-105 opacity-80'}`} title={color.name}></button>))}</div></div>
                             </div>
                             <div className="flex gap-3 mt-7">
@@ -3068,10 +3104,10 @@ const handlePrint = (title: string, contentHtml: string) => {
                         </div>
                         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
                             {services.map(service => { 
-                                const Icon = ICON_MAP[service.iconName] || Eye; 
+                                const Icon = getService3DIcon(service.iconName); 
                                 return (
                                     <div key={service.id} className="bg-white p-5 rounded-2xl border border-[#DFEAF0] shadow-xs hover:shadow-md transition-all flex items-center gap-4 relative group">
-                                        <div className={`p-3.5 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] ${service.color}`}><Icon size={28}/></div>
+                                        <div className={`p-3 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] ${service.color}`}><Icon size={32}/></div>
                                         <div className="flex-1 min-w-0"><h4 className="font-black text-sm text-[#172B3A]">{service.title}</h4><p className="text-xs font-bold text-[#087F8C] fv-num">{service.price} ج.م</p></div>
                                         <div className="flex flex-col gap-1">
                                             <button onClick={() => handleEditServiceClick(service)} className="text-[#087F8C] hover:bg-[#087F8C]/10 p-2 rounded-lg" title="تعديل"><Edit2 size={16}/></button>
@@ -3082,6 +3118,17 @@ const handlePrint = (title: string, contentHtml: string) => {
                             })}
                         </div>
                     </div>
+                )}
+                {activeTab === 'offers' && (
+                  <OffersManagement
+                    currentUser={currentUser}
+                    realtimeDoctors={realtimeData.doctors}
+                    realtimeOffers={realtimeData.offers}
+                    realtimeLoaded={!realtimeLoading}
+                    cardClass={cardClass}
+                    inputClass={inputClass}
+                    onOffersChanged={onOffersChanged}
+                  />
                 )}
                 {activeTab === 'complaints' && (
                   <div className="space-y-6 animate-in fade-in duration-300">
@@ -3541,11 +3588,11 @@ const Services = ({ services, language, isLoading = false }: { services: Service
         {isLoading && <SectionLoading language={language} />}
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
           {services.map((service) => {
-             const IconComp = ICON_MAP[service.iconName] || Eye;
+             const IconComp = getService3DIcon(service.iconName);
              return (
                 <div key={service.id} className="glass-service-card p-5 rounded-3xl transition-all duration-300 text-center group relative overflow-hidden flex flex-col h-full">
-                    <div className="w-14 h-14 mx-auto mb-4 rounded-2xl bg-white/75 backdrop-blur-xs border border-[#DFEAF0]/90 shadow-[0_4px_12px_-6px_rgba(11,31,53,0.1)] flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
-                        <IconComp size={25} className={service.color} />
+                    <div className="w-15 h-15 mx-auto mb-4 rounded-2xl bg-white/75 backdrop-blur-xs border border-[#DFEAF0]/90 shadow-[0_4px_12px_-6px_rgba(11,31,53,0.1)] flex items-center justify-center group-hover:scale-105 transition-transform duration-300">
+                        <IconComp size={34} className={service.color} />
                     </div>
                     <h3 className="text-sm font-black text-[#172B3A] mb-2 leading-tight">{service.title}</h3>
                     <p className="text-[#3B5062] mb-4 leading-relaxed text-xs font-medium grow line-clamp-2">{service.description}</p>
@@ -3747,6 +3794,7 @@ const App = () => {
   const [activeSection, setActiveSection] = useState('home');
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
+  const [selectedOffer, setSelectedOffer] = useState<OfferRecord | null>(null);
   const [editingBooking, setEditingBooking] = useState<Booking | null>(null);
   const [instapayResult, setInstapayResult] = useState<InstapayResult | null>(null);
   const [paymobRedirecting, setPaymobRedirecting] = useState(false);
@@ -3775,10 +3823,28 @@ const App = () => {
     enabled: !!currentUser,
   });
 
-  // Public clinic content (doctors, services, top photos, partners, settings) for everyone.
-  const { data: publicData } = usePublicSiteData();
+  // Public clinic content (doctors, services, top photos, partners, offers, settings) for everyone.
+  const { data: publicData, refresh: refreshPublicData } = usePublicSiteData();
   const doctorsLoading = publicData.doctors === null;
   const servicesLoading = publicData.services === null;
+  const offersLoading = publicData.offers === null;
+
+  const doctorsWithDbId = React.useMemo(() => {
+    const rawDoctors = publicData.doctors || [];
+    return doctors.map((doc) => {
+      const matchedRaw = rawDoctors.find((r: any) => parseInt(String(r.id).slice(-8), 16) === doc.id || r.name === doc.name);
+      return { ...doc, dbId: matchedRaw?.id as string | undefined };
+    });
+  }, [doctors, publicData.doctors]);
+
+  const offers = React.useMemo(() => {
+    if (!Array.isArray(publicData.offers)) return [];
+    const byUuid = new globalThis.Map<string, { name?: string; specialty?: string }>();
+    for (const d of publicData.doctors || []) {
+      byUuid.set(d.id, { name: d.name, specialty: d.specialty });
+    }
+    return publicData.offers.map((row: any) => mapOfferRow(row, byUuid));
+  }, [publicData.offers, publicData.doctors]);
 
   useEffect(() => {
     if (publicData.doctors) setDoctors(publicData.doctors.map(mapDoctorRow));
@@ -3884,7 +3950,7 @@ const App = () => {
 
 const handleNavigate = (sectionId: string) => {
     // قائمة بالأقسام التي تعتبر جزءاً من الصفحة الرئيسية
-    const homeSections = ['about', 'doctors', 'services', 'stats', 'hero'];
+    const homeSections = ['about', 'doctors', 'services', 'offers', 'stats', 'hero'];
 
     if (homeSections.includes(sectionId)) {
       // إذا كان القسم جزءاً من الصفحة الرئيسية، نتأكد أننا في قسم home أولاً
@@ -3922,6 +3988,17 @@ const handleNavigate = (sectionId: string) => {
 
   const handleBookAppointment = (doctor?: Doctor) => {
     setSelectedDoctor(doctor || null);
+    setSelectedOffer(null);
+    setEditingBooking(null);
+    setIsBookingModalOpen(true);
+  };
+
+  const handleBookOffer = (doctorLookup: { id: number; dbId?: string; name: string }, offer: OfferRecord) => {
+    const matchedDoctor =
+      doctorsWithDbId.find((d) => (doctorLookup.dbId && d.dbId === doctorLookup.dbId) || d.id === doctorLookup.id) ||
+      null;
+    setSelectedDoctor(matchedDoctor);
+    setSelectedOffer(offer);
     setEditingBooking(null);
     setIsBookingModalOpen(true);
   };
@@ -4015,6 +4092,7 @@ const handleNavigate = (sectionId: string) => {
       }
     }
     setIsBookingModalOpen(false);
+    setSelectedOffer(null);
     setEditingBooking(null);
   };
 
@@ -4250,6 +4328,7 @@ const handleNavigate = (sectionId: string) => {
           />
           <SmartStatsBar settings={settings} />
           <Services services={services} language={settings.language} isLoading={servicesLoading} />
+          <OffersSection offers={offers} doctors={doctorsWithDbId} onBookOffer={handleBookOffer} language={settings.language} isLoading={offersLoading} />
           <DoctorsList doctors={doctors} onBook={handleBookAppointment} language={settings.language} t={t} isLoading={doctorsLoading} />
           <PartnersSection partners={partners} language={settings.language} />
           <AboutUs settings={settings} t={t} />
@@ -4282,6 +4361,7 @@ const handleNavigate = (sectionId: string) => {
            handleSmsReminder={handleSmsReminder}
            handleWhatsAppReminder={handleWhatsAppReminder}
            onConfirmPayment={handleConfirmPayment}
+           onOffersChanged={() => { void refreshPublicData('offers'); }}
         />
       )}
 
@@ -4309,7 +4389,7 @@ const handleNavigate = (sectionId: string) => {
 
       <BookingModal 
         isOpen={isBookingModalOpen} 
-        onClose={() => { setIsBookingModalOpen(false); setEditingBooking(null); }} 
+        onClose={() => { setIsBookingModalOpen(false); setSelectedOffer(null); setEditingBooking(null); }} 
         doctor={selectedDoctor} 
         services={services}
         onConfirm={handleConfirmBooking}
@@ -4317,6 +4397,7 @@ const handleNavigate = (sectionId: string) => {
         doctors={doctors}
         bookings={bookings}
         settings={settings}
+        selectedOffer={selectedOffer}
       />
 
       <InstapaySubmittedDialog result={instapayResult} onClose={() => setInstapayResult(null)} />

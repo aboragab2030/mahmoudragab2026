@@ -528,6 +528,74 @@ export type Database = {
           },
         ]
       }
+      offers: {
+        Row: {
+          button_text: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          discount_percentage: number | null
+          display_order: number
+          doctor_id: string
+          end_date: string
+          id: string
+          image_url: string | null
+          is_active: boolean
+          offer_price: number
+          original_price: number | null
+          show_on_homepage: boolean
+          start_date: string
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          button_text?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          display_order?: number
+          doctor_id: string
+          end_date: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          offer_price: number
+          original_price?: number | null
+          show_on_homepage?: boolean
+          start_date: string
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          button_text?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          discount_percentage?: number | null
+          display_order?: number
+          doctor_id?: string
+          end_date?: string
+          id?: string
+          image_url?: string | null
+          is_active?: boolean
+          offer_price?: number
+          original_price?: number | null
+          show_on_homepage?: boolean
+          start_date?: string
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "offers_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       operations: {
         Row: {
           contracting_company_id: number | null

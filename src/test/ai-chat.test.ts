@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { buildSystemPrompt, sanitizeHistory } from "@/lib/aiChat.server";
+import { buildSystemPrompt, DEFAULT_GEMINI_MODEL, resolveGeminiModel, sanitizeHistory } from "@/lib/aiChat.server";
 
 describe("ai chat helpers", () => {
   it("keeps only valid recent turns", () => {
@@ -19,5 +19,15 @@ describe("ai chat helpers", () => {
     const p = buildSystemPrompt("ar", "الأطباء:\n- د. أحمد | سعر الكشف: 300 جنيه");
     expect(p).toContain("د. أحمد");
     expect(p).toContain("مركز براده");
+  });
+
+  it("uses gemini-4-hydrogen and rejects invalid or deprecated model aliases", () => {
+    expect(DEFAULT_GEMINI_MODEL).toBe("gemini-4-hydrogen");
+    expect(resolveGeminiModel(undefined)).toBe("gemini-4-hydrogen");
+    expect(resolveGeminiModel("")).toBe("gemini-4-hydrogen");
+    expect(resolveGeminiModel("gemini-3.5-flash-lite")).toBe("gemini-4-hydrogen");
+    expect(resolveGeminiModel("gemini-1.5-flash")).toBe("gemini-4-hydrogen");
+    expect(resolveGeminiModel("gemini-2.0-flash")).toBe("gemini-4-hydrogen");
+    expect(resolveGeminiModel("gemini-4-neon")).toBe("gemini-4-neon");
   });
 });
