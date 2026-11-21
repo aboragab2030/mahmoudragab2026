@@ -14,9 +14,6 @@ import { mapDoctorRow, mapServiceRow, mapHeroRow, mapPartnerRow, applySettingsRo
 import { downloadFullBackup, restoreFromFile } from './backupClient';
 import { GoogleDrivePanel } from './GoogleDrivePanel';
 import { runBookingTestMode } from './bookingTestMode';
-import heroFallbackImg from '@/assets/images/hero_ophthalmology_clinic_1795253763626.jpg';
-import aboutClinicImg from '@/assets/images/about_clinic_interior_1795253763514.jpg';
-import baradaLogoFallback from '@/assets/barada-logo.jpg';
 import { EGYPT_CENTERS } from './egyptData';
 import PatientStats from './PatientStats';
 import ManagementIntelligence from './ManagementIntelligence';
@@ -491,7 +488,7 @@ const INITIAL_APP_SETTINGS: AppSettings = {
   appName: 'مركز براده للعيون',
   heroTitle: 'مركز براده المتخصص للعيون',
   heroDescription: 'نخبة من الاستشاريين وأحدث التقنيات العالمية لرعاية عينيك وضمان رؤية أوضح لمستقبل أفضل.',
-  logoUrl: baradaLogoFallback,
+  logoUrl: 'https://images.unsplash.com/photo-1579684385127-1ef15d508118?w=192&h=192&fit=crop',
   phones: ['01000000000', '01200000000'],
   addresses: ['القاهرة، مدينة نصر، شارع عباس العقاد', 'الجيزة، حي الدقي'],
   facebookUrl: 'https://facebook.com',
@@ -538,45 +535,37 @@ const INITIAL_USERS: User[] = [];
 
 // --- Components ---
 
-const TermsView = ({ settings, onNavigate }: { settings: AppSettings; onNavigate?: (section: string) => void }) => {
+const TermsView = ({ settings }: { settings: AppSettings }) => {
   const isAr = settings.language === 'ar';
   const content = isAr ? settings.termsAr : settings.termsEn;
   return (
-    <div className="py-20 bg-slate-50 min-h-[80vh]">
-      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="text-center mb-12">
-          <p className="text-xs font-bold tracking-wider uppercase text-blue-700 mb-3">
-            {isAr ? 'السياسات والالتزام الطبي' : 'Policies & Patient Rights'}
-          </p>
-          <h1 className="text-3xl md:text-5xl font-black text-slate-900 mb-3 [text-wrap:balance]">
-            {isAr ? 'الشروط والأحكام' : 'Terms and Conditions'}
-          </h1>
-          <p className="text-slate-500 text-base font-medium">
-            {isAr ? 'يرجى قراءة اتفاقية الاستخدام بعناية' : 'Please read the usage agreement carefully'}
-          </p>
+    <div className="py-24 bg-white min-h-[80vh]">
+      <div className="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="text-center mb-16">
+          <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-6">
+            <Scale size={32} />
+          </div>
+          <h1 className="text-4xl md:text-5xl font-black text-gray-900 mb-4">{isAr ? 'الشروط والأحكام' : 'Terms and Conditions'}</h1>
+          <p className="text-gray-500 font-bold">{isAr ? 'يرجى قراءة اتفاقية الاستخدام بعناية' : 'Please read the usage agreement carefully'}</p>
         </div>
 
-        <div className="bg-white p-8 md:p-12 rounded-3xl border border-slate-200 shadow-xs">
-          <div className="flex items-center gap-3 pb-6 mb-6 border-b border-slate-100 text-blue-700">
-            <Scale size={24} />
-            <h3 className="text-xl font-bold text-slate-900">{isAr ? 'اتفاقية الخدمة' : 'Service Agreement'}</h3>
-          </div>
-          <p className="text-slate-600 text-base md:text-lg leading-loose font-medium whitespace-pre-wrap">
-            {content}
-          </p>
+        <div className="bg-gray-50 p-10 md:p-16 rounded-[3rem] border border-gray-100 shadow-xs">
+           <div className="flex items-center gap-3 mb-8 text-blue-600">
+             <ShieldAlert size={28} />
+             <h3 className="text-2xl font-black">{isAr ? 'اتفاقية الخدمة' : 'Service Agreement'}</h3>
+           </div>
+           <div className="prose prose-blue max-w-none">
+              <p className="text-gray-600 text-lg leading-relaxed font-bold whitespace-pre-wrap">
+                {content}
+              </p>
+           </div>
         </div>
 
-        <div className="mt-8 bg-slate-900 text-white p-8 md:p-10 rounded-3xl flex flex-col md:flex-row items-center justify-between gap-6">
-          <div className={isAr ? 'text-center md:text-right' : 'text-center md:text-left'}>
-            <h4 className="text-xl font-bold mb-2">{isAr ? 'هل لديك أي استفسار حول سياساتنا؟' : 'Have questions about our policies?'}</h4>
-            <p className="text-slate-300 text-sm">{isAr ? 'نحن هنا لمساعدتك وتوضيح كافة التفاصيل المتعلقة بحقوق المريض.' : 'We are here to help and clarify all details regarding patient rights.'}</p>
-          </div>
-          <button
-            type="button"
-            onClick={() => onNavigate?.('contact')}
-            className="bg-blue-600 hover:bg-blue-700 text-white px-7 py-3.5 rounded-xl font-bold text-sm transition-colors whitespace-nowrap shrink-0"
-          >
-            {isAr ? 'تواصل معنا الآن' : 'Contact Us Now'}
+        <div className="mt-12 bg-blue-600 text-white p-10 rounded-[3rem] shadow-xl shadow-blue-500/20 text-center">
+          <h4 className="text-2xl font-black mb-4">{isAr ? 'هل لديك أي استفسار حول سياساتنا؟' : 'Have questions about our policies?'}</h4>
+          <p className="opacity-90 mb-8 font-bold">{isAr ? 'نحن هنا لمساعدتك وتوضيح كافة التفاصيل المتعلقة بحقوق المريض.' : 'We are here to help and clarify all details regarding patient rights.'}</p>
+          <button className="bg-white text-blue-600 px-8 py-4 rounded-2xl font-black hover:bg-gray-100 transition-all active:scale-95">
+             {isAr ? 'تواصل معنا الآن' : 'Contact Us Now'}
           </button>
         </div>
       </div>
@@ -1470,49 +1459,47 @@ const LoginView = ({ onLogin, settings, isLoading: externalLoading }: { onLogin:
     };
 
     return (
-        <div className="min-h-[82vh] flex items-center justify-center bg-slate-50 px-4 py-16">
-            <div className="max-w-md w-full bg-white rounded-3xl shadow-sm p-8 md:p-10 border border-slate-200">
-                <div className="text-center mb-8">
-                    <div className="inline-flex items-center justify-center w-20 h-20 bg-slate-50 text-blue-700 rounded-2xl mb-5 overflow-hidden border border-slate-200">
-                        <img
-                            src={settings.logoUrl || baradaLogoFallback}
-                            alt={settings.appName}
-                            referrerPolicy="no-referrer"
-                            onError={(e) => { (e.currentTarget as HTMLImageElement).src = baradaLogoFallback; }}
-                            className="w-full h-full object-contain p-1.5"
-                        />
+        <div className="min-h-[80vh] flex items-center justify-center bg-gray-50 px-4 py-12">
+            <div className="max-w-md w-full bg-white rounded-[2.5rem] shadow-2xl p-10 border border-gray-100">
+                <div className="text-center mb-10">
+                    <div className="inline-flex items-center justify-center w-24 h-24 bg-blue-50 text-blue-600 rounded-full mb-6 overflow-hidden border-4 border-blue-50 shadow-inner">
+                        {settings.logoUrl ? (
+                            <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                        ) : (
+                            <Lock size={40} />
+                        )}
                     </div>
-                    <h2 className="text-2xl font-black text-slate-900 mb-1.5">دخول الموظفين</h2>
-                    <p className="text-slate-500 text-sm">يرجى إدخال بيانات الاعتماد الخاصة بك</p>
+                    <h2 className="text-3xl font-black text-gray-900 mb-2">دخول الموظفين</h2>
+                    <p className="text-gray-500 text-sm font-medium">يرجى إدخال بيانات الاعتماد الخاصة بك</p>
                 </div>
-                <form onSubmit={handleSubmit} className="space-y-5">
+                <form onSubmit={handleSubmit} className="space-y-6">
                     <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-2">اسم المستخدم أو البريد الإلكتروني</label>
+                        <label className="block text-xs font-black text-gray-400 mb-2 uppercase tracking-widest">اسم المستخدم أو البريد الإلكتروني</label>
                         <div className="relative">
-                            <User className="absolute right-4 top-3.5 text-slate-400" size={18} />
-                            <input type="text" value={usernameOrEmail} onChange={e => { setUsernameOrEmail(e.target.value); setError(''); }} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 pr-11 focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-hidden transition-all font-semibold text-slate-900" placeholder="اسم المستخدم أو example@email.com" dir="ltr" />
+                            <User className="absolute right-4 top-4 text-gray-400" size={18} />
+                            <input type="text" value={usernameOrEmail} onChange={e => { setUsernameOrEmail(e.target.value); setError(''); }} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 pr-12 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold" placeholder="اسم المستخدم أو example@email.com" dir="ltr" />
                         </div>
                     </div>
                     <div>
-                        <label className="block text-xs font-bold text-slate-600 mb-2">كلمة المرور</label>
+                        <label className="block text-xs font-black text-gray-400 mb-2 uppercase tracking-widest">كلمة المرور</label>
                         <div className="relative">
-                            <Shield className="absolute right-4 top-3.5 text-slate-400" size={18} />
-                            <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} className="w-full bg-slate-50 border border-slate-200 rounded-xl p-3.5 pr-11 focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 outline-hidden transition-all font-semibold text-slate-900" placeholder="••••••••" />
+                            <Shield className="absolute right-4 top-4 text-gray-400" size={18} />
+                            <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} className="w-full bg-gray-50 border border-gray-200 rounded-2xl p-4 pr-12 focus:ring-4 focus:ring-blue-500/10 focus:border-blue-500 outline-hidden transition-all font-bold" placeholder="••••••••" />
                         </div>
                     </div>
                     {error && (
-                        <div className="bg-red-50 border border-red-200 text-red-700 p-3.5 rounded-xl text-xs font-bold flex items-center gap-2">
-                            <AlertCircle size={16} className="shrink-0" />
-                            <span>{error}</span>
+                        <div className="bg-red-50 text-red-600 p-4 rounded-xl text-xs font-bold flex items-center gap-2 animate-shake">
+                            <AlertCircle size={16} />
+                            {error}
                         </div>
                     )}
-                    <button type="submit" disabled={isSubmitting || externalLoading} className="w-full bg-blue-700 text-white font-bold py-3.5 rounded-xl hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-70">
-                        {(isSubmitting || externalLoading) ? <RotateCcw size={18} className="animate-spin" /> : <Send size={18} />}
+                    <button type="submit" disabled={isSubmitting || externalLoading} className="w-full bg-blue-600 text-white font-black py-4 rounded-2xl shadow-xl shadow-blue-500/20 hover:bg-blue-700 transition-all hover:scale-102 active:scale-95 flex items-center justify-center gap-2 disabled:opacity-70">
+                        {(isSubmitting || externalLoading) ? <RotateCcw size={20} className="animate-spin" /> : <Send size={20} />}
                         تسجيل الدخول
                     </button>
                 </form>
-                <div className="mt-7 pt-5 border-t border-slate-100 text-center text-slate-400 text-xs">
-                    نظام إدارة {settings.appName} &copy; {new Date().getFullYear()}
+                <div className="mt-8 text-center text-gray-400 text-xs font-medium">
+                    نظام إدارة مركز براده للعيون &copy; {new Date().getFullYear()}
                 </div>
             </div>
         </div>
@@ -1521,25 +1508,24 @@ const LoginView = ({ onLogin, settings, isLoading: externalLoading }: { onLogin:
 
 const SmartStatsBar = ({ settings }: { settings: AppSettings }) => {
     const icons = [Users, Activity, UserPlus, Award];
-    const colors = ['text-blue-700', 'text-emerald-600', 'text-sky-600', 'text-amber-600'];
-    const bgColors = ['bg-blue-50', 'bg-emerald-50', 'bg-sky-50', 'bg-amber-50'];
-
+    const colors = ['text-blue-600', 'text-emerald-600', 'text-purple-600', 'text-amber-600'];
+    
     return (
-        <div className="relative -mt-14 z-30 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="glass-stats rounded-2xl p-6 md:p-8 grid grid-cols-2 lg:grid-cols-4 gap-6 relative">
+        <div className="relative -mt-16 z-30 max-w-7xl mx-auto px-4">
+        <div className="glass-stats rounded-2xl p-6 md:p-8 grid grid-cols-2 lg:grid-cols-4 gap-6 relative overflow-hidden group">
+                <div className="absolute inset-0 bg-gradient-to-r from-blue-50/20 via-transparent to-emerald-50/20 opacity-0 group-hover:opacity-100 transition-opacity duration-700 pointer-events-none"></div>
                 {settings.stats.map((stat, idx) => {
                     const StatIcon = icons[idx] || Award;
-                    const colorClass = colors[idx] || 'text-slate-700';
-                    const bgClass = bgColors[idx] || 'bg-slate-50';
+                    const colorClass = colors[idx] || 'text-gray-600';
                     return (
-                        <div key={idx} className="relative flex flex-col items-center text-center px-2">
-                            {idx !== 0 && <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 w-px h-14 bg-slate-200"></div>}
-                            <div className={`w-11 h-11 rounded-xl ${bgClass} ${colorClass} flex items-center justify-center mb-3`}>
-                                <StatIcon size={22} />
+                        <div key={idx} className="relative flex flex-col items-center text-center group/item">
+                            {idx !== 0 && <div className="hidden lg:block absolute -right-3 top-1/2 -translate-y-1/2 w-px h-12 bg-gray-200/60"></div>}
+                            <div className={`p-3 rounded-xl ${colorClass.replace('text', 'bg')}/10 mb-3 transition-all duration-500 group-hover/item:scale-110 group-hover/item:shadow-lg group-hover/item:-translate-y-1`}>
+                                <StatIcon className={`${colorClass} drop-shadow-xs`} size={24} />
                             </div>
-                            <h4 className="text-2xl md:text-3xl font-black text-slate-900 mb-1 tracking-tight tabular-nums">{stat.value}</h4>
-                            <p className="text-slate-700 text-sm font-bold mb-0.5">{stat.label}</p>
-                            {stat.trend && <span className="text-xs font-medium text-slate-500">{stat.trend}</span>}
+                            <h4 className="text-2xl md:text-3xl font-black text-gray-900 mb-1 tracking-tight group-hover/item:text-blue-700 transition-colors">{stat.value}</h4>
+                            <p className="text-gray-600 text-xs font-bold uppercase tracking-widest mb-1">{stat.label}</p>
+                            <span className="text-[9px] font-black text-gray-400 bg-gray-50 px-2 py-0.5 rounded-full border border-gray-100 group-hover/item:bg-white transition-colors">{stat.trend}</span>
                         </div>
                     );
                 })}
@@ -1549,83 +1535,71 @@ const SmartStatsBar = ({ settings }: { settings: AppSettings }) => {
 };
 
 const AboutUs = ({ settings, t }: { settings: AppSettings, t: any }) => {
-    const isAr = settings.language === 'ar';
     return (
-        <section id="about" className="py-24 bg-white border-y border-slate-200/80 scroll-mt-20">
-            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-                <div className="grid grid-cols-1 lg:grid-cols-12 gap-12 items-stretch">
-                    <div className="lg:col-span-5 relative">
-                        <div className="relative rounded-3xl overflow-hidden border border-slate-200 shadow-sm h-full min-h-[380px] lg:min-h-[540px] bg-slate-100">
-                            <img
-                                src={aboutClinicImg}
-                                alt={isAr ? 'وحدة فحص وتشخيص العيون في مركز براده' : 'Barada Ophthalmology Diagnostic Suite'}
-                                referrerPolicy="no-referrer"
-                                className="w-full h-full object-cover"
-                            />
-                            <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/25 to-transparent"></div>
-                            <div className="absolute bottom-6 right-6 left-6 text-white">
-                                <p className="text-xs font-bold text-blue-300 mb-1.5">
-                                    {isAr ? 'خبرة تمتد لأكثر من 20 عاماً' : 'Over 20 Years of Clinical Excellence'}
-                                </p>
-                                <h4 className="font-black text-xl md:text-2xl tracking-tight mb-2">
-                                    {isAr ? 'رعاية طبية بمعايير عالمية' : 'World-class Medical Care'}
-                                </h4>
-                                <p className="text-sm text-slate-200 leading-relaxed">
-                                    {isAr
-                                        ? 'نكرس أحدث تقنيات التشخيص وجراحات العيون الدقيقة للحفاظ على جودة بصرك وسلامتك.'
-                                        : 'We dedicate modern ophthalmic diagnostics and micro-surgical care to safeguard your vision.'}
-                                </p>
+        <div id="about" className="py-32 relative overflow-hidden scroll-mt-20">
+            <div className="absolute top-0 left-0 w-full h-full pointer-events-none overflow-hidden">
+                <div className="absolute -top-24 -left-24 w-96 h-96 bg-blue-50 rounded-full blur-[120px] opacity-40"></div>
+                <div className="absolute bottom-0 right-0 w-[500px] h-[500px] bg-emerald-50/50 rounded-full blur-[150px] opacity-40 translate-x-1/2 translate-y-1/2"></div>
+            </div>
+            <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+                <div className="grid grid-cols-1 lg:grid-cols-2 gap-20 items-center">
+                    <div className="relative">
+                        <div className="relative rounded-[4rem] overflow-hidden shadow-[0_40px_80px_-15px_rgba(0,0,0,0.15)] transform transition-all hover:scale-[1.01] duration-700 aspect-[4/5] lg:aspect-auto lg:h-[650px]">
+                            <img src="https://images.unsplash.com/photo-1519494026892-80bbd2d6fd0d?auto=format&fit=crop&q=80&w=1200" alt="Modern Clinic" className="w-full h-full object-cover" />
+                            <div className="absolute inset-0 bg-gradient-to-t from-blue-950/80 via-blue-900/10 to-transparent"></div>
+                            <div className="absolute top-10 right-10 bg-white/90 backdrop-blur-md p-5 rounded-[2.5rem] shadow-2xl border border-white/50 flex items-center gap-4 animate-bounce-slow">
+                                <div className="w-14 h-14 bg-blue-600 rounded-2xl flex items-center justify-center text-white shadow-lg shadow-blue-500/30">
+                                    <ShieldCheck size={28} />
+                                </div>
+                                <div>
+                                    <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest">{settings.language === 'ar' ? 'خبرة تفوق' : 'Expertise over'}</p>
+                                    <p className="text-xl font-black text-gray-900">{settings.language === 'ar' ? '20 عاماً' : '20 Years'}</p>
+                                </div>
+                            </div>
+                            <div className="absolute bottom-10 right-10 left-10 bg-white/10 backdrop-blur-xl p-8 rounded-[2.5rem] border border-white/20 text-white shadow-2xl">
+                                <div className="flex items-center gap-3 mb-3">
+                                    <div className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></div>
+                                    <h4 className="font-black text-2xl tracking-tight">{settings.language === 'ar' ? 'رعاية طبية بمعايير عالمية' : 'World-class Medical Care'}</h4>
+                                </div>
+                                <p className="text-base opacity-90 leading-relaxed font-medium">{settings.language === 'ar' ? 'نحن في مركز براده نؤمن أن الرؤية هي أثمن ما يملكه الإنسان، ولذلك نكرس أحدث التقنيات الجراحية لخدمة أعينكم.' : 'At Barada Center, we believe vision is humanity\'s most precious asset, so we dedicate advanced surgical technologies to serve your eyes.'}</p>
                             </div>
                         </div>
+                        <div className="absolute -bottom-6 -right-6 w-32 h-32 bg-blue-600/10 rounded-[2.5rem] -z-10 animate-pulse"></div>
                     </div>
-
-                    <div className="lg:col-span-7 flex flex-col justify-center space-y-10">
-                        <div className="space-y-4">
-                            <p className="text-xs font-bold tracking-wider uppercase text-blue-700">
-                                {isAr ? 'قصتنا ونجاحنا' : 'Our Story & Heritage'}
-                            </p>
-                            <h2 className="text-3xl md:text-5xl font-black text-slate-900 leading-[1.2] tracking-tight [text-wrap:balance]">
-                                {isAr ? (
-                                    <>نصنع مستقبلاً <span className="text-blue-700">أكثر وضوحاً</span> لعينيك</>
+                    <div className="space-y-12">
+                        <div className="space-y-6">
+                            <span className="bg-blue-100/50 text-blue-600 px-6 py-2 rounded-full text-xs font-black uppercase tracking-[0.2em] mb-4 inline-block border border-blue-200/50">{settings.language === 'ar' ? 'قصتنا ونجاحنا' : 'Our Story & Success'}</span>
+                            <h2 className="text-5xl lg:text-6xl font-black text-gray-900 leading-[1.15] tracking-tight">
+                                {settings.language === 'ar' ? (
+                                    <>نصنع مستقبلاً <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400">أكثر إشراقاً</span> لعينيك</>
                                 ) : (
-                                    <>Creating a <span className="text-blue-700">Clearer</span> Future for Your Eyes</>
+                                    <>Creating a <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-600 to-blue-400">Brighter</span> Future for Your Eyes</>
                                 )}
                             </h2>
-                            <p className="text-slate-600 text-base md:text-lg leading-relaxed max-w-2xl">
-                                {isAr
-                                    ? 'تأسس مركز براده ليكون الصرح الطبي المتخصص في طب وجراحة العيون، حيث نجمع بين الخبرة الاستشارية الدقيقة والتجهيزات الطبية الحديثة لخدمة مرضانا بأعلى درجات الأمان.'
-                                    : 'Barada Center combines senior ophthalmic consultancy with modern diagnostic and surgical infrastructure to deliver safe, patient-first care.'}
-                            </p>
+                            <p className="text-gray-500 text-xl leading-relaxed font-medium">{settings.language === 'ar' ? 'تأسس مركز براده ليكون الصرح الطبي الأول المتخصص في طب وجراحة العيون، حيث نجمع بين الإرث الأكاديمي والخبرة العملية والتقنيات الرقمية المتقدمة.' : 'Barada Center was founded to be a leading specialized medical facility for ophthalmology, combining academic heritage with practical experience and advanced digital technologies.'}</p>
                         </div>
-
-                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
-                            <div className="p-7 bg-slate-50 rounded-2xl border border-slate-200/80">
-                                <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-blue-700 mb-5">
-                                    <Target size={24} />
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-8">
+                            <div className="group p-10 bg-white rounded-[3rem] border border-gray-100 shadow-xs hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] transition-all hover:-translate-y-2 relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-2 h-full bg-blue-600/10 group-hover:bg-blue-600 transition-colors"></div>
+                                <div className="w-16 h-16 bg-blue-50 rounded-2xl flex items-center justify-center text-blue-600 mb-8 group-hover:rotate-12 transition-transform shadow-inner">
+                                    <Target size={32} />
                                 </div>
-                                <h4 className="text-xl font-bold text-slate-900 mb-2.5">{isAr ? 'رؤيتنا' : 'Our Vision'}</h4>
-                                <p className="text-sm text-slate-600 leading-relaxed">
-                                    {isAr
-                                        ? 'أن نبقى الخيار الأول والأكثر موثوقية عبر تقديم حلول بصرية متكاملة وآمنة.'
-                                        : 'To remain the most trusted ophthalmology center through safe, comprehensive eye care.'}
-                                </p>
+                                <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">{settings.language === 'ar' ? 'رؤيتنا' : 'Our Vision'}</h4>
+                                <p className="text-sm text-gray-500 leading-relaxed font-bold opacity-80">{settings.language === 'ar' ? 'أن نبقى الخيار الأول والأكثر موثوقية في الشرق الأوسط عبر تقديم حلول بصرية متكاملة وآمنة.' : 'To remain the first and most trusted choice in the Middle East by providing integrated and safe optical solutions.'}</p>
                             </div>
-                            <div className="p-7 bg-slate-50 rounded-2xl border border-slate-200/80">
-                                <div className="w-12 h-12 bg-white rounded-xl border border-slate-200 flex items-center justify-center text-emerald-600 mb-5">
-                                    <Compass size={24} />
+                            <div className="group p-10 bg-white rounded-[3rem] border border-gray-100 shadow-xs hover:shadow-[0_20px_40px_-10px_rgba(0,0,0,0.05)] transition-all hover:-translate-y-2 relative overflow-hidden">
+                                <div className="absolute top-0 left-0 w-2 h-full bg-emerald-500/10 group-hover:bg-emerald-500 transition-colors"></div>
+                                <div className="w-16 h-16 bg-emerald-50 rounded-2xl flex items-center justify-center text-emerald-600 mb-8 group-hover:rotate-12 transition-transform shadow-inner">
+                                    <Compass size={32} />
                                 </div>
-                                <h4 className="text-xl font-bold text-slate-900 mb-2.5">{isAr ? 'رسالتنا' : 'Our Mission'}</h4>
-                                <p className="text-sm text-slate-600 leading-relaxed">
-                                    {isAr
-                                        ? 'الالتزام بالابتكار الطبي المستمر وتوفير تجربة مريض استثنائية ترتكز على الشفافية والنتائج الملموسة.'
-                                        : 'Commitment to continuous medical excellence and a transparent, compassionate patient experience.'}
-                                </p>
+                                <h4 className="text-2xl font-black text-gray-900 mb-4 tracking-tight">{settings.language === 'ar' ? 'رسالتنا' : 'Our Mission'}</h4>
+                                <p className="text-sm text-gray-500 leading-relaxed font-bold opacity-80">{settings.language === 'ar' ? 'الالتزام بالابتكار الطبي المستمر وتوفير تجربة مريض استثنائية ترتكز على الشفافية والنتائج الملموسة.' : 'Commitment to continuous medical innovation and providing an exceptional patient experience focused on transparency and tangible results.'}</p>
                             </div>
                         </div>
                     </div>
                 </div>
             </div>
-        </section>
+        </div>
     );
 };
 
@@ -1694,86 +1668,70 @@ const Navbar = ({
     { name: t.contact, id: 'contact' },
   ];
 
-  const isOverlayNav = transparent && !isScrolled;
-
   return (
-    <nav className={`sticky w-full z-50 top-0 transition-all duration-200 glass-navbar ${
-      isScrolled ? 'py-1' : 'py-2'
-    } ${isOverlayNav ? 'navbar-clear' : ''}`}>
+    <nav className={`sticky w-full z-50 top-0 transition-all duration-300 glass-navbar ${
+      isScrolled 
+        ? "py-1" 
+        : "py-3"
+    } ${transparent && !isScrolled ? "navbar-clear" : ""}`}>
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 items-center gap-8">
-          <div className="flex items-center shrink-0">
-            <button
-              type="button"
-              className="shrink-0 flex items-center gap-2.5 cursor-pointer group glass-logo text-right"
-              onClick={handleLogoClick}
-            >
-              <div className="w-9 h-9 rounded-xl flex items-center justify-center overflow-hidden bg-white border border-slate-200/80 shrink-0">
-                <img
-                  src={settings.logoUrl || baradaLogoFallback}
-                  alt={settings.appName}
-                  referrerPolicy="no-referrer"
-                  onError={(e) => { (e.currentTarget as HTMLImageElement).src = baradaLogoFallback; }}
-                  className="w-full h-full object-contain"
-                />
+        <div className="flex justify-between h-20 items-center">
+          <div className="flex items-center">
+            <div className="shrink-0 flex items-center gap-2 cursor-pointer group glass-logo" onClick={handleLogoClick}>
+              <div className="w-10 h-10 rounded-2xl flex items-center justify-center overflow-hidden transition-transform group-hover:scale-105 active:scale-95">
+                {settings.logoUrl ? (
+                  <img src={settings.logoUrl} alt="Logo" className="w-full h-full object-contain" />
+                ) : (
+                  <Eye size={24} className="text-emerald-600" />
+                )}
               </div>
-              <span className={`font-extrabold text-lg tracking-tight whitespace-nowrap shrink-0 transition-colors ${isOverlayNav ? 'text-white' : 'text-slate-900'}`}>
-                {settings.appName}
-              </span>
-            </button>
+              <span className="font-bold text-xl text-gray-800 tracking-tight">{settings.appName}</span>
+              {settings.patientMode && <span className="bg-emerald-50 text-emerald-600 text-[8px] font-black px-1.5 py-0.5 rounded-md border border-emerald-100 uppercase tracking-tighter ml-2">Patient Mode</span>}
+            </div>
           </div>
-
-          <div className="hidden md:flex items-center gap-6">
+          <div className="hidden md:flex items-center space-x-6">
             {navItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => onNavigate(item.id)}
-                className={`px-1 py-2 text-sm font-bold transition-colors whitespace-nowrap shrink-0 border-b-2 border-transparent hover:border-blue-500 ${
-                  isOverlayNav ? 'text-white/90 hover:text-white' : 'text-slate-600 hover:text-blue-700'
-                }`}
-              >
+              <button key={item.id} onClick={() => onNavigate(item.id)} className="text-gray-700 hover:text-emerald-600 px-3 py-2 rounded-md text-sm font-bold transition-all duration-300 whitespace-nowrap glass-btn-hover">
                 {item.name}
               </button>
             ))}
-          </div>
-
-          <div className="hidden md:flex items-center gap-3 shrink-0">
+            
             {currentUser && (
                 <div className="relative">
-                    <button onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) onMarkAsRead(); }} className={`relative p-2.5 rounded-xl transition-colors ${isOverlayNav ? 'text-white hover:bg-white/10' : 'text-slate-600 hover:text-blue-700 hover:bg-slate-100'}`} aria-label="الإشعارات">
-                        <Bell size={20} />
+                    <button onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) onMarkAsRead(); }} className="relative p-2.5 text-gray-600 hover:text-blue-600 hover:bg-blue-50 rounded-full transition-all active:scale-90">
+                        <Bell size={24} />
                         {unreadCount > 0 && (
-                            <span className="absolute -top-0.5 -right-0.5 min-w-[18px] h-[18px] px-1 bg-red-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                            <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white animate-pulse">
                                 {unreadCount}
                             </span>
                         )}
                     </button>
                     {showNotifications && (
-                        <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-slate-200 overflow-hidden z-[60] origin-top-left">
-                            <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                                <h3 className="font-bold text-slate-800 text-sm">الإشعارات</h3>
+                        <div className="absolute top-full left-0 mt-2 w-80 bg-white rounded-xl shadow-xl border border-gray-100 overflow-hidden z-[60] origin-top-left animate-in fade-in zoom-in-95 duration-200">
+                            <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                                <h3 className="font-bold text-gray-800 text-sm">الإشعارات</h3>
                                 {notifications.length > 0 && (
-                                    <button onClick={onClearNotifications} className="text-xs text-red-600 hover:text-red-700 font-bold">مسح الكل</button>
+                                    <button onClick={onClearNotifications} className="text-xs text-red-500 hover:text-red-700">مسح الكل</button>
                                 )}
                             </div>
                             <div className="max-h-80 overflow-y-auto">
                                 {notifications.length === 0 ? (
-                                    <div className="p-8 text-center text-slate-400">
-                                        <Bell size={28} className="mx-auto mb-2 opacity-30" />
+                                    <div className="p-8 text-center text-gray-400">
+                                        <Bell size={32} className="mx-auto mb-2 opacity-20" />
                                         <p className="text-sm">لا توجد إشعارات جديدة</p>
                                     </div>
                                 ) : (
-                                    <div className="divide-y divide-slate-100">
+                                    <div className="divide-y divide-gray-50">
                                         {notifications.map(note => (
-                                            <div key={note.id} className={`p-4 hover:bg-slate-50 transition-colors ${!note.read ? 'bg-blue-50/50' : ''}`}>
+                                            <div key={note.id} className={`p-4 hover:bg-gray-50 transition-colors ${!note.read ? 'bg-blue-50/50' : ''}`}>
                                                 <div className="flex items-start gap-3">
                                                     <div className={`mt-1 p-1.5 rounded-full shrink-0 ${note.type === 'success' ? 'bg-green-100 text-green-600' : note.type === 'warning' ? 'bg-red-100 text-red-700' : 'bg-blue-100 text-blue-600'}`}>
                                                         {note.type === 'success' ? <CheckCircle size={16} /> : note.type === 'warning' ? <AlertCircle size={16} /> : <Bell size={16} />}
                                                     </div>
                                                     <div className="flex-1">
-                                                        <h4 className="text-sm font-bold text-slate-900">{note.title}</h4>
-                                                        <p className="text-xs text-slate-600 mt-0.5 leading-relaxed">{note.message}</p>
-                                                        <span className="text-[10px] text-slate-400 mt-2 block">{note.date}</span>
+                                                        <h4 className="text-sm font-bold text-gray-900">{note.title}</h4>
+                                                        <p className="text-xs text-gray-600 mt-0.5 leading-relaxed">{note.message}</p>
+                                                        <span className="text-[10px] text-gray-400 mt-2 block">{note.date}</span>
                                                     </div>
                                                 </div>
                                             </div>
@@ -1787,55 +1745,58 @@ const Navbar = ({
             )}
 
             {currentUser ? (
-              <div className="flex items-center gap-2">
-                 <button onClick={() => onNavigate('admin')} className="bg-slate-900 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 hover:bg-slate-800 whitespace-nowrap shrink-0">
-                  <Settings size={15} />
+              <div className="flex items-center gap-2 mr-4 border-r border-gray-200 pr-4">
+                 <button onClick={() => onNavigate('admin')} className="bg-gray-800 text-white px-4 py-2 rounded-full transition-all shadow-xs flex items-center gap-2 hover:bg-gray-900 hover:scale-105 active:scale-95">
+                  <Settings size={16} />
                   <span>{currentUser.name}</span>
                 </button>
-                <button onClick={onLogout} className="text-red-600 bg-white/90 hover:bg-red-50 p-2.5 rounded-xl border border-slate-200 transition-colors" title={t.logout} aria-label={t.logout}>
-                  <LogOut size={18} />
+                <button onClick={onLogout} className="text-red-600 hover:bg-red-50 p-2 rounded-full transition-all active:scale-90" title={t.logout}>
+                  <LogOut size={20} />
                 </button>
               </div>
             ) : !settings.patientMode && (
-              <button onClick={onLoginClick} className="bg-blue-700 text-white px-4 py-2.5 rounded-xl text-sm font-bold transition-colors flex items-center gap-2 hover:bg-blue-800 whitespace-nowrap shrink-0">
-                <Lock size={15} />
+              <button onClick={onLoginClick} className="bg-blue-600 text-white px-5 py-2 rounded-full transition-all shadow-xs flex items-center gap-2 hover:bg-blue-700 hover:scale-105 active:scale-95 mr-2">
+                <Lock size={16} />
                 {t.login}
               </button>
             )}
           </div>
-
           <div className="md:hidden flex items-center gap-2">
             {currentUser && (
-                <button onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) onMarkAsRead(); }} className={`relative p-2.5 transition-colors ${isOverlayNav ? 'text-white' : 'text-slate-700 hover:text-blue-700'}`}>
-                    <Bell size={22} />
+                <button onClick={() => { setShowNotifications(!showNotifications); if (!showNotifications) onMarkAsRead(); }} className="relative p-2.5 text-gray-600 hover:text-blue-600 transition-all active:scale-90">
+                    <Bell size={24} />
                     {unreadCount > 0 && (
-                        <span className="absolute top-1 right-1 w-4 h-4 bg-red-600 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white">
+                        <span className="absolute top-1 right-1 w-4 h-4 bg-red-500 text-white text-[10px] font-bold flex items-center justify-center rounded-full border-2 border-white animate-pulse">
                             {unreadCount}
                         </span>
                     )}
                 </button>
             )}
-            <button onClick={() => setIsOpen(!isOpen)} className={`p-2 relative w-11 h-11 flex items-center justify-center rounded-xl transition-colors ${isOverlayNav ? 'text-white hover:bg-white/10' : 'text-slate-700 hover:bg-slate-100'}`} aria-label="القائمة">
-              {isOpen ? <X size={26} /> : <Menu size={26} />}
+            <button onClick={() => setIsOpen(!isOpen)} className="text-gray-600 hover:text-blue-600 p-2 relative w-12 h-12 flex items-center justify-center transition-all overflow-hidden">
+              <div className={`transition-all duration-500 transform absolute ${isOpen ? "rotate-90 scale-0 opacity-0" : "rotate-0 scale-100 opacity-100"}`}>
+                <Menu size={32} />
+              </div>
+              <div className={`transition-all duration-500 transform absolute ${isOpen ? "rotate-0 scale-100 opacity-100" : "-rotate-90 scale-0 opacity-0"}`}>
+                <X size={32} />
+              </div>
             </button>
           </div>
         </div>
       </div>
-
       {showNotifications && currentUser && (
-        <div className="md:hidden absolute top-16 left-0 w-full bg-white border-b border-slate-200 shadow-xl z-40 max-h-[50vh] overflow-y-auto">
-             <div className="p-3 border-b border-slate-100 flex justify-between items-center bg-slate-50">
-                <h3 className="font-bold text-slate-800 text-sm">الإشعارات</h3>
+        <div className="md:hidden absolute top-20 left-0 w-full bg-white border-b border-gray-200 shadow-xl z-40 max-h-[50vh] overflow-y-auto animate-in slide-in-from-top duration-300">
+             <div className="p-3 border-b border-gray-100 flex justify-between items-center bg-gray-50">
+                <h3 className="font-bold text-gray-800 text-sm">الإشعارات</h3>
                 {notifications.length > 0 && (
-                    <button onClick={onClearNotifications} className="text-xs text-red-600 font-bold">مسح الكل</button>
+                    <button onClick={onClearNotifications} className="text-xs text-red-500 hover:text-red-700">مسح الكل</button>
                 )}
             </div>
             {notifications.length === 0 ? (
-                <div className="p-8 text-center text-slate-400">
+                <div className="p-8 text-center text-gray-400">
                     <p className="text-sm">لا توجد إشعارات جديدة</p>
                 </div>
             ) : (
-                <div className="divide-y divide-slate-100">
+                <div className="divide-y divide-gray-50">
                     {notifications.map(note => (
                         <div key={note.id} className={`p-4 ${!note.read ? 'bg-blue-50/50' : ''}`}>
                             <div className="flex items-start gap-3">
@@ -1843,9 +1804,9 @@ const Navbar = ({
                                     {note.type === 'success' ? <CheckCircle size={16} /> : note.type === 'warning' ? <AlertCircle size={16} /> : <Bell size={16} />}
                                 </div>
                                 <div>
-                                    <h4 className="text-sm font-bold text-slate-900">{note.title}</h4>
-                                    <p className="text-xs text-slate-600 mt-1 leading-relaxed">{note.message}</p>
-                                    <span className="text-[10px] text-slate-400 mt-2 block">{note.date}</span>
+                                    <h4 className="text-sm font-bold text-gray-900">{note.title}</h4>
+                                    <p className="text-xs text-gray-600 mt-1 leading-relaxed">{note.message}</p>
+                                    <span className="text-[10px] text-gray-400 mt-2 block">{note.date}</span>
                                 </div>
                             </div>
                         </div>
@@ -1855,17 +1816,17 @@ const Navbar = ({
         </div>
       )}
       {isOpen && (
-        <div className="md:hidden bg-white border-t border-slate-200 absolute w-full h-[calc(100vh-4rem)] overflow-y-auto shadow-xl z-30">
+        <div className="md:hidden bg-white border-t border-gray-100 absolute w-full h-[calc(100vh-5rem)] overflow-y-auto shadow-xl z-30 animate-in slide-in-from-right duration-300">
           <div className="px-4 pb-20 space-y-1 sm:px-6 pt-4">
             {navItems.map((item) => (
-              <button key={item.id} onClick={() => { onNavigate(item.id); setIsOpen(false); }} className="text-slate-700 hover:text-blue-700 hover:bg-slate-50 block px-4 py-4 rounded-xl text-base font-bold w-full text-right border-b border-slate-100 transition-colors">
+              <button key={item.id} onClick={() => { onNavigate(item.id); setIsOpen(false); }} className="text-gray-600 hover:text-blue-600 hover:bg-blue-50 block px-4 py-5 rounded-2xl text-lg font-bold w-full text-right border-b border-gray-50 transition-all active:scale-95">
                 {item.name}
               </button>
             ))}
              {(currentUser || !settings.patientMode) && (
-               <button onClick={() => { currentUser ? onLogout() : onLoginClick(); setIsOpen(false); }} className={`block px-4 py-4 rounded-xl text-base font-bold w-full text-right ${currentUser ? 'text-red-600 bg-red-50' : 'text-white bg-blue-700'} mt-6 transition-colors`}>
+               <button onClick={() => { currentUser ? onLogout() : onLoginClick(); setIsOpen(false); }} className={`block px-4 py-5 rounded-2xl text-lg font-bold w-full text-right ${currentUser ? 'text-red-600 bg-red-50/50' : 'text-blue-600 bg-blue-50/50'} mt-6 transition-all active:scale-95`}>
                   {currentUser ? t.logout : t.login}
-               </button>
+                </button>
              )}
           </div>
         </div>
@@ -1876,74 +1837,43 @@ const Navbar = ({
 
 const Hero = ({ onCtaClick, images, title, description, t }: { onCtaClick: () => void, images: HeroImage[], title: string, description: string, t: any }) => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const slides = images.length > 0 ? images : [{ id: 0, url: heroFallbackImg }];
-
   useEffect(() => {
-    if (slides.length <= 1) return;
+    if (images.length <= 1) return;
     const interval = setInterval(() => {
-      setCurrentIndex(prev => (prev + 1) % slides.length);
-    }, 5000);
+      setCurrentIndex(prev => (prev + 1) % images.length);
+    }, 5000); 
     return () => clearInterval(interval);
-  }, [slides.length]);
-
-  const safeIndex = currentIndex % slides.length;
-  const isArabic = t.arabic === 'العربية';
-
+  }, [images.length]);
   return (
-    <section id="home" className="relative h-[620px] lg:h-[680px] flex items-center justify-center overflow-hidden bg-slate-900">
-      {slides.map((img, index) => (
-        <div key={img.id ?? index} className={`absolute inset-0 transition-opacity duration-700 ease-out ${index === safeIndex ? 'opacity-100' : 'opacity-0'}`}>
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950/90 via-slate-900/55 to-slate-950/40 z-10"></div>
-          <img
-            src={img.url}
-            alt={title}
-            referrerPolicy="no-referrer"
-            onError={(e) => { (e.currentTarget as HTMLImageElement).src = heroFallbackImg; }}
-            className="w-full h-full object-cover"
-          />
+    <div id="home" className="relative h-[650px] flex items-center justify-center overflow-hidden">
+      {images.map((img, index) => (
+        <div key={img.id} className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}>
+          <div className="absolute inset-0 bg-black/50 z-10"></div> 
+          <img src={img.url} alt="Hero" className="w-full h-full object-cover scale-110 animate-pulse-slow" />
         </div>
       ))}
       <div className="relative z-20 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center text-white">
-        <p className="text-xs md:text-sm font-bold tracking-wider uppercase text-blue-200 mb-4">
-          {isArabic ? 'رعاية متخصصة لطب وجراحة العيون' : 'Specialized Ophthalmology & Eye Surgery'}
-        </p>
-        <h1 className="text-4xl sm:text-5xl md:text-6xl font-black mb-6 leading-[1.15] tracking-tight [text-wrap:balance]">
-          {title}
-        </h1>
-        <p className="text-base md:text-xl mb-10 text-slate-200 leading-relaxed max-w-2xl mx-auto">
-          {description}
-        </p>
-        <div className="flex flex-col sm:flex-row gap-3.5 justify-center items-center">
-          <button
-            onClick={onCtaClick}
-            className="w-full sm:w-auto bg-blue-700 hover:bg-blue-600 text-white px-8 py-4 rounded-xl text-base font-bold shadow-lg shadow-slate-950/30 transition-all flex items-center justify-center gap-2.5 whitespace-nowrap"
-          >
-            <Calendar size={20} />
-            {isArabic ? 'احجز موعدك الآن' : 'Book Your Appointment'}
-          </button>
-          <button
-            onClick={() => document.getElementById('partners')?.scrollIntoView({ behavior: 'smooth' })}
-            className="w-full sm:w-auto bg-white/10 hover:bg-white/20 backdrop-blur-md border border-white/30 text-white px-8 py-4 rounded-xl text-base font-bold transition-all flex items-center justify-center gap-2.5 whitespace-nowrap"
-          >
-            <Handshake size={20} />
-            {isArabic ? 'استعرض التعاقدات' : 'View Partners'}
-          </button>
+        <div className="animate-in fade-in slide-in-from-bottom-10 duration-1000">
+            <h1 className="text-5xl md:text-7xl font-bold mb-8 leading-tight drop-shadow-2xl">{title}</h1>
+            <p className="text-lg md:text-2xl mb-12 text-gray-100 leading-relaxed max-w-2xl mx-auto drop-shadow-lg">{description}</p>
+            <div className="flex flex-col sm:flex-row gap-4 justify-center">
+                <button onClick={onCtaClick} className="bg-blue-600 text-white px-10 py-5 rounded-2xl text-xl font-bold hover:bg-blue-700 shadow-2xl hover:shadow-blue-500/20 transition-all hover:scale-105 flex items-center justify-center gap-3">
+                  <Calendar size={24} />
+                  {t.arabic === 'العربية' ? 'احجز موعدك الآن' : 'Book Your Appointment Now'}
+                </button>
+                <button onClick={() => document.getElementById('partners')?.scrollIntoView({ behavior: 'smooth' })} className="bg-white/10 backdrop-blur-md border-2 border-white/30 text-white px-10 py-5 rounded-2xl text-xl font-bold hover:bg-white/20 transition-all flex items-center justify-center gap-3">
+                  <Handshake size={24} />
+                  {t.arabic === 'العربية' ? 'استعرض التعاقدات' : 'View Partners'}
+                </button>
+            </div>
         </div>
       </div>
-      {slides.length > 1 && (
-        <div className="absolute bottom-20 left-0 right-0 z-20 flex justify-center gap-2.5">
-          {slides.map((_, idx) => (
-            <button
-              key={idx}
-              type="button"
-              onClick={() => setCurrentIndex(idx)}
-              aria-label={`Slide ${idx + 1}`}
-              className={`h-2 rounded-full transition-all duration-200 ${idx === safeIndex ? 'bg-white w-8' : 'bg-white/45 hover:bg-white/75 w-2'}`}
-            />
-          ))}
-        </div>
-      )}
-    </section>
+      <div className="absolute bottom-10 left-0 right-0 z-20 flex justify-center gap-3">
+        {images.map((_, idx) => (
+            <button key={idx} onClick={() => setCurrentIndex(idx)} className={`w-3 h-3 rounded-full transition-all duration-300 ${idx === currentIndex ? 'bg-blue-500 w-10' : 'bg-white/50 hover:bg-white'}`} />
+        ))}
+      </div>
+    </div>
   );
 };
 
@@ -1962,47 +1892,47 @@ const ContactUsView = ({ onSubmit, onNavigate }: { onSubmit: (data: any) => Prom
         onNavigate('home');
     };
     return (
-        <div className="py-16 md:py-24 bg-slate-50 min-h-[82vh]">
+        <div className="py-20 bg-gray-50 min-h-screen">
             <div className="max-w-2xl mx-auto px-4">
-                <div className="bg-white rounded-3xl shadow-xs p-8 md:p-10 border border-slate-200">
+                <div className="bg-white rounded-2xl shadow-xl p-8 border border-gray-100">
                     <div className="text-center mb-8">
-                        <div className="inline-flex items-center justify-center w-14 h-14 rounded-2xl bg-blue-50 text-blue-700 border border-blue-100 mb-4">
-                            <MessageCircle size={26} />
+                        <div className="inline-flex items-center justify-center w-16 h-16 rounded-full bg-blue-50 text-blue-600 mb-4">
+                            <MessageCircle size={32} />
                         </div>
-                        <h2 className="text-3xl font-black text-slate-900">تواصل معنا</h2>
-                        <p className="text-slate-500 mt-2 text-sm">يسعدنا استقبال مقترحاتكم واستفساراتكم في أي وقت</p>
+                        <h2 className="text-3xl font-bold text-gray-800">تواصل معنا</h2>
+                        <p className="text-gray-500 mt-2">يسعدنا استقبال مقترحاتكم واستفساركم في أي وقت</p>
                     </div>
-                    <div className="space-y-5">
+                    <div className="space-y-6">
                         <div>
-                            <label className="block text-xs font-bold text-slate-600 mb-1.5">الاسم الكريم</label>
-                            <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 p-3.5 outline-hidden font-semibold text-slate-900 transition-all" placeholder="الاسم" />
+                            <label className="block text-sm font-medium text-gray-700 mb-1">الاسم الكريم</label>
+                            <input type="text" value={form.name} onChange={e => setForm({...form, name: e.target.value})} className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-blue-500 focus:border-blue-500 p-3 border transition-shadow" placeholder="الاسم" />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-600 mb-1.5">رقم الهاتف</label>
-                            <input type="tel" dir="ltr" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 p-3.5 outline-hidden font-semibold text-slate-900 text-left transition-all" placeholder="01xxxxxxxxx" />
+                            <label className="block text-sm font-medium text-gray-700 mb-1">رقم الهاتف</label>
+                            <input type="tel" value={form.phone} onChange={e => setForm({...form, phone: e.target.value})} className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-blue-500 focus:border-blue-500 p-3 border transition-shadow" placeholder="01xxxxxxxxx" />
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-600 mb-2">نوع الرسالة</label>
-                            <div className="grid grid-cols-2 gap-3">
-                                <label className={`flex items-center gap-2.5 cursor-pointer p-3.5 rounded-xl border font-bold text-sm transition-colors ${form.type === 'suggestion' ? 'bg-blue-50 border-blue-300 text-blue-800' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}>
-                                    <input type="radio" name="type" value="suggestion" checked={form.type === 'suggestion'} onChange={e => setForm({...form, type: e.target.value})} className="text-blue-700 focus:ring-blue-600" />
+                            <label className="block text-sm font-medium text-gray-700 mb-2">نوع الرسالة</label>
+                            <div className="flex gap-4">
+                                <label className="flex items-center gap-2 cursor-pointer bg-gray-50 p-3 rounded-lg flex-1 border border-gray-200 hover:border-blue-200 transition-colors">
+                                    <input type="radio" name="type" value="suggestion" checked={form.type === 'suggestion'} onChange={e => setForm({...form, type: e.target.value})} className="text-blue-600 focus:ring-blue-500" />
                                     <span>اقتراح / استفسار</span>
                                 </label>
-                                <label className={`flex items-center gap-2.5 cursor-pointer p-3.5 rounded-xl border font-bold text-sm transition-colors ${form.type === 'complaint' ? 'bg-red-50 border-red-300 text-red-800' : 'bg-slate-50 border-slate-200 text-slate-700 hover:bg-slate-100'}`}>
+                                <label className="flex items-center gap-2 cursor-pointer bg-gray-50 p-3 rounded-lg flex-1 border border-gray-200 hover:border-red-200 transition-colors">
                                     <input type="radio" name="type" value="complaint" checked={form.type === 'complaint'} onChange={e => setForm({...form, type: e.target.value})} className="text-red-600 focus:ring-red-500" />
                                     <span>شكوى</span>
                                 </label>
                             </div>
                         </div>
                         <div>
-                            <label className="block text-xs font-bold text-slate-600 mb-1.5">الرسالة</label>
-                            <textarea rows={5} value={form.message} onChange={e => setForm({...form, message: e.target.value})} className="w-full bg-slate-50 border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600 p-3.5 outline-hidden font-medium text-slate-900 transition-all" placeholder="اكتب تفاصيل رسالتك هنا..." />
+                            <label className="block text-sm font-medium text-gray-700 mb-1">الرسالة</label>
+                            <textarea rows={5} value={form.message} onChange={e => setForm({...form, message: e.target.value})} className="w-full border-gray-300 rounded-lg shadow-xs focus:ring-blue-500 focus:border-blue-500 p-3 border transition-shadow" placeholder="اكتب تفاصيل رسالتك هنا..." />
                         </div>
-                        <div className="flex gap-3 pt-2">
-                            <button onClick={handleSubmit} disabled={sending} className="flex-1 bg-blue-700 text-white font-bold py-3.5 px-6 rounded-xl hover:bg-blue-800 transition-colors flex items-center justify-center gap-2 disabled:opacity-60">
-                                <Send size={18} /> {sending ? 'جاري الإرسال...' : 'إرسال'}
+                        <div className="flex gap-4 pt-4">
+                            <button onClick={handleSubmit} className="flex-1 bg-blue-600 text-white font-bold py-3.5 px-4 rounded-xl hover:bg-blue-700 shadow-lg hover:shadow-xl transition-all flex items-center justify-center gap-2">
+                                <Send size={18} /> إرسال
                             </button>
-                            <button onClick={() => onNavigate('home')} className="px-6 py-3.5 border border-slate-200 rounded-xl text-slate-700 font-bold hover:bg-slate-50 transition-colors">إلغاء</button>
+                            <button onClick={() => onNavigate('home')} className="px-6 py-3.5 border border-gray-300 rounded-xl text-gray-700 font-medium hover:bg-gray-50 transition-colors">إلغاء</button>
                         </div>
                     </div>
                 </div>
@@ -3431,282 +3361,219 @@ const SectionLoading = ({ language }: { language: 'ar' | 'en' }) => (
 
 const DoctorsList = ({ doctors, onBook, language, t, isLoading = false }: { doctors: Doctor[], onBook: (doctor: Doctor) => void, language: 'ar' | 'en', t: any, isLoading?: boolean }) => {
   const [searchTerm, setSearchTerm] = useState('');
-  const isAr = language === 'ar';
-  const filteredDoctors = doctors.filter(doc =>
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.specialty.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
+  const filteredDoctors = doctors.filter(doc => doc.name.toLowerCase().includes(searchTerm.toLowerCase()) || doc.specialty.toLowerCase().includes(searchTerm.toLowerCase()));
   return (
-    <section id="doctors" className="py-20 bg-slate-50 scroll-mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
-          <div>
-            <p className="text-xs font-bold tracking-wider uppercase text-blue-700 mb-2">
-              {isAr ? 'نخبة من الاستشاريين' : 'Elite Consultants'}
-            </p>
-            <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight [text-wrap:balance]">
-              {isAr ? 'تعرف على فريقنا الطبي' : 'Meet Our Medical Team'}
-            </h2>
-            <p className="text-slate-600 text-base mt-2 max-w-2xl">
-              {isAr
-                ? 'نضم مجموعة من أمهر استشاريي طب وجراحة العيون لتقديم رعاية طبية دقيقة لعينيك.'
-                : 'Skilled ophthalmology consultants providing attentive, specialized eye care.'}
-            </p>
-          </div>
-          {doctors.length > 0 && (
-            <div className="relative w-full md:w-72 shrink-0">
-              <Search className="absolute right-3.5 top-3 text-slate-400" size={18} />
-              <input
-                type="text"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-                placeholder={isAr ? 'ابحث باسم الطبيب أو التخصص...' : 'Search doctor or specialty...'}
-                className="w-full bg-white border border-slate-200 rounded-xl py-2.5 pr-10 pl-4 text-sm font-medium text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-blue-600/20 focus:border-blue-600"
-              />
-            </div>
-          )}
+    <div id="doctors" className="py-24 relative overflow-hidden">
+      <div className="absolute top-0 right-0 w-96 h-96 bg-blue-50 rounded-full blur-[100px] -translate-y-1/2 translate-x-1/2 opacity-60"></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
+        <div className="text-center mb-16">
+          <span className="text-blue-600 text-xs font-black uppercase tracking-widest mb-4 inline-block bg-blue-50 px-4 py-2 rounded-full border border-blue-100">
+            {language === 'ar' ? 'نخبة من الاستشاريين' : 'Elite Consultants'}
+          </span>
+          <h2 className="text-5xl font-black text-gray-900 mb-6 tracking-tight leading-tight">
+            {language === 'ar' ? 'تعرف على فريقنا الطبي' : 'Meet Our Medical Team'}
+          </h2>
+          <p className="text-gray-500 text-lg font-medium max-w-2xl mx-auto">
+            {language === 'ar' ? 'نضم مجموعة من أمهر الأطباء الحاصلين على أعلى المؤهلات العلمية لتقديم رعاية طبية متميزة لعينيك.' : 'We host a group of the most skilled doctors with the highest scientific qualifications to provide distinguished medical care for your eyes.'}
+          </p>
+          <div className="w-20 h-1.5 bg-blue-600 mx-auto mt-8 rounded-full shadow-lg shadow-blue-200"></div>
         </div>
 
         {isLoading && <SectionLoading language={language} />}
-
-        {!isLoading && filteredDoctors.length === 0 ? (
-          <div className="text-center py-14 bg-white rounded-2xl border border-slate-200">
-            <p className="text-slate-500 font-bold text-sm">
-              {isAr ? 'لا يوجد أطباء مطابقون لبحثك حالياً' : 'No matching doctors found'}
-            </p>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-            {filteredDoctors.map(doctor => (
-              <div key={doctor.id} className="glass-doctor-card rounded-2xl p-7 flex flex-col h-full">
-                <div className="flex items-start gap-4 mb-5">
-                  <div className="w-20 h-20 rounded-2xl overflow-hidden bg-slate-100 border border-slate-200 shrink-0 flex items-center justify-center text-blue-700">
-                    {doctor.image ? (
-                      <img
-                        src={doctor.image}
-                        alt={doctor.name}
-                        referrerPolicy="no-referrer"
-                        onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                        className="w-full h-full object-cover"
-                      />
-                    ) : (
-                      <StethoscopeIcon size={28} />
-                    )}
-                  </div>
-                  <div className="min-w-0 flex-1">
-                    <h3 className="text-xl font-black text-slate-900 leading-snug mb-1.5">{doctor.name}</h3>
-                    <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-slate-600 font-semibold">
-                      <span className="text-blue-700 font-bold">{doctor.specialty}</span>
-                      <span aria-hidden="true" className="text-slate-300">·</span>
-                      <span className="tabular-nums">{doctor.experience} {isAr ? 'سنة خبرة' : 'yrs exp'}</span>
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-12">
+          {filteredDoctors.map(doctor => (
+              <div key={doctor.id} className="group relative glass-doctor-card rounded-[3.5rem] overflow-hidden transition-all duration-700 flex flex-col h-full">
+                <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 to-blue-400"></div>
+                
+                <div className="p-10 grow flex flex-col">
+                  <div className="relative mx-auto mb-10 group-hover:scale-105 transition-transform duration-700">
+                    <div className="w-44 h-44 rounded-[3.5rem] overflow-hidden border-4 border-white shadow-2xl relative z-10">
+                        <img src={doctor.image} alt={doctor.name} className="w-full h-full object-cover" />
+                    </div>
+                    <div className="absolute -inset-4 bg-blue-50 rounded-[4rem] -z-10 group-hover:bg-blue-100 transition-colors"></div>
+                    <div className="absolute -bottom-4 -right-4 w-14 h-14 bg-emerald-500 text-white rounded-2xl flex items-center justify-center shadow-xl border-4 border-white z-20">
+                        <CheckCircle size={28} />
                     </div>
                   </div>
-                </div>
 
-                {doctor.education && (
-                  <div className="flex items-start gap-2.5 mb-4 text-xs text-slate-600 leading-relaxed">
-                    <GraduationCap className="text-slate-400 shrink-0 mt-0.5" size={16} />
-                    <p>{doctor.education}</p>
+                  <div className="text-center mb-8">
+                    <h3 className="text-3xl font-black text-gray-900 mb-2 group-hover:text-blue-700 transition-colors leading-tight">{doctor.name}</h3>
+                    <div className="inline-flex items-center gap-2 bg-blue-50 text-blue-600 px-4 py-1.5 rounded-full font-black text-xs border border-blue-100">
+                        <StethoscopeIcon size={14} />
+                        {doctor.specialty}
+                    </div>
                   </div>
-                )}
 
-                {doctor.topSpecialties.length > 0 && (
-                  <p className="text-xs text-slate-500 font-medium mb-4 leading-relaxed">
-                    {doctor.topSpecialties.join(' · ')}
-                  </p>
-                )}
-
-                <DoctorSocialLinks doc={doctor} />
-
-                <div className="mt-auto pt-5 border-t border-slate-100 flex items-center justify-between gap-4">
-                  <div className="shrink-0">
-                    <p className="text-xs text-slate-500 font-medium mb-0.5">{isAr ? 'سعر الكشف' : 'Booking Fee'}</p>
-                    <p className="text-xl font-black text-slate-900 tabular-nums">
-                      {doctor.fee} <span className="text-xs font-bold text-slate-500">ج.م</span>
-                    </p>
+                  <div className="grid grid-cols-1 gap-4 mb-8">
+                    <div className="bg-gray-50/50 p-4 rounded-3xl border border-gray-100 text-center hover:bg-white hover:shadow-md transition-all">
+                        <div className="flex justify-center text-blue-600 mb-2"><Briefcase size={20} /></div>
+                        <p className="text-[10px] font-black text-gray-400 uppercase mb-1">{language === 'ar' ? 'الخبرة' : 'Experience'}</p>
+                        <p className="text-base font-black text-gray-900">{doctor.experience} {language === 'ar' ? 'سنة' : 'Years'}</p>
+                    </div>
                   </div>
-                  <button
-                    onClick={() => onBook(doctor)}
-                    className="flex-1 bg-blue-700 hover:bg-blue-800 text-white py-3 px-4 rounded-xl font-bold text-sm transition-colors flex items-center justify-center gap-2 whitespace-nowrap"
-                  >
-                    <Calendar size={17} />
-                    {isAr ? 'احجز موعدك' : 'Book Appointment'}
-                  </button>
+
+                  <div className="space-y-4 mb-10">
+                    <div className="flex items-start gap-3">
+                        <GraduationCap className="text-blue-500 shrink-0 mt-0.5" size={18} />
+                        <p className="text-xs font-bold text-gray-600 leading-relaxed">{doctor.education}</p>
+                    </div>
+                    <div className="flex flex-wrap gap-2 pt-2">
+                        {doctor.topSpecialties.map((spec, i) => (
+                            <span key={i} className="bg-gray-100 text-gray-600 px-3 py-1 rounded-xl text-[9px] font-black border border-gray-200">
+                                {spec}
+                            </span>
+                        ))}
+                    </div>
+                    <DoctorSocialLinks doc={doctor} />
+                  </div>
+
+                  <div className="mt-auto pt-8 border-t border-gray-50 flex items-center justify-between gap-6">
+                    <div className="shrink-0">
+                        <p className="text-[10px] font-black text-gray-400 uppercase mb-1">{language === 'ar' ? 'سعر الكشف' : 'Booking Fee'}</p>
+                        <p className="text-2xl font-black text-emerald-600">{doctor.fee} <span className="text-xs">ج.م</span></p>
+                    </div>
+                    <button 
+                        onClick={() => onBook(doctor)} 
+                        className="flex-1 bg-blue-600 text-white py-5 rounded-[2rem] font-black hover:bg-blue-700 transition-all shadow-xl shadow-blue-500/20 active:scale-95 flex items-center justify-center gap-2 text-sm"
+                    >
+                        <Calendar size={20} />
+                        {language === 'ar' ? 'احجز موعدك' : 'Book Appointment'}
+                    </button>
+                  </div>
                 </div>
               </div>
             ))}
-          </div>
-        )}
+        </div>
       </div>
-    </section>
+    </div>
   );
 };
 
 const PartnersSection = ({ partners, language }: { partners: Partner[], language: 'ar' | 'en' }) => {
   if (partners.length === 0) return null;
-  const isAr = language === 'ar';
   return (
-    <section id="partners" className="py-20 bg-slate-50 border-t border-slate-200/80 scroll-mt-16">
+    <div id="partners" className="py-16 relative">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="text-center mb-12">
-          <p className="text-xs font-bold tracking-wider uppercase text-blue-700 mb-2">
-            {isAr ? 'شبكة التعاقدات الطبية' : 'Medical Network'}
-          </p>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3 tracking-tight [text-wrap:balance]">
-            {isAr ? 'شركاء النجاح' : 'Our Partners'}
-          </h2>
-          <p className="text-slate-600 text-sm md:text-base max-w-xl mx-auto">
-            {isAr
-              ? 'نتشرف بالتعاون مع كبرى شركات التأمين والنقابات لتوفير رعاية صحية متميزة'
-              : 'Partnering with leading insurance providers and syndicates for accessible care.'}
-          </p>
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 mb-3 tracking-tight">{language === 'ar' ? 'شركاء النجاح' : 'Our Partners'}</h2>
+            <p className="text-gray-500 text-sm font-medium max-w-xl mx-auto">{language === 'ar' ? 'نتشرف بالتعاون مع كبرى شركات التأمين والنقابات لتوفير رعاية صحية متميزة' : 'We are honored to cooperate with major insurance companies and unions to provide distinguished health care.'}</p>
+            <div className="w-16 h-1 bg-blue-600 mx-auto mt-6 rounded-full shadow-lg shadow-blue-500/20"></div>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
           {partners.map((partner) => (
-            <div key={partner.id} className="glass-service-card p-6 rounded-2xl text-center flex flex-col h-full">
-              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center overflow-hidden">
-                {partner.logo ? (
-                  <img
-                    src={partner.logo}
-                    alt={partner.name}
-                    referrerPolicy="no-referrer"
-                    onError={(e) => { (e.currentTarget as HTMLImageElement).style.display = 'none'; }}
-                    className="w-full h-full object-contain p-1.5"
-                  />
-                ) : (
-                  <Handshake size={24} className="text-blue-700" />
-                )}
+            <div key={partner.id} className="glass-service-card p-5 rounded-2xl transition-all duration-500 text-center group relative overflow-hidden flex flex-col h-full">
+              <div className="absolute -top-16 -right-16 w-32 h-32 rounded-full opacity-0 group-hover:opacity-10 transition-opacity duration-700 blur-2xl bg-blue-500"></div>
+              <div className="w-14 h-14 mx-auto mb-4 rounded-xl bg-blue-500/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500">
+                {partner.logo ? <img src={partner.logo} alt={partner.name} className="w-full h-full object-contain rounded-xl" /> : <Handshake size={26} className="text-blue-600" />}
               </div>
-              <h3 className="text-sm font-bold text-slate-900 mb-1.5 leading-snug">{partner.name}</h3>
-              <p className="text-slate-500 leading-relaxed text-xs grow line-clamp-2">{partner.description}</p>
+              <h3 className="text-sm font-black text-gray-900 mb-2 group-hover:text-blue-600 leading-tight">{partner.name}</h3>
+              <p className="text-gray-500 leading-relaxed text-xs font-medium grow line-clamp-2">{partner.description}</p>
             </div>
           ))}
         </div>
       </div>
-    </section>
+    </div>
   );
 };
 
-const Services = ({ services, language, isLoading = false }: { services: ServiceItem[], language: 'ar' | 'en', isLoading?: boolean }) => {
-  const isAr = language === 'ar';
-  return (
-    <section id="services" className="py-20 bg-white border-b border-slate-200/80 scroll-mt-16">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+const Services = ({ services, language, isLoading = false }: { services: ServiceItem[], language: 'ar' | 'en', isLoading?: boolean }) => (
+    <div id="services" className="py-16 relative overflow-hidden">
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none opacity-40"><div className="absolute top-20 right-10 w-64 h-64 bg-blue-100 rounded-full blur-3xl"></div><div className="absolute bottom-20 left-10 w-48 h-48 bg-emerald-50 rounded-full blur-3xl"></div></div>
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
         <div className="text-center mb-12">
-          <p className="text-xs font-bold tracking-wider uppercase text-blue-700 mb-2">
-            {isAr ? 'ما نقدمه لعينيك' : 'Clinical Capabilities'}
-          </p>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900 tracking-tight leading-tight [text-wrap:balance]">
-            {isAr ? 'خدماتنا الطبية المتكاملة' : 'Integrated Medical Services'}
-          </h2>
-          <p className="text-slate-600 mt-3 max-w-2xl mx-auto text-base">
-            {isAr
-              ? 'نقدم مجموعة متكاملة من الفحوصات والتدخلات الجراحية الدقيقة وفق أعلى المعايير الطبية.'
-              : 'Comprehensive ophthalmic diagnostics and surgical care built around clinical precision.'}
-          </p>
+            <span className="text-blue-600 text-xs font-black uppercase tracking-widest mb-3 inline-block bg-blue-50 px-4 py-2 rounded-full border border-blue-100">{language === 'ar' ? 'ما نقدمه لعينيك' : 'What we offer your eyes'}</span>
+            <h2 className="text-3xl md:text-4xl font-black text-gray-900 tracking-tight leading-tight">{language === 'ar' ? 'خدماتنا الطبية المتكاملة' : 'Integrated Medical Services'}</h2>
+            <p className="text-gray-500 mt-3 max-w-2xl mx-auto text-base font-medium">{language === 'ar' ? 'نقدم مجموعة واسعة من الخدمات المتخصصة بأعلى معايير الجودة العالمية وأحدث التقنيات.' : 'We offer a wide range of specialized services with the highest international quality standards and latest technology.'}</p>
+            <div className="w-16 h-1 bg-blue-600 mx-auto mt-6 rounded-full shadow-lg shadow-blue-200"></div>
         </div>
-
         {isLoading && <SectionLoading language={language} />}
-
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-5">
           {services.map((service) => {
-            const IconComp = ICON_MAP[service.iconName] || Eye;
-            return (
-              <div key={service.id} className="glass-service-card p-6 rounded-2xl flex flex-col h-full text-right">
-                <div className="w-12 h-12 mb-4 rounded-xl bg-slate-50 border border-slate-200 flex items-center justify-center">
-                  <IconComp size={22} className={service.color} />
+             const IconComp = ICON_MAP[service.iconName] || Eye;
+             return (
+                <div key={service.id} className="glass-service-card p-5 rounded-2xl transition-all duration-500 text-center group relative overflow-hidden flex flex-col h-full">
+                    <div className={`absolute -top-16 -right-16 w-32 h-32 rounded-full opacity-0 group-hover:opacity-10 transition-opacity duration-700 blur-2xl ${service.color.replace('text', 'bg')}`}></div>
+                    <div className={`w-14 h-14 mx-auto mb-4 rounded-xl ${service.color.replace('text', 'bg')}/10 flex items-center justify-center group-hover:scale-110 transition-transform duration-500`}>
+                        <IconComp size={26} className={service.color} />
+                    </div>
+                    <h3 className="text-sm font-black text-gray-900 mb-2 leading-tight">{service.title}</h3>
+                    <p className="text-gray-500 mb-4 leading-relaxed text-xs font-medium grow line-clamp-2">{service.description}</p>
+                    <div className="mt-auto">
+                        <div className="w-full h-px bg-gray-100 mb-3"></div>
+                        <p className="text-lg font-black text-blue-600">{service.price} <span className="text-[10px] text-gray-400 font-bold">ج.م</span></p>
+                    </div>
                 </div>
-                <h3 className="text-base font-bold text-slate-900 mb-2 leading-snug">{service.title}</h3>
-                <p className="text-slate-600 mb-5 leading-relaxed text-xs grow line-clamp-2">{service.description}</p>
-                <div className="mt-auto pt-3 border-t border-slate-100 flex items-baseline justify-between">
-                  <span className="text-xs text-slate-500 font-medium">{isAr ? 'التكلفة' : 'Fee'}</span>
-                  <p className="text-lg font-black text-blue-700 tabular-nums">
-                    {service.price} <span className="text-[11px] text-slate-500 font-bold">ج.م</span>
-                  </p>
-                </div>
-              </div>
-            );
+             );
           })}
         </div>
       </div>
-    </section>
-  );
-};
+    </div>
+);
 
 const Footer = ({ settings, t, onNavigate }: { settings: AppSettings, t: any, onNavigate: (section: string) => void }) => (
-    <footer className="bg-slate-950 text-slate-200 pt-20 pb-10 border-t border-slate-800">
+    <footer className="bg-gray-900 text-white pt-24 pb-12 rounded-t-[3rem] mt-12 relative overflow-hidden">
+        <div className="absolute top-0 left-0 w-full h-2 bg-gradient-to-r from-blue-600 via-purple-600 to-emerald-600"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
                 <div>
-                    <div className="flex items-center gap-3 mb-5">
-                        <div className="w-10 h-10 bg-white rounded-xl flex items-center justify-center overflow-hidden p-1 shrink-0">
-                             <img
-                               src={settings.logoUrl || baradaLogoFallback}
-                               alt={settings.appName}
-                               referrerPolicy="no-referrer"
-                               onError={(e) => { (e.currentTarget as HTMLImageElement).src = baradaLogoFallback; }}
-                               className="w-full h-full object-contain"
-                             />
+                    <div className="flex items-center gap-2 mb-6">
+                        <div className="w-10 h-10 bg-blue-600 rounded-xl flex items-center justify-center">
+                             {settings.logoUrl ? <img src={settings.logoUrl} className="w-8 h-8 object-contain" /> : <Eye size={24} />}
                         </div>
-                        <span className="text-xl font-black text-white tracking-tight">{settings.appName}</span>
+                        <span className="text-2xl font-black tracking-tight">{settings.appName}</span>
                     </div>
-                    <p className="text-slate-400 text-sm leading-relaxed mb-6">{settings.heroDescription}</p>
-                    <div className="flex gap-3">
-                        {settings.facebookUrl && (
-                          <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" aria-label="Facebook" className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-blue-700 hover:border-blue-600 text-slate-200 flex items-center justify-center transition-colors">
-                            <Facebook size={18} />
-                          </a>
-                        )}
-                        {settings.whatsappNumber && (
-                          <a href={`https://wa.me/${settings.whatsappNumber.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="w-10 h-10 rounded-xl bg-slate-900 border border-slate-800 hover:bg-emerald-600 hover:border-emerald-500 text-slate-200 flex items-center justify-center transition-colors">
-                            <MessageCircle size={18} />
-                          </a>
-                        )}
+                    <p className="text-gray-400 leading-relaxed font-bold mb-6">{settings.heroDescription}</p>
+                    <div className="flex gap-4">
+                        <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 hover:bg-blue-600 flex items-center justify-center transition-all hover:-translate-y-1"><Facebook size={20} /></a>
+                        <a href={`https://wa.me/${settings.whatsappNumber.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-white/5 hover:bg-green-600 flex items-center justify-center transition-all hover:-translate-y-1"><MessageCircle size={20} /></a>
                     </div>
                 </div>
                 <div>
-                    <h4 className="text-base font-bold text-white mb-5">{settings.language === 'ar' ? 'روابط سريعة' : 'Quick Links'}</h4>
-                    <ul className="space-y-2.5 text-slate-400 text-sm font-medium">
-                        <li><button onClick={() => onNavigate('home')} className="hover:text-white transition-colors">{t.home}</button></li>
-                        <li><button onClick={() => onNavigate('about')} className="hover:text-white transition-colors">{t.about}</button></li>
-                        <li><button onClick={() => onNavigate('partners')} className="hover:text-white transition-colors">{t.partners}</button></li>
-                        <li><button onClick={() => onNavigate('doctors')} className="hover:text-white transition-colors">{t.doctors}</button></li>
-                        <li><button onClick={() => onNavigate('services')} className="hover:text-white transition-colors">{t.services}</button></li>
-                        <li><button onClick={() => onNavigate('my-bookings')} className="hover:text-white transition-colors">{t.myBookings}</button></li>
-                        <li><button onClick={() => onNavigate('contact')} className="hover:text-white transition-colors">{t.contact}</button></li>
-                        <li><button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors">{t.terms}</button></li>
+                    <h4 className="text-lg font-black mb-6 flex items-center gap-2"><List size={18} className="text-blue-500"/> {settings.language === 'ar' ? 'روابط سريعة' : 'Quick Links'}</h4>
+                    <ul className="space-y-3 text-gray-400 font-bold text-sm">
+                        <li><button onClick={() => onNavigate('home')} className="hover:text-blue-500 transition-colors">{t.home}</button></li>
+                        <li><button onClick={() => onNavigate('about')} className="hover:text-blue-500 transition-colors">{t.about}</button></li>
+                        <li><button onClick={() => onNavigate('partners')} className="hover:text-blue-500 transition-colors">{t.partners}</button></li>
+                        <li><button onClick={() => onNavigate('doctors')} className="hover:text-blue-500 transition-colors">{t.doctors}</button></li>
+                        <li><button onClick={() => onNavigate('services')} className="hover:text-blue-500 transition-colors">{t.services}</button></li>
+                        <li><button onClick={() => onNavigate('my-bookings')} className="hover:text-blue-500 transition-colors">{t.myBookings}</button></li>
+                        <li><button onClick={() => onNavigate('contact')} className="hover:text-blue-500 transition-colors">{t.contact}</button></li>
+                        <li><button onClick={() => onNavigate('terms')} className="hover:text-blue-500 transition-colors">{t.terms}</button></li>
                     </ul>
                 </div>
                 <div>
-                    <h4 className="text-base font-bold text-white mb-5">{settings.language === 'ar' ? 'أرقام التواصل والعناوين' : 'Contact & Address'}</h4>
-                    <ul className="space-y-3 text-slate-400 text-sm">
-                        {settings.phones.map((phone, i) => <li key={i} dir="ltr" className="text-right tabular-nums text-slate-300 font-semibold">{phone}</li>)}
-                        <li className="pt-3 border-t border-slate-800/80 space-y-2">
-                            {settings.addresses.map((addr, i) => <p key={i} className="flex items-start gap-2"><MapPin size={15} className="mt-1 shrink-0 text-blue-400"/> <span>{addr}</span></p>)}
+                    <h4 className="text-lg font-black mb-6 flex items-center gap-2"><Phone size={18} className="text-emerald-500"/> {settings.language === 'ar' ? 'أرقام التواصل والعناوين' : 'Contact & Address'}</h4>
+                    <ul className="space-y-4 text-gray-400 font-bold text-sm">
+                        {settings.phones.map((phone, i) => <li key={i} dir="ltr" className="text-right">{phone}</li>)}
+                        <li className="mt-4 pt-4 border-t border-white/5">
+                            {settings.addresses.map((addr, i) => <p key={i} className="mb-2 flex items-start gap-2"><MapPin size={14} className="mt-1 shrink-0 text-blue-500"/> {addr}</p>)}
                         </li>
                     </ul>
                 </div>
                 <div>
-                     <h4 className="text-base font-bold text-white mb-5">{settings.language === 'ar' ? 'مواعيد العمل' : 'Working Hours'}</h4>
-                     <ul className="space-y-3 text-slate-400 text-sm">
+                     <h4 className="text-lg font-black mb-6 flex items-center gap-2"><Clock size={18} className="text-amber-500"/> {settings.language === 'ar' ? 'مواعيد العمل' : 'Working Hours'}</h4>
+                     <ul className="space-y-4 text-gray-400 font-bold text-sm">
                         {settings.language === 'ar' ? (
                             <>
-                                <li className="flex justify-between gap-2"><span>السبت - الخميس:</span> <span className="text-slate-200 font-semibold">{settings.workingHours.weekdays}</span></li>
-                                <li className="flex justify-between gap-2"><span>الجمعة:</span> <span className="text-slate-200 font-semibold">{settings.workingHours.friday}</span></li>
+                                <li className="flex justify-between"><span>السبت - الخميس:</span> <span>{settings.workingHours.weekdays}</span></li>
+                                <li className="flex justify-between"><span>الجمعة:</span> <span>{settings.workingHours.friday}</span></li>
                             </>
                         ) : (
                             <>
-                                <li className="flex justify-between gap-2"><span>Sat - Thu:</span> <span className="text-slate-200 font-semibold">{settings.workingHours.weekdays}</span></li>
-                                <li className="flex justify-between gap-2"><span>Friday:</span> <span className="text-slate-200 font-semibold">{settings.workingHours.friday}</span></li>
+                                <li className="flex justify-between"><span>Sat - Thu:</span> <span>{settings.workingHours.weekdays}</span></li>
+                                <li className="flex justify-between"><span>Friday:</span> <span>{settings.workingHours.friday}</span></li>
                             </>
                         )}
                      </ul>
                 </div>
             </div>
-            <div className="border-t border-slate-800 pt-7 text-slate-400 text-xs font-medium flex flex-col md:flex-row justify-between items-center gap-4">
+            <div className="border-t border-white/10 pt-8 text-center text-gray-500 text-sm font-bold flex flex-col md:flex-row justify-between items-center gap-4">
                 <p>&copy; {new Date().getFullYear()} {settings.appName}. {settings.language === 'ar' ? 'جميع الحقوق محفوظة' : 'All rights reserved'}.</p>
-                <button onClick={() => onNavigate('terms')} className="hover:text-white transition-colors underline-offset-4 hover:underline">{t.terms}</button>
+                <div className="flex gap-4">
+                    <button onClick={() => onNavigate('terms')} className="hover:text-blue-500 transition-colors underline-offset-4 hover:underline">{t.terms}</button>
+                    <span>|</span>
+                    <p>Designed for Excellence</p>
+                </div>
             </div>
         </div>
     </footer>
@@ -3721,102 +3588,98 @@ const MyBookingsView = ({ bookings, phone, setPhone, onSearch, onEditBooking, on
   onCancelBooking: (id: number) => void; 
 }) => {
   return (
-    <section className="py-16 md:py-24 px-4 bg-slate-50 min-h-[82vh]">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-10">
-          <p className="text-xs font-bold tracking-wider uppercase text-blue-700 mb-2">إدارة المواعيد</p>
-          <h2 className="text-3xl md:text-4xl font-black text-slate-900 mb-3">حجوزاتي</h2>
-          <p className="text-slate-500 text-sm md:text-base">تابع حالة حجوزاتك وقم بإدارتها بكل سهولة</p>
-        </div>
-
-        <div className="max-w-md mx-auto mb-12">
-          <div className="flex gap-2 bg-white p-2 rounded-2xl border border-slate-200 shadow-xs">
-            <input
-              type="tel"
-              dir="ltr"
-              placeholder="01xxxxxxxxx"
-              value={phone}
-              onChange={(e) => setPhone(e.target.value)}
-              onKeyDown={(e) => { if (e.key === 'Enter') onSearch(); }}
-              className="flex-1 px-4 py-2.5 rounded-xl bg-transparent outline-hidden font-bold text-slate-900 text-left"
-            />
-            <button
-              onClick={onSearch}
-              className="bg-blue-700 text-white px-6 py-2.5 rounded-xl font-bold text-sm hover:bg-blue-800 transition-colors whitespace-nowrap"
-            >
-              بحث
-            </button>
-          </div>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-          {bookings.map((booking: Booking) => (
-            <div key={booking.id} className="bg-white p-6 rounded-2xl border border-slate-200 shadow-xs flex flex-col">
-              <div className="flex justify-between items-start mb-4">
-                <div>
-                  <div className="flex items-center gap-2 text-xs mb-1.5">
-                    <span className="text-blue-700 font-black tabular-nums">#{booking.id.toString().slice(-4)}</span>
-                    <span aria-hidden="true" className="text-slate-300">·</span>
-                    <span className={`font-bold flex items-center gap-1 ${booking.status === 'confirmed' ? 'text-emerald-700' : 'text-amber-700'}`}>
-                      {booking.status === 'confirmed' ? <CheckCircle size={13} /> : <AlertCircle size={13} />}
-                      {booking.status === 'confirmed' ? 'مؤكد' : 'ملغي'}
-                    </span>
-                  </div>
-                  <h3 className="font-bold text-lg text-slate-900">{booking.patientName}</h3>
-                </div>
-                <div className="bg-slate-50 border border-slate-200 p-2.5 rounded-xl text-blue-700">
-                  <Calendar size={18} />
-                </div>
-              </div>
-
-              <div className="space-y-2.5 mb-6 text-sm text-slate-600">
-                <div className="flex items-center gap-2">
-                  <Clock size={15} className="text-slate-400 shrink-0" /> <span className="tabular-nums">{booking.date} · {booking.time}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <Stethoscope size={15} className="text-slate-400 shrink-0" /> <span>{booking.service}</span>
-                </div>
-                <div className="flex items-center gap-2">
-                  <User size={15} className="text-slate-400 shrink-0" /> <span>{booking.doctorName}</span>
-                </div>
-              </div>
-
-              {booking.status === 'confirmed' && (
-                <div className="flex gap-2.5 pt-4 mt-auto border-t border-slate-100">
-                  <button 
-                    onClick={() => onEditBooking(booking)}
-                    className="flex-1 flex items-center justify-center gap-1.5 bg-slate-100 text-slate-800 py-2.5 rounded-xl text-sm font-bold hover:bg-slate-200 transition-colors"
-                  >
-                    <Edit2 size={14} /> تعديل
-                  </button>
-                  <button 
-                    onClick={() => { if(confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) onCancelBooking(booking.id); }}
-                    className="flex-1 flex items-center justify-center gap-1.5 bg-red-50 text-red-700 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors"
-                  >
-                    <Trash2 size={14} /> إلغاء
-                  </button>
-                </div>
-              )}
-              {booking.status === 'cancelled' && (
-                <div className="pt-4 mt-auto border-t border-slate-100 text-center">
-                  <span className="text-red-600 text-xs font-bold">تم إلغاء هذا الحجز</span>
-                </div>
-              )}
-            </div>
-          ))}
-        </div>
-        
-        {bookings.length === 0 && phone && (
-          <div className="text-center py-16 bg-white rounded-2xl border border-dashed border-slate-300">
-            <div className="w-14 h-14 bg-slate-50 rounded-2xl flex items-center justify-center mx-auto mb-3 text-slate-400">
-              <Search size={24} />
-            </div>
-            <p className="text-slate-600 font-bold text-sm">لم يتم العثور على حجوزات لهذا الرقم</p>
-          </div>
-        )}
-
-        <InstapayStatusLookup />
+    <section className="py-20 px-4 max-w-7xl mx-auto">
+      <div className="text-center mb-12">
+        <h2 className="text-4xl font-black text-gray-900 mb-4">حجوزاتي</h2>
+        <p className="text-gray-500">تابع حالة حجوزاتك وقم بإدارتها بكل سهولة</p>
       </div>
+
+      <div className="max-w-md mx-auto mb-12">
+        <div className="flex gap-2">
+          <input
+            type="tel"
+            placeholder="أدخل رقم الهاتف للبحث..."
+            value={phone}
+            onChange={(e) => setPhone(e.target.value)}
+            className="flex-1 p-4 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-blue-500 outline-hidden font-bold"
+          />
+          <button
+            onClick={onSearch}
+            className="bg-blue-600 text-white px-6 rounded-2xl font-bold hover:bg-blue-700 transition-colors shadow-lg shadow-blue-200"
+          >
+            بحث
+          </button>
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {bookings.map((booking: Booking) => (
+          <div key={booking.id} className="bg-white p-6 rounded-[2rem] border border-gray-100 shadow-xs relative group overflow-hidden">
+            <div className="flex justify-between items-start mb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-blue-600 font-black">#{booking.id.toString().slice(-4)}</span>
+                  <span className={`px-3 py-1 rounded-full text-[10px] font-bold ${
+                    booking.status === 'confirmed' ? 'bg-green-50 text-green-600' : 'bg-yellow-50 text-yellow-600'
+                  }`}>
+                    {booking.status === 'confirmed' ? 'مؤكد' : 'ملغي'}
+                  </span>
+                </div>
+                <h3 className="font-black text-gray-900">{booking.patientName}</h3>
+              </div>
+              <div className="bg-blue-50 p-2 rounded-xl text-blue-600">
+                <Calendar size={20} />
+              </div>
+            </div>
+
+            <div className="space-y-2 mb-6">
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Clock size={14} /> <span>{booking.date} - {booking.time}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <Stethoscope size={14} /> <span>{booking.service}</span>
+              </div>
+              <div className="flex items-center gap-2 text-sm text-gray-500">
+                <User size={14} /> <span>{booking.doctorName}</span>
+              </div>
+            </div>
+
+            {/* أزرار الإدارة للمريض - تعديل وإلغاء */}
+            {booking.status === 'confirmed' && (
+              <div className="flex gap-2 pt-4 border-t border-gray-50">
+                <button 
+                  onClick={() => onEditBooking(booking)}
+                  className="flex-1 flex items-center justify-center gap-1 bg-blue-50 text-blue-600 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-100 transition-colors"
+                >
+                  <Edit2 size={14} /> تعديل
+                </button>
+                <button 
+                  onClick={() => { if(confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) onCancelBooking(booking.id); }}
+                  className="flex-1 flex items-center justify-center gap-1 bg-red-50 text-red-500 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors"
+                >
+                  <Trash2 size={14} /> إلغاء
+                </button>
+              </div>
+            )}
+            {booking.status === 'cancelled' && (
+              <div className="pt-4 border-t border-gray-50 text-center">
+                <span className="text-red-500 text-sm font-bold">تم إلغاء هذا الحجز</span>
+              </div>
+            )}
+          </div>
+        ))}
+      </div>
+      
+      {bookings.length === 0 && phone && (
+        <div className="text-center py-20 bg-gray-50 rounded-[3rem] border border-dashed border-gray-200">
+          <div className="w-16 h-16 bg-white rounded-2xl shadow-xs flex items-center justify-center mx-auto mb-4 text-gray-300">
+            <Search size={32} />
+          </div>
+          <p className="text-gray-500 font-bold">لم يتم العثور على حجوزات لهذا الرقم</p>
+        </div>
+      )}
+
+      <InstapayStatusLookup />
     </section>
   );
 };
@@ -3967,7 +3830,7 @@ const App = () => {
 
 const handleNavigate = (sectionId: string) => {
     // قائمة بالأقسام التي تعتبر جزءاً من الصفحة الرئيسية
-    const homeSections = ['about', 'doctors', 'services', 'partners', 'stats', 'hero'];
+    const homeSections = ['about', 'doctors', 'services', 'stats', 'hero'];
 
     if (homeSections.includes(sectionId)) {
       // إذا كان القسم جزءاً من الصفحة الرئيسية، نتأكد أننا في قسم home أولاً
@@ -4387,7 +4250,7 @@ const handleNavigate = (sectionId: string) => {
       )}
 
       {activeSection === 'terms' && (
-          <TermsView settings={settings} onNavigate={handleNavigate} />
+          <TermsView settings={settings} />
       )}
 
       <BookingModal 
