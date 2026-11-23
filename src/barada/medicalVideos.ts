@@ -23,7 +23,17 @@ export type MedicalVideoPermissionId =
   | 'medical_videos_upload'
   | 'medical_videos_manage_featured';
 
-export type VideoSourceType = 'youtube' | 'vimeo' | 'mp4' | 'upload';
+export type VideoSourceType = 'youtube' | 'vimeo' | 'facebook' | 'instagram' | 'x' | 'mp4' | 'upload';
+
+export function isEmbedVideoSource(sourceType: VideoSourceType): boolean {
+  return (
+    sourceType === 'youtube' ||
+    sourceType === 'vimeo' ||
+    sourceType === 'facebook' ||
+    sourceType === 'instagram' ||
+    sourceType === 'x'
+  );
+}
 
 export interface MedicalVideoCategoryRecord {
   id: string;
@@ -177,6 +187,119 @@ export function extractVimeoId(rawUrl: unknown): string | null {
   }
 }
 
+const FACEBOOK_HOSTS = new Set([
+  'facebook.com',
+  'www.facebook.com',
+  'm.facebook.com',
+  'mbasic.facebook.com',
+  'web.facebook.com',
+  'fb.watch',
+  'www.fb.watch',
+]);
+
+export function normalizeFacebookVideoUrl(rawUrl: unknown): string | null {
+  if (typeof rawUrl !== 'string') return null;
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+    if (parsed.username || parsed.password) return null;
+    const host = parsed.hostname.toLowerCase();
+    if (!FACEBOOK_HOSTS.has(host)) return null;
+
+    if (parsed.pathname === '/plugins/video.php') {
+      const innerHref = parsed.searchParams.get('href');
+      return innerHref ? normalizeFacebookVideoUrl(innerHref) : null;
+    }
+
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    if (host.endsWith('fb.watch')) {
+      if (parts.length === 0) return null;
+      return `https://${host}/${parts.join('/')}`;
+    }
+
+    const hasVideoParam = parsed.pathname.startsWith('/watch') && Boolean(parsed.searchParams.get('v'));
+    const hasVideoPath =
+      parts.includes('videos') ||
+      parts[0] === 'reel' ||
+      parts[0] === 'reels' ||
+      (parts[0] === 'share' && (parts[1] === 'v' || parts[1] === 'r'));
+
+    if (!hasVideoParam && !hasVideoPath) return null;
+
+    const clean = new URL(`https://${host}${parsed.pathname}${parsed.search}`);
+    return clean.toString();
+  } catch {
+    return null;
+  }
+}
+
+const INSTAGRAM_HOSTS = new Set(['instagram.com', 'www.instagram.com', 'instagr.am', 'www.instagr.am']);
+const INSTAGRAM_SHORTCODE_RE = /^[A-Za-z0-9_-]{5,40}$/;
+
+export function extractInstagramMedia(
+  rawUrl: unknown,
+): { kind: 'reel' | 'p' | 'tv'; id: string } | null {
+  if (typeof rawUrl !== 'string') return null;
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+    if (parsed.username || parsed.password) return null;
+    const host = parsed.hostname.toLowerCase();
+    if (!INSTAGRAM_HOSTS.has(host)) return null;
+
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    for (let i = 0; i < parts.length - 1; i++) {
+      const seg = parts[i].toLowerCase();
+      if (seg === 'reel' || seg === 'reels' || seg === 'p' || seg === 'tv') {
+        const candidate = parts[i + 1];
+        if (candidate && INSTAGRAM_SHORTCODE_RE.test(candidate)) {
+          return { kind: seg === 'reels' ? 'reel' : (seg as 'reel' | 'p' | 'tv'), id: candidate };
+        }
+      }
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
+const X_HOSTS = new Set([
+  'x.com',
+  'www.x.com',
+  'mobile.x.com',
+  'twitter.com',
+  'www.twitter.com',
+  'mobile.twitter.com',
+]);
+const X_STATUS_ID_RE = /^\d{10,25}$/;
+
+export function extractXStatusId(rawUrl: unknown): string | null {
+  if (typeof rawUrl !== 'string') return null;
+  const trimmed = rawUrl.trim();
+  if (!trimmed) return null;
+  try {
+    const parsed = new URL(trimmed);
+    if (parsed.protocol !== 'https:' && parsed.protocol !== 'http:') return null;
+    if (parsed.username || parsed.password) return null;
+    const host = parsed.hostname.toLowerCase();
+    if (!X_HOSTS.has(host)) return null;
+
+    const parts = parsed.pathname.split('/').filter(Boolean);
+    const statusIdx = parts.findIndex((seg) => seg.toLowerCase() === 'status');
+    if (statusIdx !== -1 && statusIdx + 1 < parts.length) {
+      const candidate = parts[statusIdx + 1];
+      if (candidate && X_STATUS_ID_RE.test(candidate)) return candidate;
+    }
+    return null;
+  } catch {
+    return null;
+  }
+}
+
 export function isValidDirectMp4Url(rawUrl: unknown): boolean {
   if (typeof rawUrl !== 'string') return false;
   const trimmed = rawUrl.trim();
@@ -200,6 +323,20 @@ export function buildSafeEmbedUrl(sourceType: VideoSourceType, rawUrl: unknown):
   if (sourceType === 'vimeo') {
     const id = extractVimeoId(rawUrl);
     return id ? `https://player.vimeo.com/video/${id}` : '';
+  }
+  if (sourceType === 'facebook') {
+    const normalized = normalizeFacebookVideoUrl(rawUrl);
+    return normalized
+      ? `https://www.facebook.com/plugins/video.php?href=${encodeURIComponent(normalized)}&show_text=false`
+      : '';
+  }
+  if (sourceType === 'instagram') {
+    const media = extractInstagramMedia(rawUrl);
+    return media ? `https://www.instagram.com/${media.kind}/${media.id}/embed/` : '';
+  }
+  if (sourceType === 'x') {
+    const statusId = extractXStatusId(rawUrl);
+    return statusId ? `https://platform.twitter.com/embed/Tweet.html?id=${statusId}&dnt=true` : '';
   }
   if (sourceType === 'mp4' && typeof rawUrl === 'string' && isValidDirectMp4Url(rawUrl)) {
     return new URL(rawUrl.trim()).toString();
@@ -235,7 +372,7 @@ export function validateVideoInput(
   if (titleAr.length > 200) return { valid: false, error: 'عنوان الفيديو طويل جداً (الحد الأقصى 200 حرف).' };
 
   const source = input.videoSourceType;
-  if (!(['youtube', 'vimeo', 'mp4', 'upload'] as const).includes(source)) {
+  if (!(['youtube', 'vimeo', 'facebook', 'instagram', 'x', 'mp4', 'upload'] as const).includes(source)) {
     return { valid: false, error: 'نوع مصدر الفيديو غير صالح.' };
   }
 
@@ -244,6 +381,15 @@ export function validateVideoInput(
   }
   if (source === 'vimeo' && !extractVimeoId(input.videoUrl)) {
     return { valid: false, error: 'يرجى إدخال رابط Vimeo صحيح.' };
+  }
+  if (source === 'facebook' && !normalizeFacebookVideoUrl(input.videoUrl)) {
+    return { valid: false, error: 'يرجى إدخال رابط فيديو Facebook صحيح.' };
+  }
+  if (source === 'instagram' && !extractInstagramMedia(input.videoUrl)) {
+    return { valid: false, error: 'يرجى إدخال رابط فيديو أو Reel من Instagram صحيح.' };
+  }
+  if (source === 'x' && !extractXStatusId(input.videoUrl)) {
+    return { valid: false, error: 'يرجى إدخال رابط منشور X (Twitter) صحيح.' };
   }
   if (source === 'mp4' && !isValidDirectMp4Url(input.videoUrl)) {
     return { valid: false, error: 'يرجى إدخال رابط فيديو مباشر صحيح (https).' };
@@ -467,7 +613,7 @@ export function mapMedicalVideoRow(
   const doctorId = typeof row.doctor_id === 'string' && row.doctor_id ? row.doctor_id : null;
   const cat = categoryId ? categoriesById?.get(categoryId) : undefined;
   const doc = doctorId ? doctorsById?.get(doctorId) : undefined;
-  const sourceType = (['youtube', 'vimeo', 'mp4', 'upload'].includes(String(row.video_source_type))
+  const sourceType = (['youtube', 'vimeo', 'facebook', 'instagram', 'x', 'mp4', 'upload'].includes(String(row.video_source_type))
     ? String(row.video_source_type)
     : 'youtube') as VideoSourceType;
 

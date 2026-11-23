@@ -4,15 +4,19 @@ import {
   buildSafeEmbedUrl,
   clearFallbackMedicalVideos,
   DEFAULT_MEDICAL_VIDEO_CATEGORIES,
+  extractInstagramMedia,
   extractVimeoId,
+  extractXStatusId,
   extractYouTubeId,
   filterPublicCategories,
   filterPublicMedicalVideos,
   hasMedicalVideoPermission,
+  isEmbedVideoSource,
   isMissingMedicalVideosTableError,
   isValidDirectMp4Url,
   mapCategoryRow,
   mapMedicalVideoRow,
+  normalizeFacebookVideoUrl,
   paginateItems,
   readFallbackCategories,
   readFallbackVideos,
@@ -97,6 +101,103 @@ describe('medical videos URL security, embed building & validation', () => {
     expect(buildSafeEmbedUrl('vimeo', 'https://vimeo.com/123456789')).toBe(
       'https://player.vimeo.com/video/123456789',
     );
+  });
+
+  it('parses Facebook, Instagram, and X URLs and builds safe embed URLs', () => {
+    expect(isEmbedVideoSource('facebook')).toBe(true);
+    expect(isEmbedVideoSource('instagram')).toBe(true);
+    expect(isEmbedVideoSource('x')).toBe(true);
+    expect(isEmbedVideoSource('mp4')).toBe(false);
+    expect(isEmbedVideoSource('upload')).toBe(false);
+
+    // Facebook
+    expect(normalizeFacebookVideoUrl('https://www.facebook.com/baradaeye/videos/1234567890/')).toBe(
+      'https://www.facebook.com/baradaeye/videos/1234567890/',
+    );
+    expect(normalizeFacebookVideoUrl('https://www.facebook.com/watch/?v=9988776655')).toBe(
+      'https://www.facebook.com/watch/?v=9988776655',
+    );
+    expect(normalizeFacebookVideoUrl('https://fb.watch/abc123XYZ/')).toBe(
+      'https://fb.watch/abc123XYZ',
+    );
+    expect(buildSafeEmbedUrl('facebook', 'https://www.facebook.com/reel/555666777')).toBe(
+      'https://www.facebook.com/plugins/video.php?href=https%3A%2F%2Fwww.facebook.com%2Freel%2F555666777&show_text=false',
+    );
+    expect(normalizeFacebookVideoUrl('https://evil-facebook.com/watch/?v=123')).toBeNull();
+    expect(normalizeFacebookVideoUrl('javascript:alert(1)')).toBeNull();
+
+    // Instagram
+    expect(extractInstagramMedia('https://www.instagram.com/reel/CxYz123AbC_/')).toEqual({
+      kind: 'reel',
+      id: 'CxYz123AbC_',
+    });
+    expect(extractInstagramMedia('https://www.instagram.com/baradaeye/reels/CxYz123AbC_/')).toEqual({
+      kind: 'reel',
+      id: 'CxYz123AbC_',
+    });
+    expect(extractInstagramMedia('https://www.instagram.com/p/AbCdEf12345/')).toEqual({
+      kind: 'p',
+      id: 'AbCdEf12345',
+    });
+    expect(buildSafeEmbedUrl('instagram', 'https://www.instagram.com/reel/CxYz123AbC_/')).toBe(
+      'https://www.instagram.com/reel/CxYz123AbC_/embed/',
+    );
+    expect(extractInstagramMedia('https://evil-instagram.com/reel/CxYz123AbC_/')).toBeNull();
+
+    // X / Twitter
+    expect(extractXStatusId('https://x.com/baradaeye/status/1845678901234567890')).toBe(
+      '1845678901234567890',
+    );
+    expect(extractXStatusId('https://twitter.com/baradaeye/status/1845678901234567890?s=20')).toBe(
+      '1845678901234567890',
+    );
+    expect(buildSafeEmbedUrl('x', 'https://x.com/baradaeye/status/1845678901234567890')).toBe(
+      'https://platform.twitter.com/embed/Tweet.html?id=1845678901234567890&dnt=true',
+    );
+    expect(extractXStatusId('https://evil-x.com/user/status/1845678901234567890')).toBeNull();
+  });
+
+  it('validates facebook, instagram, and x inputs and maps rows cleanly', () => {
+    expect(
+      validateVideoInput({
+        titleAr: 'فيديو توعوي من فيسبوك',
+        videoSourceType: 'facebook',
+        videoUrl: 'https://www.facebook.com/barada/videos/123456',
+        isActive: true,
+        isPublished: true,
+        isFeatured: false,
+      }).valid,
+    ).toBe(true);
+    expect(
+      validateVideoInput({
+        titleAr: 'فيديو إنستجرام غير صالح',
+        videoSourceType: 'instagram',
+        videoUrl: 'https://www.instagram.com/explore/',
+        isActive: true,
+        isPublished: false,
+        isFeatured: false,
+      }).valid,
+    ).toBe(false);
+    expect(
+      validateVideoInput({
+        titleAr: 'تغريدة فيديو على إكس',
+        videoSourceType: 'x',
+        videoUrl: 'https://x.com/barada/status/1845678901234567890',
+        isActive: true,
+        isPublished: true,
+        isFeatured: false,
+      }).valid,
+    ).toBe(true);
+
+    expect(
+      mapMedicalVideoRow({ id: '1', title_ar: 'فيسبوك', video_source_type: 'facebook' }).videoSourceType,
+    ).toBe('facebook');
+    expect(
+      mapMedicalVideoRow({ id: '2', title_ar: 'إنستجرام', video_source_type: 'instagram' }).videoSourceType,
+    ).toBe('instagram');
+    expect(
+      mapMedicalVideoRow({ id: '3', title_ar: 'إكس', video_source_type: 'x' }).videoSourceType,
+    ).toBe('x');
   });
 
   it('blocks unsafe URL schemes and spoofed domains from embeds and thumbnails', () => {

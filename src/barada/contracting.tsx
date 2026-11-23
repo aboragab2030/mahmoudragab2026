@@ -245,7 +245,7 @@ export const ContractingManagement = () => {
         <div className="flex flex-wrap justify-between items-center gap-3 mb-8">
             <h3 className="text-xl font-black text-[#172B3A] flex items-center gap-2.5">
                 <Building2 className="text-[#087F8C]"/> 
-                إدارة التعاقدات والتأمين
+                شركاء النجاح
             </h3>
             <button onClick={() => { setIsAdding(true); setEditingId(null); setFormData({ name: '', documents: [], newDoc: '', managerName: '', managerPhone: '' }); }} className="fv-btn-primary text-white px-4 py-2.5 rounded-xl text-sm font-bold flex items-center gap-2 cursor-pointer">
                 <Plus size={18} /> إضافة شركة

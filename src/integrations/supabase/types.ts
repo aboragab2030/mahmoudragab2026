@@ -282,31 +282,85 @@ export type Database = {
       }
       contracting_companies: {
         Row: {
+          address: string | null
+          admin_notes: string | null
+          assigned_staff_id: string | null
+          assigned_staff_name: string | null
+          city: string | null
+          contact_email: string | null
+          contact_title: string | null
+          cooperation_start_date: string | null
           created_at: string
+          created_by: string | null
           documents: string[] | null
+          email: string | null
+          governorate: string | null
           id: number
+          is_active: boolean
           manager_name: string | null
           manager_phone: string | null
           name: string
+          org_type: string | null
+          phone: string | null
+          relationship_status: string
+          sector: string | null
           updated_at: string
+          updated_by: string | null
+          website: string | null
         }
         Insert: {
+          address?: string | null
+          admin_notes?: string | null
+          assigned_staff_id?: string | null
+          assigned_staff_name?: string | null
+          city?: string | null
+          contact_email?: string | null
+          contact_title?: string | null
+          cooperation_start_date?: string | null
           created_at?: string
+          created_by?: string | null
           documents?: string[] | null
+          email?: string | null
+          governorate?: string | null
           id?: number
+          is_active?: boolean
           manager_name?: string | null
           manager_phone?: string | null
           name: string
+          org_type?: string | null
+          phone?: string | null
+          relationship_status?: string
+          sector?: string | null
           updated_at?: string
+          updated_by?: string | null
+          website?: string | null
         }
         Update: {
+          address?: string | null
+          admin_notes?: string | null
+          assigned_staff_id?: string | null
+          assigned_staff_name?: string | null
+          city?: string | null
+          contact_email?: string | null
+          contact_title?: string | null
+          cooperation_start_date?: string | null
           created_at?: string
+          created_by?: string | null
           documents?: string[] | null
+          email?: string | null
+          governorate?: string | null
           id?: number
+          is_active?: boolean
           manager_name?: string | null
           manager_phone?: string | null
           name?: string
+          org_type?: string | null
+          phone?: string | null
+          relationship_status?: string
+          sector?: string | null
           updated_at?: string
+          updated_by?: string | null
+          website?: string | null
         }
         Relationships: []
       }
@@ -767,6 +821,441 @@ export type Database = {
           status?: string
           surgery_type?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      partner_activities: {
+        Row: {
+          activity_date: string
+          activity_time: string | null
+          activity_type: string
+          agreements: string | null
+          attachments: Json
+          company_id: number
+          contact_id: string | null
+          contact_name: string | null
+          created_at: string
+          created_by: string | null
+          followup_status: string
+          goal: string
+          id: string
+          next_followup_date: string | null
+          next_steps: string | null
+          outcomes: string | null
+          staff_name: string
+          staff_user_id: string | null
+          summary: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          activity_date: string
+          activity_time?: string | null
+          activity_type: string
+          agreements?: string | null
+          attachments?: Json
+          company_id: number
+          contact_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          followup_status?: string
+          goal: string
+          id?: string
+          next_followup_date?: string | null
+          next_steps?: string | null
+          outcomes?: string | null
+          staff_name: string
+          staff_user_id?: string | null
+          summary?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          activity_date?: string
+          activity_time?: string | null
+          activity_type?: string
+          agreements?: string | null
+          attachments?: Json
+          company_id?: number
+          contact_id?: string | null
+          contact_name?: string | null
+          created_at?: string
+          created_by?: string | null
+          followup_status?: string
+          goal?: string
+          id?: string
+          next_followup_date?: string | null
+          next_steps?: string | null
+          outcomes?: string | null
+          staff_name?: string
+          staff_user_id?: string | null
+          summary?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      partner_alert_settings: {
+        Row: {
+          alert_days: number[]
+          auto_mark_expiring_days: number
+          id: number
+          notify_overdue: boolean
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          alert_days?: number[]
+          auto_mark_expiring_days?: number
+          id?: number
+          notify_overdue?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          alert_days?: number[]
+          auto_mark_expiring_days?: number
+          id?: number
+          notify_overdue?: boolean
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      partner_audit_logs: {
+        Row: {
+          action_type: string
+          actor_name: string
+          actor_user_id: string | null
+          company_id: number | null
+          created_at: string
+          entity_id: string | null
+          entity_type: string
+          id: string
+          metadata: Json
+          summary: string
+        }
+        Insert: {
+          action_type: string
+          actor_name: string
+          actor_user_id?: string | null
+          company_id?: number | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type: string
+          id?: string
+          metadata?: Json
+          summary: string
+        }
+        Update: {
+          action_type?: string
+          actor_name?: string
+          actor_user_id?: string | null
+          company_id?: number | null
+          created_at?: string
+          entity_id?: string | null
+          entity_type?: string
+          id?: string
+          metadata?: Json
+          summary?: string
+        }
+        Relationships: []
+      }
+      partner_contacts: {
+        Row: {
+          communication_status: string
+          company_id: number
+          created_at: string
+          created_by: string | null
+          department: string | null
+          email: string | null
+          id: string
+          importance_level: string
+          is_archived: boolean
+          is_primary: boolean
+          job_title: string | null
+          last_contact_at: string | null
+          name: string
+          notes: string | null
+          phone: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          communication_status?: string
+          company_id: number
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          email?: string | null
+          id?: string
+          importance_level?: string
+          is_archived?: boolean
+          is_primary?: boolean
+          job_title?: string | null
+          last_contact_at?: string | null
+          name: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          communication_status?: string
+          company_id?: number
+          created_at?: string
+          created_by?: string | null
+          department?: string | null
+          email?: string | null
+          id?: string
+          importance_level?: string
+          is_archived?: boolean
+          is_primary?: boolean
+          job_title?: string | null
+          last_contact_at?: string | null
+          name?: string
+          notes?: string | null
+          phone?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      partner_contract_renewals: {
+        Row: {
+          company_id: number
+          created_at: string
+          id: string
+          new_end_date: string
+          new_start_date: string
+          next_renewal_date: string | null
+          previous_contract_id: string
+          renewal_date: string
+          renewal_notes: string | null
+          renewed_by: string | null
+          renewed_by_name: string | null
+          renewed_contract_id: string
+        }
+        Insert: {
+          company_id: number
+          created_at?: string
+          id?: string
+          new_end_date: string
+          new_start_date: string
+          next_renewal_date?: string | null
+          previous_contract_id: string
+          renewal_date: string
+          renewal_notes?: string | null
+          renewed_by?: string | null
+          renewed_by_name?: string | null
+          renewed_contract_id: string
+        }
+        Update: {
+          company_id?: number
+          created_at?: string
+          id?: string
+          new_end_date?: string
+          new_start_date?: string
+          next_renewal_date?: string | null
+          previous_contract_id?: string
+          renewal_date?: string
+          renewal_notes?: string | null
+          renewed_by?: string | null
+          renewed_by_name?: string | null
+          renewed_contract_id?: string
+        }
+        Relationships: []
+      }
+      partner_contracts: {
+        Row: {
+          attachment_name: string | null
+          attachment_path: string | null
+          company_id: number
+          contract_number: string
+          contract_type: string
+          created_at: string
+          created_by: string | null
+          discount_terms: string | null
+          duration_months: number | null
+          end_date: string
+          id: string
+          is_current_version: boolean
+          last_renewal_date: string | null
+          next_renewal_date: string | null
+          notes: string | null
+          parent_contract_id: string | null
+          responsible_staff_id: string | null
+          responsible_staff_name: string | null
+          signed_date: string | null
+          start_date: string
+          status: string
+          terms: string | null
+          updated_at: string
+          updated_by: string | null
+          version_number: number
+        }
+        Insert: {
+          attachment_name?: string | null
+          attachment_path?: string | null
+          company_id: number
+          contract_number: string
+          contract_type?: string
+          created_at?: string
+          created_by?: string | null
+          discount_terms?: string | null
+          duration_months?: number | null
+          end_date: string
+          id?: string
+          is_current_version?: boolean
+          last_renewal_date?: string | null
+          next_renewal_date?: string | null
+          notes?: string | null
+          parent_contract_id?: string | null
+          responsible_staff_id?: string | null
+          responsible_staff_name?: string | null
+          signed_date?: string | null
+          start_date: string
+          status?: string
+          terms?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          version_number?: number
+        }
+        Update: {
+          attachment_name?: string | null
+          attachment_path?: string | null
+          company_id?: number
+          contract_number?: string
+          contract_type?: string
+          created_at?: string
+          created_by?: string | null
+          discount_terms?: string | null
+          duration_months?: number | null
+          end_date?: string
+          id?: string
+          is_current_version?: boolean
+          last_renewal_date?: string | null
+          next_renewal_date?: string | null
+          notes?: string | null
+          parent_contract_id?: string | null
+          responsible_staff_id?: string | null
+          responsible_staff_name?: string | null
+          signed_date?: string | null
+          start_date?: string
+          status?: string
+          terms?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          version_number?: number
+        }
+        Relationships: []
+      }
+      partner_followups: {
+        Row: {
+          activity_id: string | null
+          assignee_name: string | null
+          assignee_user_id: string | null
+          closed_at: string | null
+          company_id: number
+          contact_id: string | null
+          contract_id: string | null
+          created_at: string
+          created_by: string | null
+          created_date: string
+          description: string | null
+          due_date: string
+          followup_type: string
+          id: string
+          outcome: string | null
+          priority: string
+          status: string
+          title: string
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          activity_id?: string | null
+          assignee_name?: string | null
+          assignee_user_id?: string | null
+          closed_at?: string | null
+          company_id: number
+          contact_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_date?: string
+          description?: string | null
+          due_date: string
+          followup_type?: string
+          id?: string
+          outcome?: string | null
+          priority?: string
+          status?: string
+          title: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          activity_id?: string | null
+          assignee_name?: string | null
+          assignee_user_id?: string | null
+          closed_at?: string | null
+          company_id?: number
+          contact_id?: string | null
+          contract_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          created_date?: string
+          description?: string | null
+          due_date?: string
+          followup_type?: string
+          id?: string
+          outcome?: string | null
+          priority?: string
+          status?: string
+          title?: string
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
+      partner_renewal_alert_logs: {
+        Row: {
+          alert_date: string
+          company_id: number
+          contract_id: string
+          created_at: string
+          created_by: string | null
+          id: string
+          message: string
+          notification_id: string | null
+          threshold_days: number
+          title: string
+        }
+        Insert: {
+          alert_date: string
+          company_id: number
+          contract_id: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message: string
+          notification_id?: string | null
+          threshold_days: number
+          title: string
+        }
+        Update: {
+          alert_date?: string
+          company_id?: number
+          contract_id?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          message?: string
+          notification_id?: string | null
+          threshold_days?: number
+          title?: string
         }
         Relationships: []
       }

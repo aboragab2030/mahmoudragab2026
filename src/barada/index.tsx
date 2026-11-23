@@ -41,7 +41,8 @@ import {
   CreditCard, Wallet, Copy, ArrowLeft, Youtube, Instagram, Video
 } from 'lucide-react';
 
-import { ContractingSelector, ContractingManager, ContractingCompany, ContractingManagement, CONTRACTING_CHANGED_EVENT } from './contracting';
+import { ContractingSelector, ContractingManager, ContractingCompany, CONTRACTING_CHANGED_EVENT } from './contracting';
+import { PartnersSuccessHub } from './PartnersSuccessHub';
 import { PaymentsTab } from './PaymentsTab';
 import { InstapaySubmittedDialog, InstapayStatusLookup, submitInstapay, type InstapaySubmissionInput, type InstapayResult } from './InstapayFeature';
 import { usePaymobEnabled, startPaymobCheckout, PaymobResultDialog, PaymobSettingsPanel } from './PaymobFeature';
@@ -476,7 +477,7 @@ const isFriday = (dateStr: string): boolean => weekdayOf(dateStr) === 5;
 const AVAILABLE_PERMISSIONS: PermissionOption[] = [
   { id: 'manage_doctors', label: 'إدارة الأطباء' },
   { id: 'manage_bookings', label: 'إدارة الحجوزات' },
-  { id: 'manage_partners', label: 'إدارة التعاقدات' },
+  { id: 'manage_partners', label: 'شركاء النجاح' },
   { id: 'manage_content', label: 'إدارة المحتوى والخدمات' },
   { id: 'view_reports', label: 'عرض التقارير والإحصائيات' },
   { id: 'manage_settings', label: 'الإعدادات العامة' },
@@ -2081,9 +2082,9 @@ const AiAssistant = ({ language }: { language: 'ar' | 'en' }) => {
 const AdminPanel = ({ 
   doctors, setDoctors, users, setUsers, currentUser, currentUserUuid, allBookings, setBookings, operations, setOperations,
   onCancelBooking, onConfirmBooking, onEditBooking, onDeleteBooking, onSendReminder,
-  complaints, setComplaints, heroImages, setHeroImages, partners, setPartners, settings, setSettings, services, setServices, t, handleWhatsAppReminder, handleSmsReminder, onConfirmPayment, onOffersChanged, onVideosChanged
+  complaints, setComplaints, heroImages, setHeroImages, partners, setPartners, settings, setSettings, services, setServices, t, handleWhatsAppReminder, handleSmsReminder, onConfirmPayment, onOffersChanged, onVideosChanged, onNotify
 }: { 
-  doctors: Doctor[], setDoctors: React.Dispatch<React.SetStateAction<Doctor[]>>, users: User[], setUsers: React.Dispatch<React.SetStateAction<User[]>>, currentUser: User, currentUserUuid?: string, allBookings: Booking[], setBookings: React.Dispatch<React.SetStateAction<Booking[]>>, operations: Operation[], setOperations: React.Dispatch<React.SetStateAction<Operation[]>>, onCancelBooking: (id: number) => void, onConfirmBooking: (id: number) => void, onEditBooking: (booking: Booking) => void, onDeleteBooking: (id: number) => void, onSendReminder: (id: number, itemType: 'booking' | 'operation') => void, complaints: Complaint[], setComplaints: React.Dispatch<React.SetStateAction<Complaint[]>>, heroImages: HeroImage[], setHeroImages: React.Dispatch<React.SetStateAction<HeroImage[]>>, partners: Partner[], setPartners: React.Dispatch<React.SetStateAction<Partner[]>>, settings: AppSettings, setSettings: React.Dispatch<React.SetStateAction<AppSettings>>, services: ServiceItem[], setServices: React.Dispatch<React.SetStateAction<ServiceItem[]>>, t: any, handleWhatsAppReminder: (rem: any) => void, handleSmsReminder: (rem: any) => void, onConfirmPayment: (id: number) => void, onOffersChanged?: () => void, onVideosChanged?: () => void
+  doctors: Doctor[], setDoctors: React.Dispatch<React.SetStateAction<Doctor[]>>, users: User[], setUsers: React.Dispatch<React.SetStateAction<User[]>>, currentUser: User, currentUserUuid?: string, allBookings: Booking[], setBookings: React.Dispatch<React.SetStateAction<Booking[]>>, operations: Operation[], setOperations: React.Dispatch<React.SetStateAction<Operation[]>>, onCancelBooking: (id: number) => void, onConfirmBooking: (id: number) => void, onEditBooking: (booking: Booking) => void, onDeleteBooking: (id: number) => void, onSendReminder: (id: number, itemType: 'booking' | 'operation') => void, complaints: Complaint[], setComplaints: React.Dispatch<React.SetStateAction<Complaint[]>>, heroImages: HeroImage[], setHeroImages: React.Dispatch<React.SetStateAction<HeroImage[]>>, partners: Partner[], setPartners: React.Dispatch<React.SetStateAction<Partner[]>>, settings: AppSettings, setSettings: React.Dispatch<React.SetStateAction<AppSettings>>, services: ServiceItem[], setServices: React.Dispatch<React.SetStateAction<ServiceItem[]>>, t: any, handleWhatsAppReminder: (rem: any) => void, handleSmsReminder: (rem: any) => void, onConfirmPayment: (id: number) => void, onOffersChanged?: () => void, onVideosChanged?: () => void, onNotify?: (title: string, message: string, type: 'success' | 'warning' | 'info') => void
 }) => {
   // Access realtime data for Supabase operations
   const { data: realtimeData, isLoading: realtimeLoading } = useRealtimeSync({ enabled: true });
@@ -2694,7 +2695,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                     {canAccessSection(currentUser, 'payments') && (<button onClick={() => setActiveTab('payments')} className={tabClass('payments')}><CreditCard size={18} /> المدفوعات</button>)}
                     {canAccessSection(currentUser, 'contact-logs') && (<button onClick={() => { setActiveTab('contact-logs'); if (contactLogs.length === 0) fetchContactLogs(); }} className={tabClass('contact-logs')}><History size={18} /> سجل الاتصالات</button>)}
                     <div className="h-px bg-[#DFEAF0] mx-3 my-3"></div>
-                    {canAccessSection(currentUser, 'partners') && (<button onClick={() => setActiveTab('partners')} className={tabClass('partners')}><Building2 size={18} /> {t.partners}</button>)}
+                    {canAccessSection(currentUser, 'partners') && (<button onClick={() => setActiveTab('partners')} className={tabClass('partners')}><Building2 size={18} /> {settings.language === 'ar' ? 'شركاء النجاح' : 'Partners of Success'}</button>)}
                     {canAccessSection(currentUser, 'services') && (<button onClick={() => setActiveTab('services')} className={tabClass('services')}><LayoutTemplate size={18} /> {t.services}</button>)}
                     {canAccessSection(currentUser, 'offers') && (<button onClick={() => setActiveTab('offers')} className={tabClass('offers')}><Tag size={18} /> إدارة العروض</button>)}
                     {canAccessSection(currentUser, 'medical-videos') && (<button onClick={() => setActiveTab('medical-videos')} className={tabClass('medical-videos')}><Video size={18} /> مكتبة الفيديوهات الطبية</button>)}
@@ -2815,7 +2816,21 @@ const handlePrint = (title: string, contentHtml: string) => {
                 )}
                 {activeTab === 'partners' && (
                     <div className="space-y-6 animate-in fade-in duration-300">
-                        <ContractingManagement />
+                        <PartnersSuccessHub
+                          currentUser={currentUser}
+                          currentUserUuid={currentUserUuid}
+                          rawBookings={realtimeData.bookings}
+                          allBookings={allBookings}
+                          operations={operations}
+                          rawPayments={realtimeData.payments}
+                          doctors={doctors}
+                          services={services}
+                          staffMembers={realtimeData.staffMembers}
+                          cardClass={cardClass}
+                          inputClass={inputClass}
+                          onPrint={handlePrint}
+                          onNotify={onNotify || (() => {})}
+                        />
                         <div className="w-full h-px bg-[#DFEAF0] my-6"></div>
                         <div className={cardClass}>
                             <h3 className="text-lg font-black text-[#172B3A] mb-5 flex items-center gap-2">
@@ -4418,6 +4433,7 @@ const handleNavigate = (sectionId: string) => {
            onConfirmPayment={handleConfirmPayment}
            onOffersChanged={() => { void refreshPublicData('offers'); }}
            onVideosChanged={() => { void Promise.all([refreshPublicData('medicalVideos'), refreshPublicData('medicalVideoCategories')]); }}
+           onNotify={addNotification}
         />
       )}
 

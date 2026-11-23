@@ -35,6 +35,7 @@ import {
   DEFAULT_MEDICAL_VIDEO_CATEGORIES,
   getPlayableVideoUrl,
   hasMedicalVideoPermission,
+  isEmbedVideoSource,
   isMissingMedicalVideosTableError,
   mapCategoryRow,
   mapMedicalVideoRow,
@@ -99,6 +100,9 @@ const createEmptyCategoryForm = (): MedicalVideoCategoryInput => ({
 const SOURCE_LABELS: Record<VideoSourceType, string> = {
   youtube: 'YouTube',
   vimeo: 'Vimeo',
+  facebook: 'Facebook',
+  instagram: 'Instagram',
+  x: 'X (Twitter)',
   mp4: 'رابط MP4 مباشر',
   upload: 'ملف مرفوع (Storage)',
 };
@@ -581,11 +585,26 @@ export const MedicalVideosManagement: React.FC<MedicalVideosManagementProps> = (
           updatePayload.is_featured = form.isFeatured;
         }
 
-        const { error } = await supabase
+        const { error: updateErr } = await supabase
           .from('medical_videos')
           .update(updatePayload)
           .eq('id', editingVideo.id);
-        if (error) throw error;
+        if (updateErr) {
+          if (updateErr.code === '23514' || String(updateErr.message || '').includes('video_source_type')) {
+            const { data: mig } = await invokeBackend('ensure-medical-videos-schema');
+            if (mig?.migrated) {
+              const { error: retryErr } = await supabase
+                .from('medical_videos')
+                .update(updatePayload)
+                .eq('id', editingVideo.id);
+              if (retryErr) throw retryErr;
+            } else {
+              throw updateErr;
+            }
+          } else {
+            throw updateErr;
+          }
+        }
 
         if (canUpload && editingVideo.thumbnailUrl && editingVideo.thumbnailUrl !== nextThumbUrl) {
           void removeMedicalVideoThumbnailByUrl(editingVideo.thumbnailUrl);
@@ -615,8 +634,20 @@ export const MedicalVideosManagement: React.FC<MedicalVideosManagementProps> = (
           published_at: canPublish && form.isPublished ? publishedAtIso : null,
         };
 
-        const { error } = await supabase.from('medical_videos').insert(insertPayload);
-        if (error) throw error;
+        const { error: insertErr } = await supabase.from('medical_videos').insert(insertPayload);
+        if (insertErr) {
+          if (insertErr.code === '23514' || String(insertErr.message || '').includes('video_source_type')) {
+            const { data: mig } = await invokeBackend('ensure-medical-videos-schema');
+            if (mig?.migrated) {
+              const { error: retryErr } = await supabase.from('medical_videos').insert(insertPayload);
+              if (retryErr) throw retryErr;
+            } else {
+              throw insertErr;
+            }
+          } else {
+            throw insertErr;
+          }
+        }
         toast.success('تم إضافة الفيديو الطبي بنجاح.');
       }
 
@@ -1002,8 +1033,7 @@ export const MedicalVideosManagement: React.FC<MedicalVideosManagementProps> = (
                   <AlertTriangle size={34} className="text-amber-500 mb-2" />
                   <p className="font-bold text-[#172B3A]">{previewVideo.error}</p>
                 </div>
-              ) : previewVideo.video.videoSourceType === 'youtube' ||
-                previewVideo.video.videoSourceType === 'vimeo' ? (
+              ) : isEmbedVideoSource(previewVideo.video.videoSourceType) ? (
                 <div className="aspect-video rounded-2xl overflow-hidden bg-black">
                   <iframe
                     src={previewVideo.resolvedUrl}
@@ -1361,6 +1391,9 @@ export const MedicalVideosManagement: React.FC<MedicalVideosManagementProps> = (
                     >
                       <option value="youtube">YouTube (يوتيوب)</option>
                       <option value="vimeo">Vimeo (فيميو)</option>
+                      <option value="facebook">Facebook (فيسبوك)</option>
+                      <option value="instagram">Instagram (إنستجرام)</option>
+                      <option value="x">X / Twitter (إكس)</option>
                       <option value="mp4">رابط MP4 مباشر</option>
                       <option value="upload">ملف فيديو مرفوع (Supabase Storage)</option>
                     </select>
@@ -1411,6 +1444,12 @@ export const MedicalVideosManagement: React.FC<MedicalVideosManagementProps> = (
                             ? 'https://www.youtube.com/watch?v=...'
                             : form.videoSourceType === 'vimeo'
                             ? 'https://vimeo.com/...'
+                            : form.videoSourceType === 'facebook'
+                            ? 'https://www.facebook.com/.../videos/...'
+                            : form.videoSourceType === 'instagram'
+                            ? 'https://www.instagram.com/reel/...'
+                            : form.videoSourceType === 'x'
+                            ? 'https://x.com/.../status/...'
                             : 'https://.../video.mp4'
                         }
                         disabled={editingVideo ? !canEdit : !canCreate}

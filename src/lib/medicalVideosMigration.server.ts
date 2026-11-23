@@ -19,7 +19,7 @@ CREATE TABLE IF NOT EXISTS public.medical_videos (
   description_ar TEXT,
   description_en TEXT,
   thumbnail_url TEXT,
-  video_source_type TEXT NOT NULL CHECK (video_source_type IN ('youtube', 'vimeo', 'mp4', 'upload')),
+  video_source_type TEXT NOT NULL CHECK (video_source_type IN ('youtube', 'vimeo', 'facebook', 'instagram', 'x', 'mp4', 'upload')),
   video_url TEXT,
   storage_path TEXT,
   category_id UUID REFERENCES public.medical_video_categories(id) ON DELETE SET NULL,
@@ -36,7 +36,7 @@ CREATE TABLE IF NOT EXISTS public.medical_videos (
   updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
   CONSTRAINT medical_videos_source_payload_chk CHECK (
     (video_source_type = 'upload' AND (COALESCE(trim(storage_path), '') <> '' OR COALESCE(trim(video_url), '') <> ''))
-    OR (video_source_type IN ('youtube', 'vimeo', 'mp4') AND COALESCE(trim(video_url), '') <> '')
+    OR (video_source_type IN ('youtube', 'vimeo', 'facebook', 'instagram', 'x', 'mp4') AND COALESCE(trim(video_url), '') <> '')
   )
 );
 
@@ -460,10 +460,39 @@ CREATE POLICY "Authorized staff delete medical video files"
   );
 
 DO $$
+DECLARE
+  r RECORD;
+BEGIN
+  FOR r IN
+    SELECT con.conname
+    FROM pg_constraint con
+    JOIN pg_class rel ON rel.oid = con.conrelid
+    JOIN pg_namespace nsp ON nsp.oid = rel.relnamespace
+    WHERE nsp.nspname = 'public'
+      AND rel.relname = 'medical_videos'
+      AND con.contype = 'c'
+      AND pg_get_constraintdef(con.oid) LIKE '%video_source_type%'
+  LOOP
+    EXECUTE format('ALTER TABLE public.medical_videos DROP CONSTRAINT IF EXISTS %I', r.conname);
+  END LOOP;
+
+  ALTER TABLE public.medical_videos
+    ADD CONSTRAINT medical_videos_video_source_type_chk
+    CHECK (video_source_type IN ('youtube', 'vimeo', 'facebook', 'instagram', 'x', 'mp4', 'upload'));
+
+  ALTER TABLE public.medical_videos
+    ADD CONSTRAINT medical_videos_source_payload_chk
+    CHECK (
+      (video_source_type = 'upload' AND (COALESCE(trim(storage_path), '') <> '' OR COALESCE(trim(video_url), '') <> ''))
+      OR (video_source_type IN ('youtube', 'vimeo', 'facebook', 'instagram', 'x', 'mp4') AND COALESCE(trim(video_url), '') <> '')
+    );
+END $$;
+
+DO $$
 BEGIN
   IF to_regclass('ops.applied_migrations') IS NOT NULL THEN
     INSERT INTO ops.applied_migrations (name)
-    VALUES ('0019_medical_videos_library.sql')
+    VALUES ('0019_medical_videos_library.sql'), ('0020_medical_videos_social_sources.sql')
     ON CONFLICT (name) DO NOTHING;
   END IF;
 END $$;

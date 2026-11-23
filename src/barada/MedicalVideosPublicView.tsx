@@ -17,6 +17,7 @@ import {
   filterPublicCategories,
   filterPublicMedicalVideos,
   getPlayableVideoUrl,
+  isEmbedVideoSource,
   MedicalVideoCategoryRecord,
   MedicalVideoRecord,
   paginateItems,
@@ -243,8 +244,7 @@ export const MedicalVideosPublicView: React.FC<MedicalVideosPublicViewProps> = (
                 <div className="aspect-video rounded-2xl bg-[#F5FAFC] border border-[#DFEAF0] flex items-center justify-center p-6 text-center">
                   <p className="font-bold text-[#172B3A]">{activePlayer.error}</p>
                 </div>
-              ) : activePlayer.video.videoSourceType === 'youtube' ||
-                activePlayer.video.videoSourceType === 'vimeo' ? (
+              ) : isEmbedVideoSource(activePlayer.video.videoSourceType) ? (
                 <div className="aspect-video rounded-2xl overflow-hidden bg-black shadow-lg">
                   <iframe
                     src={activePlayer.resolvedUrl}

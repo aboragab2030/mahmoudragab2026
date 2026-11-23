@@ -1,5 +1,6 @@
 // Converts the clinic's public database rows (doctors, services, top photos, partners,
 // settings) into the shapes the clinic screens use, and back again for saving.
+import type { Database } from '@/integrations/supabase/types';
 
 /** Same short number id the screens have always used, derived from the database id. */
 export const localIdFromUuid = (uuid: string) => parseInt(uuid.slice(-8), 16) || Date.now();
@@ -56,12 +57,52 @@ export const mapContractingRow = (c: any) => ({
   managerPhone: c.manager_phone || undefined,
 });
 
-export const contractingToRow = (c: { name: string; documents: string[]; managerName?: string; managerPhone?: string }) => ({
-  name: c.name,
-  documents: c.documents || [],
-  manager_name: c.managerName || null,
-  manager_phone: c.managerPhone || null,
-});
+export const contractingToRow = (c: {
+  name: string;
+  documents: string[];
+  managerName?: string;
+  managerPhone?: string;
+  orgType?: string;
+  sector?: string;
+  governorate?: string;
+  city?: string;
+  address?: string;
+  phone?: string;
+  email?: string;
+  website?: string;
+  contactTitle?: string;
+  contactEmail?: string;
+  cooperationStartDate?: string;
+  relationshipStatus?: string;
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+  adminNotes?: string;
+  isActive?: boolean;
+}) => {
+  const row: Database['public']['Tables']['contracting_companies']['Insert'] = {
+    name: c.name,
+    documents: c.documents || [],
+    manager_name: c.managerName || null,
+    manager_phone: c.managerPhone || null,
+  };
+  if (c.orgType !== undefined) row.org_type = c.orgType || 'شركة تأمين';
+  if (c.sector !== undefined) row.sector = c.sector || null;
+  if (c.governorate !== undefined) row.governorate = c.governorate || null;
+  if (c.city !== undefined) row.city = c.city || null;
+  if (c.address !== undefined) row.address = c.address || null;
+  if (c.phone !== undefined) row.phone = c.phone || null;
+  if (c.email !== undefined) row.email = c.email || null;
+  if (c.website !== undefined) row.website = c.website || null;
+  if (c.contactTitle !== undefined) row.contact_title = c.contactTitle || null;
+  if (c.contactEmail !== undefined) row.contact_email = c.contactEmail || null;
+  if (c.cooperationStartDate !== undefined) row.cooperation_start_date = c.cooperationStartDate || null;
+  if (c.relationshipStatus !== undefined) row.relationship_status = c.relationshipStatus || 'نشط';
+  if (c.assignedStaffId !== undefined) row.assigned_staff_id = c.assignedStaffId || null;
+  if (c.assignedStaffName !== undefined) row.assigned_staff_name = c.assignedStaffName || null;
+  if (c.adminNotes !== undefined) row.admin_notes = c.adminNotes || null;
+  if (c.isActive !== undefined) row.is_active = c.isActive !== false;
+  return row;
+};
 
 const has = (v: unknown) => v !== null && v !== undefined;
 

@@ -558,3 +558,37 @@ export const getMedicalVideoUrl = createServerFn({ method: "POST" })
     }
   });
 
+// ---------------------------------------------------------------------------
+// ensure-partners-schema (staff/admin only)
+// ---------------------------------------------------------------------------
+export const ensurePartnersSchema = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(asBody)
+  .handler(async ({ context }): Promise<BackendResult> => {
+    try {
+      const { data: isStaff } = await context.supabase.rpc("is_staff_or_admin", { _user_id: context.userId });
+      if (isStaff !== true) return reply({ error: "Unauthorized" }, 403);
+      const { tryApplyPartnersMigration } = await import("@/lib/partnersMigration.server");
+      const result = await tryApplyPartnersMigration();
+      return reply(result);
+    } catch {
+      return reply({ ok: true, migrated: false });
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// get-partner-document-url (authenticated authorized staff/admin only)
+// ---------------------------------------------------------------------------
+export const getPartnerDocumentUrl = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(asBody)
+  .handler(async ({ data, context }): Promise<BackendResult> => {
+    try {
+      const path = typeof data?.path === "string" ? data.path.trim() : "";
+      const { getSignedPartnerDocumentUrlServer } = await import("@/lib/partnersMigration.server");
+      const res = await getSignedPartnerDocumentUrlServer(path, context.userId);
+      return reply(res.body, res.status);
+    } catch {
+      return reply({ error: "تعذر تحميل رابط المستند" }, 500);
+    }
+  });
