@@ -504,3 +504,21 @@ export const staffSetup = createServerFn({ method: "POST" })
       return reply({ error: "حدث خطأ غير متوقع، يرجى المحاولة مرة أخرى" }, 500);
     }
   });
+
+// ---------------------------------------------------------------------------
+// ensure-offers-schema (staff/admin only): applies offers migration if DB URL is present
+// ---------------------------------------------------------------------------
+export const ensureOffersSchema = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(asBody)
+  .handler(async ({ context }): Promise<BackendResult> => {
+    try {
+      const { data: isStaff } = await context.supabase.rpc("is_staff_or_admin", { _user_id: context.userId });
+      if (isStaff !== true) return reply({ error: "Unauthorized" }, 403);
+      const { tryApplyOffersMigration } = await import("@/lib/offersMigration.server");
+      const result = await tryApplyOffersMigration();
+      return reply(result);
+    } catch {
+      return reply({ ok: true, migrated: false });
+    }
+  });

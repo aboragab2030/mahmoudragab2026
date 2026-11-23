@@ -1,5 +1,6 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
+import { isMissingOffersTableError, readFallbackOffers } from '@/barada/offers';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 // Types for realtime data
@@ -136,6 +137,11 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
       
       const staffMembers = combineStaffData(profilesRef.current, rolesRef.current);
 
+      const offersData =
+        offersRes.error && isMissingOffersTableError(offersRes.error)
+          ? readFallbackOffers()
+          : offersRes.data || [];
+
       const newData: RealtimeData = {
         bookings: bookingsRes.data || [],
         operations: operationsRes.data || [],
@@ -145,7 +151,7 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
         complaints: complaintsRes.data || [],
         doctors: doctorsRes.data || [],
         services: servicesRes.data || [],
-        offers: offersRes.data || [],
+        offers: offersData,
         contractingCompanies: contractingCompaniesRes.data || [],
         staffMembers,
       };

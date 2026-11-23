@@ -202,6 +202,7 @@ const createInitialTables = (): Record<string, Row[]> => ({
   payment_gateway_settings: [{ id: 1, enabled: false, mode: "test" }],
   payment_gateway_secrets: [],
   contact_logs: [],
+  offers: [],
 });
 
 const tables: Record<string, Row[]> = createInitialTables();

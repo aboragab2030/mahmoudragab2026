@@ -134,10 +134,81 @@ export function validateOfferImageFile(file: File): string | null {
   return null;
 }
 
+const SAFE_RASTER_DATA_URL_RE = /^data:image\/(jpeg|jpg|png|webp);base64,[A-Za-z0-9+/=]+$/i;
+
+export const OFFERS_FALLBACK_STORAGE_KEY = 'barada_offers_fallback_v1';
+export const OFFERS_CHANGED_EVENT = 'barada:offers-changed';
+
+export function isMissingOffersTableError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const { code, message } = error as { code?: unknown; message?: unknown };
+  const codeStr = typeof code === 'string' ? code : '';
+  const msgStr = typeof message === 'string' ? message : '';
+  return (
+    codeStr === 'PGRST205' ||
+    codeStr === '42P01' ||
+    /Could not find the table|relation .*offers.* does not exist|schema cache/i.test(msgStr)
+  );
+}
+
+export function isMissingOfferBucketError(error: unknown): boolean {
+  if (!error || typeof error !== 'object') return false;
+  const { message, statusCode, error: innerErr } = error as {
+    message?: unknown;
+    statusCode?: unknown;
+    error?: unknown;
+  };
+  const msg = `${typeof message === 'string' ? message : ''} ${typeof innerErr === 'string' ? innerErr : ''}`;
+  return String(statusCode || '') === '404' || /bucket not found|does not exist/i.test(msg);
+}
+
+export function readFallbackOffers(): Array<Record<string, unknown>> {
+  if (typeof window === 'undefined' || !window.localStorage) return [];
+  try {
+    const raw = window.localStorage.getItem(OFFERS_FALLBACK_STORAGE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!Array.isArray(parsed)) return [];
+    return parsed
+      .filter((item): item is Record<string, unknown> => Boolean(item && typeof item === 'object'))
+      .sort((a, b) => {
+        const orderDiff = Number(a.display_order ?? 0) - Number(b.display_order ?? 0);
+        if (orderDiff !== 0) return orderDiff;
+        return String(b.created_at ?? '').localeCompare(String(a.created_at ?? ''));
+      });
+  } catch {
+    return [];
+  }
+}
+
+export function writeFallbackOffers(rows: Array<Record<string, unknown>>): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    window.localStorage.setItem(OFFERS_FALLBACK_STORAGE_KEY, JSON.stringify(rows));
+  } catch {
+    /* ignore storage quota errors */
+  }
+}
+
+export function clearFallbackOffers(): void {
+  if (typeof window === 'undefined' || !window.localStorage) return;
+  try {
+    window.localStorage.removeItem(OFFERS_FALLBACK_STORAGE_KEY);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function notifyOffersChanged(): void {
+  if (typeof window === 'undefined') return;
+  window.dispatchEvent(new Event(OFFERS_CHANGED_EVENT));
+}
+
 export function safeImageUrl(raw: unknown): string {
   if (typeof raw !== 'string') return '';
   const trimmed = raw.trim();
   if (!trimmed) return '';
+  if (SAFE_RASTER_DATA_URL_RE.test(trimmed)) return trimmed;
   try {
     const url = new URL(trimmed);
     return url.protocol === 'https:' || url.protocol === 'http:' ? url.toString() : '';
@@ -153,6 +224,19 @@ export function extractOfferStoragePath(imageUrl: string): string | null {
   if (idx === -1) return null;
   const path = imageUrl.slice(idx + marker.length).split('?')[0];
   return path ? decodeURIComponent(path) : null;
+}
+
+function fileToRasterDataUrl(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => {
+      const result = typeof reader.result === 'string' ? reader.result : '';
+      if (SAFE_RASTER_DATA_URL_RE.test(result)) resolve(result);
+      else reject(new Error('صيغة الصورة غير مدعومة.'));
+    };
+    reader.onerror = () => reject(new Error('تعذر قراءة ملف الصورة.'));
+    reader.readAsDataURL(file);
+  });
 }
 
 export async function uploadOfferImage(file: File): Promise<{ url?: string; error?: string }> {
@@ -171,6 +255,14 @@ export async function uploadOfferImage(file: File): Promise<{ url?: string; erro
     });
 
   if (error) {
+    if (isMissingOfferBucketError(error)) {
+      try {
+        const dataUrl = await fileToRasterDataUrl(file);
+        return { url: dataUrl };
+      } catch (readErr) {
+        return { error: readErr instanceof Error ? readErr.message : 'تعذر معالجة صورة العرض.' };
+      }
+    }
     return { error: error.message || 'تعذر رفع صورة العرض.' };
   }
 

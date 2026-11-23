@@ -1,13 +1,18 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import {
   calculateDiscountPercentage,
+  clearFallbackOffers,
   filterHomepageOffers,
   getOfferLifecycleStatus,
   hasOfferPermission,
+  isMissingOfferBucketError,
+  isMissingOffersTableError,
   mapOfferRow,
+  readFallbackOffers,
   safeImageUrl,
   validateOfferImageFile,
   validateOfferInput,
+  writeFallbackOffers,
   type DoctorLookupItem,
   type OfferFormInput,
   type OfferPermissionId,
@@ -54,6 +59,10 @@ const makeOffer = (overrides: Partial<OfferRecord> = {}): OfferRecord => ({
 });
 
 describe('offers helpers & validation', () => {
+  beforeEach(() => {
+    clearFallbackOffers();
+  });
+
   it('calculates discount percentage automatically when original price > offer price', () => {
     expect(calculateDiscountPercentage(500, 1000)).toBe(50);
     expect(calculateDiscountPercentage(750, 1000)).toBe(25);
@@ -99,11 +108,35 @@ describe('offers helpers & validation', () => {
     expect(validateOfferImageFile(tooBig)).not.toBeNull();
   });
 
-  it('sanitizes image URLs to http/https only', () => {
+  it('sanitizes image URLs to http/https and safe raster base64 data URLs only', () => {
     expect(safeImageUrl('https://cdn.example.com/img.png')).toBe('https://cdn.example.com/img.png');
+    expect(safeImageUrl('data:image/png;base64,abc123==')).toBe('data:image/png;base64,abc123==');
+    expect(safeImageUrl('data:image/jpeg;base64,xyz987=')).toBe('data:image/jpeg;base64,xyz987=');
+    expect(safeImageUrl('data:image/webp;base64,UklGR==')).toBe('data:image/webp;base64,UklGR==');
+    expect(safeImageUrl('data:image/svg+xml;base64,PHN2Zz4=')).toBe('');
     expect(safeImageUrl('javascript:alert(1)')).toBe('');
-    expect(safeImageUrl('data:image/png;base64,abc')).toBe('');
     expect(safeImageUrl('')).toBe('');
+  });
+
+  it('detects missing offers table and missing storage bucket errors accurately', () => {
+    expect(isMissingOffersTableError({ code: 'PGRST205', message: "Could not find the table 'public.offers' in the schema cache" })).toBe(true);
+    expect(isMissingOffersTableError({ code: '42P01', message: 'relation "public.offers" does not exist' })).toBe(true);
+    expect(isMissingOffersTableError({ code: '42501', message: 'permission denied for table offers' })).toBe(false);
+    expect(isMissingOffersTableError(null)).toBe(false);
+
+    expect(isMissingOfferBucketError({ statusCode: '404', message: 'Bucket not found' })).toBe(true);
+    expect(isMissingOfferBucketError({ error: 'does not exist' })).toBe(true);
+    expect(isMissingOfferBucketError({ statusCode: '403', message: 'new row violates row-level security policy' })).toBe(false);
+  });
+
+  it('reads, sorts, writes, and clears fallback offers safely', () => {
+    writeFallbackOffers([
+      { id: '2', title: 'ثاني عرض', display_order: 2, created_at: '2026-05-01T10:00:00Z' },
+      { id: '1', title: 'أول عرض', display_order: 1, created_at: '2026-05-01T10:00:00Z' },
+    ]);
+    expect(readFallbackOffers().map((row) => row.id)).toEqual(['1', '2']);
+    clearFallbackOffers();
+    expect(readFallbackOffers()).toEqual([]);
   });
 
   it('maps database rows and computes lifecycle status', () => {

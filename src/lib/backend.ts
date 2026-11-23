@@ -4,6 +4,7 @@ import {
   addStaffUser,
   adminUpdatePassword,
   aiChat,
+  ensureOffersSchema,
   paymobCreatePayment,
   paymobSettings,
   staffSetup,
@@ -14,6 +15,7 @@ export type BackendName =
   | "add-staff-user"
   | "admin-update-password"
   | "ai-chat"
+  | "ensure-offers-schema"
   | "paymob-create-payment"
   | "paymob-settings"
   | "staff-setup";
@@ -45,6 +47,9 @@ export async function invokeBackend(
         break;
       case "ai-chat":
         result = await aiChat({ data: body });
+        break;
+      case "ensure-offers-schema":
+        result = await ensureOffersSchema({ data: body });
         break;
       case "paymob-create-payment":
         result = await paymobCreatePayment({ data: body });

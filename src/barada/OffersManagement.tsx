@@ -20,17 +20,23 @@ import {
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { cairoTodayStr } from './dateUtils';
+import { invokeBackend } from '@/lib/backend';
 import {
   calculateDiscountPercentage,
+  clearFallbackOffers,
   getOfferLifecycleStatus,
   hasOfferPermission,
+  isMissingOffersTableError,
   mapOfferRow,
+  notifyOffersChanged,
   OfferFormInput,
   OfferRecord,
+  readFallbackOffers,
   removeOfferImageByUrl,
   uploadOfferImage,
   validateOfferImageFile,
   validateOfferInput,
+  writeFallbackOffers,
 } from './offers';
 
 import type { TablesInsert, TablesUpdate } from '@/integrations/supabase/types';
@@ -82,6 +88,8 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
   const [offers, setOffers] = useState<OfferRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
   const [loadError, setLoadError] = useState<string | null>(null);
+  const [usingFallbackStore, setUsingFallbackStore] = useState<boolean>(false);
+  const schemaSyncAttemptedRef = useRef<boolean>(false);
   const [saving, setSaving] = useState<boolean>(false);
   const [uploadingImage, setUploadingImage] = useState<boolean>(false);
   const [editingOffer, setEditingOffer] = useState<OfferRecord | null>(null);
@@ -111,6 +119,23 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
     return map;
   }, [realtimeDoctors]);
 
+  const syncFallbackRows = useCallback(
+    (rows: Array<Record<string, unknown>>) => {
+      writeFallbackOffers(rows);
+      notifyOffersChanged();
+      setOffers(rows.map((row) => mapOfferRow(row, doctorsByUuid)));
+      onOffersChanged?.();
+    },
+    [doctorsByUuid, onOffersChanged],
+  );
+
+  const activateFallbackOffers = useCallback(() => {
+    setUsingFallbackStore(true);
+    setLoadError(null);
+    const localRows = readFallbackOffers();
+    setOffers(localRows.map((row) => mapOfferRow(row, doctorsByUuid)));
+  }, [doctorsByUuid]);
+
   const fetchOffers = useCallback(async () => {
     if (!canView) {
       setOffers([]);
@@ -120,21 +145,86 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
     setLoading(true);
     setLoadError(null);
     try {
-      const { data, error } = await supabase
+      let queryResult = await supabase
         .from('offers')
         .select('*')
         .order('display_order', { ascending: true })
         .order('created_at', { ascending: false });
-      if (error) throw error;
-      const mapped = (data || []).map((row) => mapOfferRow(row as unknown as Record<string, unknown>, doctorsByUuid));
+
+      if (queryResult.error && isMissingOffersTableError(queryResult.error)) {
+        if (!schemaSyncAttemptedRef.current) {
+          schemaSyncAttemptedRef.current = true;
+          const { data: migrationResult } = await invokeBackend('ensure-offers-schema');
+          if (migrationResult?.migrated) {
+            queryResult = await supabase
+              .from('offers')
+              .select('*')
+              .order('display_order', { ascending: true })
+              .order('created_at', { ascending: false });
+          }
+        }
+      }
+
+      if (queryResult.error) {
+        if (isMissingOffersTableError(queryResult.error)) {
+          activateFallbackOffers();
+          return;
+        }
+        throw queryResult.error;
+      }
+
+      setUsingFallbackStore(false);
+      let rows = (queryResult.data || []) as unknown as Array<Record<string, unknown>>;
+
+      if (rows.length === 0 && canCreate) {
+        const pendingLocal = readFallbackOffers().filter((row) => {
+          const docId = String(row.doctor_id ?? '');
+          return docId && doctorsByUuid.has(docId);
+        });
+        if (pendingLocal.length > 0) {
+          const toInsert = pendingLocal.map((row) => ({
+            title: String(row.title ?? ''),
+            doctor_id: String(row.doctor_id ?? ''),
+            description: (row.description as string | null) ?? null,
+            offer_price: Number(row.offer_price ?? 0),
+            original_price: row.original_price !== null && row.original_price !== undefined ? Number(row.original_price) : null,
+            discount_percentage:
+              row.discount_percentage !== null && row.discount_percentage !== undefined
+                ? Number(row.discount_percentage)
+                : null,
+            image_url: (row.image_url as string | null) ?? null,
+            start_date: String(row.start_date ?? ''),
+            end_date: String(row.end_date ?? ''),
+            is_active: canManageVisibility ? Boolean(row.is_active) : false,
+            show_on_homepage: canManageVisibility ? Boolean(row.show_on_homepage) : false,
+            display_order: canManageVisibility ? Number(row.display_order ?? 0) : 0,
+            button_text: String(row.button_text ?? 'احجز الآن') || 'احجز الآن',
+          }));
+          const { data: insertedRows, error: insertErr } = await supabase
+            .from('offers')
+            .insert(toInsert as TablesInsert<'offers'>[])
+            .select('*');
+          if (!insertErr && Array.isArray(insertedRows)) {
+            clearFallbackOffers();
+            notifyOffersChanged();
+            rows = insertedRows as unknown as Array<Record<string, unknown>>;
+          }
+        }
+      }
+
+      const mapped = rows.map((row) => mapOfferRow(row, doctorsByUuid));
       setOffers(mapped);
     } catch (err: unknown) {
+      if (isMissingOffersTableError(err)) {
+        activateFallbackOffers();
+        return;
+      }
       console.error('Error loading offers:', err);
       setLoadError('تعذر تحميل قائمة العروض. حاول مرة أخرى.');
     } finally {
       setLoading(false);
     }
-  }, [canView, doctorsByUuid]);
+  }, [canView, canCreate, canManageVisibility, doctorsByUuid, activateFallbackOffers]);
 
   useEffect(() => {
     void fetchOffers();
@@ -142,11 +232,11 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
 
   // Keep list in sync when realtime offers arrive
   useEffect(() => {
-    if (!canView || !Array.isArray(realtimeOffers)) return;
+    if (!canView || usingFallbackStore || !Array.isArray(realtimeOffers)) return;
     if (realtimeLoaded || realtimeOffers.length > 0) {
       setOffers(realtimeOffers.map((row) => mapOfferRow(row as Record<string, unknown>, doctorsByUuid)));
     }
-  }, [canView, realtimeOffers, realtimeLoaded, doctorsByUuid]);
+  }, [canView, usingFallbackStore, realtimeOffers, realtimeLoaded, doctorsByUuid]);
 
   useEffect(() => {
     return () => {
@@ -310,12 +400,51 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
         basePayload.display_order = 0;
       }
 
+      const saveToFallback = () => {
+        const nowIso = new Date().toISOString();
+        const current = readFallbackOffers();
+        if (editingOffer) {
+          const next = current.map((row) =>
+            String(row.id) === editingOffer.id ? { ...row, ...basePayload, updated_at: nowIso } : row,
+          );
+          syncFallbackRows(next);
+          toast.success('تم تحديث العرض بنجاح.');
+        } else {
+          const newRow: Record<string, unknown> = {
+            id: crypto.randomUUID(),
+            image_url: null,
+            is_active: false,
+            show_on_homepage: false,
+            display_order: 0,
+            ...basePayload,
+            created_at: nowIso,
+            updated_at: nowIso,
+            created_by: null,
+          };
+          syncFallbackRows([...current, newRow]);
+          toast.success('تم إضافة العرض بنجاح.');
+        }
+        resetForm();
+      };
+
+      if (usingFallbackStore) {
+        saveToFallback();
+        return;
+      }
+
       if (editingOffer) {
         const { error } = await supabase
           .from('offers')
           .update(basePayload as TablesUpdate<'offers'>)
           .eq('id', editingOffer.id);
-        if (error) throw error;
+        if (error) {
+          if (isMissingOffersTableError(error)) {
+            setUsingFallbackStore(true);
+            saveToFallback();
+            return;
+          }
+          throw error;
+        }
 
         if (canUploadImages && previousImageUrl && previousImageUrl !== nextImageUrl) {
           await removeOfferImageByUrl(previousImageUrl);
@@ -323,7 +452,14 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
         toast.success('تم تحديث العرض بنجاح.');
       } else {
         const { error } = await supabase.from('offers').insert(basePayload as TablesInsert<'offers'>);
-        if (error) throw error;
+        if (error) {
+          if (isMissingOffersTableError(error)) {
+            setUsingFallbackStore(true);
+            saveToFallback();
+            return;
+          }
+          throw error;
+        }
         toast.success('تم إضافة العرض بنجاح.');
       }
 
@@ -349,13 +485,31 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
       toast.error('ليست لديك صلاحية التحكم في ظهور العروض.');
       return;
     }
+    const nextVal = !offer.isActive;
+    const applyFallbackToggle = () => {
+      const next = readFallbackOffers().map((row) =>
+        String(row.id) === offer.id ? { ...row, is_active: nextVal, updated_at: new Date().toISOString() } : row,
+      );
+      syncFallbackRows(next);
+      toast.success(nextVal ? 'تم تفعيل العرض.' : 'تم إيقاف العرض.');
+    };
+    if (usingFallbackStore) {
+      applyFallbackToggle();
+      return;
+    }
     try {
-      const nextVal = !offer.isActive;
       const { error } = await supabase
         .from('offers')
         .update({ is_active: nextVal })
         .eq('id', offer.id);
-      if (error) throw error;
+      if (error) {
+        if (isMissingOffersTableError(error)) {
+          setUsingFallbackStore(true);
+          applyFallbackToggle();
+          return;
+        }
+        throw error;
+      }
       setOffers((prev) => prev.map((o) => (o.id === offer.id ? { ...o, isActive: nextVal } : o)));
       toast.success(nextVal ? 'تم تفعيل العرض.' : 'تم إيقاف العرض.');
       onOffersChanged?.();
@@ -370,13 +524,31 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
       toast.error('ليست لديك صلاحية التحكم في ظهور العروض.');
       return;
     }
+    const nextVal = !offer.showOnHomepage;
+    const applyFallbackToggle = () => {
+      const next = readFallbackOffers().map((row) =>
+        String(row.id) === offer.id ? { ...row, show_on_homepage: nextVal, updated_at: new Date().toISOString() } : row,
+      );
+      syncFallbackRows(next);
+      toast.success(nextVal ? 'تم إظهار العرض في الصفحة الرئيسية.' : 'تم إخفاء العرض من الصفحة الرئيسية.');
+    };
+    if (usingFallbackStore) {
+      applyFallbackToggle();
+      return;
+    }
     try {
-      const nextVal = !offer.showOnHomepage;
       const { error } = await supabase
         .from('offers')
         .update({ show_on_homepage: nextVal })
         .eq('id', offer.id);
-      if (error) throw error;
+      if (error) {
+        if (isMissingOffersTableError(error)) {
+          setUsingFallbackStore(true);
+          applyFallbackToggle();
+          return;
+        }
+        throw error;
+      }
       setOffers((prev) => prev.map((o) => (o.id === offer.id ? { ...o, showOnHomepage: nextVal } : o)));
       toast.success(nextVal ? 'تم إظهار العرض في الصفحة الرئيسية.' : 'تم إخفاء العرض من الصفحة الرئيسية.');
       onOffersChanged?.();
@@ -393,12 +565,32 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
     }
     const normalized = Math.max(0, Math.round(Number(newOrder) || 0));
     if (normalized === offer.displayOrder) return;
+    const applyFallbackOrder = () => {
+      const next = readFallbackOffers()
+        .map((row) =>
+          String(row.id) === offer.id ? { ...row, display_order: normalized, updated_at: new Date().toISOString() } : row,
+        )
+        .sort((a, b) => Number(a.display_order ?? 0) - Number(b.display_order ?? 0));
+      syncFallbackRows(next);
+      toast.success('تم تحديث ترتيب العرض.');
+    };
+    if (usingFallbackStore) {
+      applyFallbackOrder();
+      return;
+    }
     try {
       const { error } = await supabase
         .from('offers')
         .update({ display_order: normalized })
         .eq('id', offer.id);
-      if (error) throw error;
+      if (error) {
+        if (isMissingOffersTableError(error)) {
+          setUsingFallbackStore(true);
+          applyFallbackOrder();
+          return;
+        }
+        throw error;
+      }
       setOffers((prev) =>
         prev
           .map((o) => (o.id === offer.id ? { ...o, displayOrder: normalized } : o))
@@ -438,11 +630,32 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
         return;
       }
       uploadedUrl = res.url;
+
+      const applyFallbackImage = () => {
+        const next = readFallbackOffers().map((row) =>
+          String(row.id) === target.id ? { ...row, image_url: res.url, updated_at: new Date().toISOString() } : row,
+        );
+        syncFallbackRows(next);
+        toast.success('تم تحديث صورة العرض بنجاح.');
+      };
+
+      if (usingFallbackStore) {
+        applyFallbackImage();
+        return;
+      }
+
       const { error } = await supabase
         .from('offers')
         .update({ image_url: res.url })
         .eq('id', target.id);
-      if (error) throw error;
+      if (error) {
+        if (isMissingOffersTableError(error)) {
+          setUsingFallbackStore(true);
+          applyFallbackImage();
+          return;
+        }
+        throw error;
+      }
 
       if (target.imageUrl) {
         await removeOfferImageByUrl(target.imageUrl);
@@ -462,9 +675,28 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
   const handleConfirmDelete = async () => {
     if (!deletingOffer || !canDelete) return;
     setDeleting(true);
+    const applyFallbackDelete = () => {
+      const next = readFallbackOffers().filter((row) => String(row.id) !== deletingOffer.id);
+      syncFallbackRows(next);
+      if (editingOffer?.id === deletingOffer.id) resetForm();
+      setDeletingOffer(null);
+      toast.success('تم حذف العرض بنجاح.');
+    };
+    if (usingFallbackStore) {
+      applyFallbackDelete();
+      setDeleting(false);
+      return;
+    }
     try {
       const { error } = await supabase.from('offers').delete().eq('id', deletingOffer.id);
-      if (error) throw error;
+      if (error) {
+        if (isMissingOffersTableError(error)) {
+          setUsingFallbackStore(true);
+          applyFallbackDelete();
+          return;
+        }
+        throw error;
+      }
       if (deletingOffer.imageUrl) {
         await removeOfferImageByUrl(deletingOffer.imageUrl);
       }

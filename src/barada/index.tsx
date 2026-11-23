@@ -329,6 +329,7 @@ const TRANSLATIONS = {
     partners: "التعاقدات",
     doctors: "الأطباء",
     services: "خدماتنا",
+    offers: "عروضنا",
     myBookings: "حجوزاتي",
     contact: "تواصل معنا",
     login: "دخول الموظفين",
@@ -360,6 +361,7 @@ const TRANSLATIONS = {
     partners: "Insurance",
     doctors: "Doctors",
     services: "Services",
+    offers: "Offers",
     myBookings: "My Bookings",
     contact: "Contact Us",
     login: "Staff Login",
@@ -1686,6 +1688,7 @@ const Navbar = ({
     { name: t.about, id: 'about' },
     { name: t.doctors, id: 'doctors' },
     { name: t.services, id: 'services' },
+    { name: t.offers, id: 'offers' },
     { name: t.myBookings, id: 'my-bookings' },
     { name: t.contact, id: 'contact' },
   ];
