@@ -522,3 +522,39 @@ export const ensureOffersSchema = createServerFn({ method: "POST" })
       return reply({ ok: true, migrated: false });
     }
   });
+
+// ---------------------------------------------------------------------------
+// ensure-medical-videos-schema (staff/admin only)
+// ---------------------------------------------------------------------------
+export const ensureMedicalVideosSchema = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(asBody)
+  .handler(async ({ context }): Promise<BackendResult> => {
+    try {
+      const { data: isStaff } = await context.supabase.rpc("is_staff_or_admin", { _user_id: context.userId });
+      if (isStaff !== true) return reply({ error: "Unauthorized" }, 403);
+      const { tryApplyMedicalVideosMigration } = await import("@/lib/medicalVideosMigration.server");
+      const result = await tryApplyMedicalVideosMigration();
+      return reply(result);
+    } catch {
+      return reply({ ok: true, migrated: false });
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// get-medical-video-url (public for published+active, or staff with view permission)
+// ---------------------------------------------------------------------------
+export const getMedicalVideoUrl = createServerFn({ method: "POST" })
+  .validator(asBody)
+  .handler(async ({ data }): Promise<BackendResult> => {
+    try {
+      const videoId = typeof data?.videoId === "string" ? data.videoId.trim() : "";
+      const authHeader = getRequestHeader("authorization");
+      const { getSignedMedicalVideoUrlServer } = await import("@/lib/medicalVideosMigration.server");
+      const res = await getSignedMedicalVideoUrlServer(videoId, authHeader);
+      return reply(res.body, res.status);
+    } catch {
+      return reply({ error: "تعذر تحميل رابط الفيديو" }, 500);
+    }
+  });
+

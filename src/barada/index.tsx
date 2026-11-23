@@ -38,7 +38,7 @@ import {
   ClipboardList, Scan, UserRound, BriefcaseMedical, Bandage, Microscope as MicroscopeIcon,
   ArrowRight, GraduationCap, Briefcase, EyeOff, LayoutList, ShieldAlert, Scale, Info, Share2,
   TrendingUp, PieChart, Users as UsersIcon, Landmark, Building2, Handshake,
-  CreditCard, Wallet, Copy, ArrowLeft, Youtube, Instagram
+  CreditCard, Wallet, Copy, ArrowLeft, Youtube, Instagram, Video
 } from 'lucide-react';
 
 import { ContractingSelector, ContractingManager, ContractingCompany, ContractingManagement, CONTRACTING_CHANGED_EVENT } from './contracting';
@@ -52,6 +52,9 @@ import { createOperation, updateOperation, setOperationFields, deleteOperation, 
 import { OffersSection } from './OffersSection';
 import { OffersManagement } from './OffersManagement';
 import { mapOfferRow, type OfferRecord } from './offers';
+import { MedicalVideosManagement } from './MedicalVideosManagement';
+import { MedicalVideosPublicView } from './MedicalVideosPublicView';
+import { mapCategoryRow, mapMedicalVideoRow } from './medicalVideos';
 
 // Constants for input validation
 const MAX_AI_MESSAGE_LENGTH = 500;
@@ -330,6 +333,7 @@ const TRANSLATIONS = {
     doctors: "الأطباء",
     services: "خدماتنا",
     offers: "عروضنا",
+    medicalVideos: "فيديوهات طبية",
     myBookings: "حجوزاتي",
     contact: "تواصل معنا",
     login: "دخول الموظفين",
@@ -362,6 +366,7 @@ const TRANSLATIONS = {
     doctors: "Doctors",
     services: "Services",
     offers: "Offers",
+    medicalVideos: "Medical Videos",
     myBookings: "My Bookings",
     contact: "Contact Us",
     login: "Staff Login",
@@ -1689,6 +1694,7 @@ const Navbar = ({
     { name: t.doctors, id: 'doctors' },
     { name: t.services, id: 'services' },
     { name: t.offers, id: 'offers' },
+    { name: t.medicalVideos, id: 'medical-videos' },
     { name: t.myBookings, id: 'my-bookings' },
     { name: t.contact, id: 'contact' },
   ];
@@ -1874,7 +1880,7 @@ const Hero = ({ onCtaClick, images, title, description, t }: { onCtaClick: () =>
       {images.map((img, index) => (
         <div key={img.id} className={`absolute inset-0 transition-opacity duration-1000 ease-in-out ${index === currentIndex ? 'opacity-100' : 'opacity-0'}`}>
           <div className="absolute inset-0 bg-gradient-to-b from-[#0B1F35]/80 via-[#0B1F35]/65 to-[#0B1F35]/90 z-10"></div> 
-          <img src={img.url} alt="Hero" className="w-full h-full object-cover scale-105" />
+          <img src={img.url} alt="Hero" className="w-full h-full object-fill" />
         </div>
       ))}
       <div className="absolute inset-0 fv-grid-pattern opacity-40 pointer-events-none z-10"></div>
@@ -2075,14 +2081,14 @@ const AiAssistant = ({ language }: { language: 'ar' | 'en' }) => {
 const AdminPanel = ({ 
   doctors, setDoctors, users, setUsers, currentUser, currentUserUuid, allBookings, setBookings, operations, setOperations,
   onCancelBooking, onConfirmBooking, onEditBooking, onDeleteBooking, onSendReminder,
-  complaints, setComplaints, heroImages, setHeroImages, partners, setPartners, settings, setSettings, services, setServices, t, handleWhatsAppReminder, handleSmsReminder, onConfirmPayment, onOffersChanged
+  complaints, setComplaints, heroImages, setHeroImages, partners, setPartners, settings, setSettings, services, setServices, t, handleWhatsAppReminder, handleSmsReminder, onConfirmPayment, onOffersChanged, onVideosChanged
 }: { 
-  doctors: Doctor[], setDoctors: React.Dispatch<React.SetStateAction<Doctor[]>>, users: User[], setUsers: React.Dispatch<React.SetStateAction<User[]>>, currentUser: User, currentUserUuid?: string, allBookings: Booking[], setBookings: React.Dispatch<React.SetStateAction<Booking[]>>, operations: Operation[], setOperations: React.Dispatch<React.SetStateAction<Operation[]>>, onCancelBooking: (id: number) => void, onConfirmBooking: (id: number) => void, onEditBooking: (booking: Booking) => void, onDeleteBooking: (id: number) => void, onSendReminder: (id: number, itemType: 'booking' | 'operation') => void, complaints: Complaint[], setComplaints: React.Dispatch<React.SetStateAction<Complaint[]>>, heroImages: HeroImage[], setHeroImages: React.Dispatch<React.SetStateAction<HeroImage[]>>, partners: Partner[], setPartners: React.Dispatch<React.SetStateAction<Partner[]>>, settings: AppSettings, setSettings: React.Dispatch<React.SetStateAction<AppSettings>>, services: ServiceItem[], setServices: React.Dispatch<React.SetStateAction<ServiceItem[]>>, t: any, handleWhatsAppReminder: (rem: any) => void, handleSmsReminder: (rem: any) => void, onConfirmPayment: (id: number) => void, onOffersChanged?: () => void
+  doctors: Doctor[], setDoctors: React.Dispatch<React.SetStateAction<Doctor[]>>, users: User[], setUsers: React.Dispatch<React.SetStateAction<User[]>>, currentUser: User, currentUserUuid?: string, allBookings: Booking[], setBookings: React.Dispatch<React.SetStateAction<Booking[]>>, operations: Operation[], setOperations: React.Dispatch<React.SetStateAction<Operation[]>>, onCancelBooking: (id: number) => void, onConfirmBooking: (id: number) => void, onEditBooking: (booking: Booking) => void, onDeleteBooking: (id: number) => void, onSendReminder: (id: number, itemType: 'booking' | 'operation') => void, complaints: Complaint[], setComplaints: React.Dispatch<React.SetStateAction<Complaint[]>>, heroImages: HeroImage[], setHeroImages: React.Dispatch<React.SetStateAction<HeroImage[]>>, partners: Partner[], setPartners: React.Dispatch<React.SetStateAction<Partner[]>>, settings: AppSettings, setSettings: React.Dispatch<React.SetStateAction<AppSettings>>, services: ServiceItem[], setServices: React.Dispatch<React.SetStateAction<ServiceItem[]>>, t: any, handleWhatsAppReminder: (rem: any) => void, handleSmsReminder: (rem: any) => void, onConfirmPayment: (id: number) => void, onOffersChanged?: () => void, onVideosChanged?: () => void
 }) => {
   // Access realtime data for Supabase operations
   const { data: realtimeData, isLoading: realtimeLoading } = useRealtimeSync({ enabled: true });
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'doctors' | 'users' | 'bookings' | 'reports' | 'hero-images' | 'partners' | 'settings' | 'services' | 'offers' | 'complaints' | 'reminders' | 'backup' | 'operations' | 'patient-stats' | 'intelligence' | 'payments' | 'contact-logs' | 'paymob-settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'doctors' | 'users' | 'bookings' | 'reports' | 'hero-images' | 'partners' | 'settings' | 'services' | 'offers' | 'medical-videos' | 'complaints' | 'reminders' | 'backup' | 'operations' | 'patient-stats' | 'intelligence' | 'payments' | 'contact-logs' | 'paymob-settings'>('overview');
   const [contactLogs, setContactLogs] = useState<any[]>([]);
   const [contactLogsLoading, setContactLogsLoading] = useState(false);
   const [contactStaffFilter, setContactStaffFilter] = useState('');
@@ -2691,6 +2697,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                     {canAccessSection(currentUser, 'partners') && (<button onClick={() => setActiveTab('partners')} className={tabClass('partners')}><Building2 size={18} /> {t.partners}</button>)}
                     {canAccessSection(currentUser, 'services') && (<button onClick={() => setActiveTab('services')} className={tabClass('services')}><LayoutTemplate size={18} /> {t.services}</button>)}
                     {canAccessSection(currentUser, 'offers') && (<button onClick={() => setActiveTab('offers')} className={tabClass('offers')}><Tag size={18} /> إدارة العروض</button>)}
+                    {canAccessSection(currentUser, 'medical-videos') && (<button onClick={() => setActiveTab('medical-videos')} className={tabClass('medical-videos')}><Video size={18} /> مكتبة الفيديوهات الطبية</button>)}
                     {canAccessSection(currentUser, 'hero-images') && (<button onClick={() => setActiveTab('hero-images')} className={tabClass('hero-images')}><ImageIcon size={18} /> الصور</button>)}
                     {canAccessSection(currentUser, 'complaints') && (<button onClick={() => setActiveTab('complaints')} className={tabClass('complaints')}><MessageSquare size={18} /> الشكاوى</button>)}
                     <div className="h-px bg-[#DFEAF0] mx-3 my-3"></div>
@@ -3131,6 +3138,18 @@ const handlePrint = (title: string, contentHtml: string) => {
                     cardClass={cardClass}
                     inputClass={inputClass}
                     onOffersChanged={onOffersChanged}
+                  />
+                )}
+                {activeTab === 'medical-videos' && (
+                  <MedicalVideosManagement
+                    currentUser={currentUser}
+                    realtimeDoctors={realtimeData.doctors}
+                    realtimeVideos={realtimeData.medicalVideos}
+                    realtimeCategories={realtimeData.medicalVideoCategories}
+                    realtimeLoaded={!realtimeLoading}
+                    cardClass={cardClass}
+                    inputClass={inputClass}
+                    onVideosChanged={onVideosChanged}
                   />
                 )}
                 {activeTab === 'complaints' && (
@@ -3849,6 +3868,23 @@ const App = () => {
     return publicData.offers.map((row: any) => mapOfferRow(row, byUuid));
   }, [publicData.offers, publicData.doctors]);
 
+  const videoCategories = React.useMemo(
+    () => (publicData.medicalVideoCategories || []).map((row: Record<string, unknown>) => mapCategoryRow(row)),
+    [publicData.medicalVideoCategories],
+  );
+  const medicalVideosLoading = publicData.medicalVideos === null;
+  const medicalVideos = React.useMemo(() => {
+    if (!Array.isArray(publicData.medicalVideos)) return [];
+    const categoriesById = new globalThis.Map(videoCategories.map((c) => [c.id, c]));
+    const doctorsByUuid = new globalThis.Map<string, { name?: string; specialty?: string }>();
+    for (const d of publicData.doctors || []) {
+      doctorsByUuid.set(d.id, { name: d.name, specialty: d.specialty });
+    }
+    return publicData.medicalVideos.map((row: Record<string, unknown>) =>
+      mapMedicalVideoRow(row, categoriesById, doctorsByUuid),
+    );
+  }, [publicData.medicalVideos, videoCategories, publicData.doctors]);
+
   useEffect(() => {
     if (publicData.doctors) setDoctors(publicData.doctors.map(mapDoctorRow));
   }, [publicData.doctors]);
@@ -3919,6 +3955,22 @@ const App = () => {
   const [foundBookings, setFoundBookings] = useState<Booking[]>([]);
 
   const t = settings.language === 'ar' ? TRANSLATIONS.ar : TRANSLATIONS.en;
+
+  const defaultDocTitleRef = useRef<string | null>(null);
+  useEffect(() => {
+    if (typeof document === 'undefined') return;
+    if (defaultDocTitleRef.current === null) {
+      defaultDocTitleRef.current = document.title || 'مركز برادة للعيون بالاقصر';
+    }
+    if (activeSection === 'medical-videos') {
+      document.title =
+        settings.language === 'ar'
+          ? `فيديوهات طبية | ${settings.appName}`
+          : `Medical Videos | ${settings.appName}`;
+    } else if (defaultDocTitleRef.current) {
+      document.title = defaultDocTitleRef.current;
+    }
+  }, [activeSection, settings.language, settings.appName]);
 
   useEffect(() => { localStorage.setItem('barada_bookings', JSON.stringify(bookings)); }, [bookings]);
   // Note: Users are now managed through Supabase Auth, localStorage is only for legacy UI state
@@ -4365,6 +4417,7 @@ const handleNavigate = (sectionId: string) => {
            handleWhatsAppReminder={handleWhatsAppReminder}
            onConfirmPayment={handleConfirmPayment}
            onOffersChanged={() => { void refreshPublicData('offers'); }}
+           onVideosChanged={() => { void Promise.all([refreshPublicData('medicalVideos'), refreshPublicData('medicalVideoCategories')]); }}
         />
       )}
 
@@ -4388,6 +4441,15 @@ const handleNavigate = (sectionId: string) => {
 
       {activeSection === 'terms' && (
           <TermsView settings={settings} />
+      )}
+
+      {activeSection === 'medical-videos' && (
+          <MedicalVideosPublicView
+            videos={medicalVideos}
+            categories={videoCategories}
+            language={settings.language}
+            isLoading={medicalVideosLoading}
+          />
       )}
 
       <BookingModal 

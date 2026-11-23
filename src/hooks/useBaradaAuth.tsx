@@ -58,6 +58,14 @@ const ALL_PERMISSIONS = [
   'delete_offers',
   'manage_offer_visibility',
   'upload_offer_images',
+  'medical_videos_view',
+  'medical_videos_create',
+  'medical_videos_edit',
+  'medical_videos_delete',
+  'medical_videos_publish',
+  'medical_videos_manage_categories',
+  'medical_videos_upload',
+  'medical_videos_manage_featured',
 ];
 
 // Helper function to check if user has specific permission

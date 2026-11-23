@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { isMissingOffersTableError, OFFERS_CHANGED_EVENT, readFallbackOffers } from '@/barada/offers';
+import {
+  isMissingMedicalVideosTableError,
+  MEDICAL_VIDEOS_CHANGED_EVENT,
+  readFallbackCategories,
+  readFallbackVideos,
+} from '@/barada/medicalVideos';
 
 // Public clinic content every visitor sees, signed in or not. The database is the only
 // source; `null` means "still loading".
@@ -8,12 +14,22 @@ export interface PublicSiteData {
   doctors: any[] | null;
   services: any[] | null;
   offers: any[] | null;
+  medicalVideos: any[] | null;
+  medicalVideoCategories: any[] | null;
   heroImages: any[] | null;
   partners: any[] | null;
   settings: any | null;
 }
 
-type PublicTable = 'doctors' | 'services' | 'offers' | 'heroImages' | 'partners' | 'settings';
+type PublicTable =
+  | 'doctors'
+  | 'services'
+  | 'offers'
+  | 'medicalVideos'
+  | 'medicalVideoCategories'
+  | 'heroImages'
+  | 'partners'
+  | 'settings';
 
 const fetchers: Record<PublicTable, () => Promise<any>> = {
   doctors: async () => (await supabase.from('doctors').select('*').order('name', { ascending: true })).data ?? [],
@@ -30,6 +46,30 @@ const fetchers: Record<PublicTable, () => Promise<any>> = {
     }
     return data ?? [];
   },
+  medicalVideos: async () => {
+    const { data, error } = await supabase
+      .from('medical_videos')
+      .select('*')
+      .order('display_order', { ascending: true })
+      .order('published_at', { ascending: false });
+    if (error) {
+      if (isMissingMedicalVideosTableError(error)) return readFallbackVideos();
+      return [];
+    }
+    return data ?? [];
+  },
+  medicalVideoCategories: async () => {
+    const { data, error } = await supabase
+      .from('medical_video_categories')
+      .select('*')
+      .order('display_order', { ascending: true })
+      .order('created_at', { ascending: true });
+    if (error) {
+      if (isMissingMedicalVideosTableError(error)) return readFallbackCategories();
+      return [];
+    }
+    return data ?? [];
+  },
   heroImages: async () => (await supabase.from('hero_images').select('*').order('created_at', { ascending: true })).data ?? [],
   partners: async () => (await supabase.from('partners').select('*').order('created_at', { ascending: true })).data ?? [],
   settings: async () =>
@@ -41,6 +81,8 @@ export function usePublicSiteData() {
     doctors: null,
     services: null,
     offers: null,
+    medicalVideos: null,
+    medicalVideoCategories: null,
     heroImages: null,
     partners: null,
     settings: null,
@@ -59,21 +101,29 @@ export function usePublicSiteData() {
   useEffect(() => {
     (Object.keys(fetchers) as PublicTable[]).forEach(refresh);
 
-    // Doctor, service and offer changes made in the dashboard reach open pages right away.
+    // Doctor, service, offer, and medical video changes reach open pages right away.
     const channel = supabase
       .channel('barada-public-sync')
       .on('postgres_changes', { event: '*', schema: 'public', table: 'doctors' }, () => refresh('doctors'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'services' }, () => refresh('services'))
       .on('postgres_changes', { event: '*', schema: 'public', table: 'offers' }, () => refresh('offers'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'medical_videos' }, () => refresh('medicalVideos'))
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'medical_video_categories' }, () => refresh('medicalVideoCategories'))
       .subscribe();
 
     const onFallbackChanged = () => {
       void refresh('offers');
     };
+    const onVideosFallbackChanged = () => {
+      void refresh('medicalVideos');
+      void refresh('medicalVideoCategories');
+    };
     window.addEventListener(OFFERS_CHANGED_EVENT, onFallbackChanged);
+    window.addEventListener(MEDICAL_VIDEOS_CHANGED_EVENT, onVideosFallbackChanged);
 
     return () => {
       window.removeEventListener(OFFERS_CHANGED_EVENT, onFallbackChanged);
+      window.removeEventListener(MEDICAL_VIDEOS_CHANGED_EVENT, onVideosFallbackChanged);
       supabase.removeChannel(channel);
     };
   }, [refresh]);

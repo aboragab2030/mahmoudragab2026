@@ -4,7 +4,9 @@ import {
   addStaffUser,
   adminUpdatePassword,
   aiChat,
+  ensureMedicalVideosSchema,
   ensureOffersSchema,
+  getMedicalVideoUrl,
   paymobCreatePayment,
   paymobSettings,
   staffSetup,
@@ -15,7 +17,9 @@ export type BackendName =
   | "add-staff-user"
   | "admin-update-password"
   | "ai-chat"
+  | "ensure-medical-videos-schema"
   | "ensure-offers-schema"
+  | "get-medical-video-url"
   | "paymob-create-payment"
   | "paymob-settings"
   | "staff-setup";
@@ -48,8 +52,14 @@ export async function invokeBackend(
       case "ai-chat":
         result = await aiChat({ data: body });
         break;
+      case "ensure-medical-videos-schema":
+        result = await ensureMedicalVideosSchema({ data: body });
+        break;
       case "ensure-offers-schema":
         result = await ensureOffersSchema({ data: body });
+        break;
+      case "get-medical-video-url":
+        result = await getMedicalVideoUrl({ data: body });
         break;
       case "paymob-create-payment":
         result = await paymobCreatePayment({ data: body });

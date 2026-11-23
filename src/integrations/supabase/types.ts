@@ -528,6 +528,123 @@ export type Database = {
           },
         ]
       }
+      medical_video_categories: {
+        Row: {
+          created_at: string
+          display_order: number
+          id: string
+          is_active: boolean
+          name_ar: string
+          name_en: string | null
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name_ar: string
+          name_en?: string | null
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          display_order?: number
+          id?: string
+          is_active?: boolean
+          name_ar?: string
+          name_en?: string | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      medical_videos: {
+        Row: {
+          category_id: string | null
+          created_at: string
+          created_by: string | null
+          description_ar: string | null
+          description_en: string | null
+          display_order: number
+          doctor_id: string | null
+          id: string
+          is_active: boolean
+          is_featured: boolean
+          is_published: boolean
+          published_at: string | null
+          specialty: string | null
+          storage_path: string | null
+          thumbnail_url: string | null
+          title_ar: string
+          title_en: string | null
+          updated_at: string
+          updated_by: string | null
+          video_source_type: string
+          video_url: string | null
+        }
+        Insert: {
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description_ar?: string | null
+          description_en?: string | null
+          display_order?: number
+          doctor_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          is_published?: boolean
+          published_at?: string | null
+          specialty?: string | null
+          storage_path?: string | null
+          thumbnail_url?: string | null
+          title_ar: string
+          title_en?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          video_source_type: string
+          video_url?: string | null
+        }
+        Update: {
+          category_id?: string | null
+          created_at?: string
+          created_by?: string | null
+          description_ar?: string | null
+          description_en?: string | null
+          display_order?: number
+          doctor_id?: string | null
+          id?: string
+          is_active?: boolean
+          is_featured?: boolean
+          is_published?: boolean
+          published_at?: string | null
+          specialty?: string | null
+          storage_path?: string | null
+          thumbnail_url?: string | null
+          title_ar?: string
+          title_en?: string | null
+          updated_at?: string
+          updated_by?: string | null
+          video_source_type?: string
+          video_url?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "medical_videos_category_id_fkey"
+            columns: ["category_id"]
+            isOneToOne: false
+            referencedRelation: "medical_video_categories"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "medical_videos_doctor_id_fkey"
+            columns: ["doctor_id"]
+            isOneToOne: false
+            referencedRelation: "doctors"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       offers: {
         Row: {
           button_text: string

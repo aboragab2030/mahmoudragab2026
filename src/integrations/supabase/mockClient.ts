@@ -203,6 +203,21 @@ const createInitialTables = (): Record<string, Row[]> => ({
   payment_gateway_secrets: [],
   contact_logs: [],
   offers: [],
+  medical_video_categories: [
+    { id: "33333333-3333-4333-8333-333333333301", name_ar: "أمراض العيون", name_en: "Eye Diseases", is_active: true, display_order: 1, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333302", name_ar: "المياه البيضاء", name_en: "Cataract", is_active: true, display_order: 2, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333303", name_ar: "القرنية", name_en: "Cornea", is_active: true, display_order: 3, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333304", name_ar: "الليزك وتصحيح الإبصار", name_en: "LASIK & Vision Correction", is_active: true, display_order: 4, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333305", name_ar: "الشبكية والجسم الزجاجي", name_en: "Retina & Vitreous", is_active: true, display_order: 5, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333306", name_ar: "الحول وعيون الأطفال", name_en: "Strabismus & Pediatric Ophthalmology", is_active: true, display_order: 6, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333307", name_ar: "الجلوكوما والمياه الزرقاء", name_en: "Glaucoma", is_active: true, display_order: 7, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333308", name_ar: "تجميل العيون", name_en: "Oculoplastic Surgery", is_active: true, display_order: 8, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333309", name_ar: "الفحوصات الطبية", name_en: "Medical Examinations", is_active: true, display_order: 9, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333310", name_ar: "نصائح وإرشادات طبية", name_en: "Medical Advice & Guidelines", is_active: true, display_order: 10, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333311", name_ar: "فيديوهات الأطباء", name_en: "Doctors Videos", is_active: true, display_order: 11, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+    { id: "33333333-3333-4333-8333-333333333312", name_ar: "أخرى", name_en: "Other", is_active: true, display_order: 12, created_at: new Date().toISOString(), updated_at: new Date().toISOString() },
+  ],
+  medical_videos: [],
 });
 
 const tables: Record<string, Row[]> = createInitialTables();

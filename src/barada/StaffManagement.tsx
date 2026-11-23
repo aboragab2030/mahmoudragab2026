@@ -6,7 +6,7 @@ import { toast } from 'sonner';
 import type { StaffMember } from '@/hooks/useRealtimeSync';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
-import { DASHBOARD_PERMISSIONS, OFFER_PERMISSIONS } from './permissions';
+import { DASHBOARD_PERMISSIONS, MEDICAL_VIDEO_PERMISSIONS, OFFER_PERMISSIONS } from './permissions';
 
 // Available permissions for staff members: one per dashboard section
 const AVAILABLE_PERMISSIONS = DASHBOARD_PERMISSIONS;
@@ -563,6 +563,20 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                       </label>
                     ))}
                   </div>
+                  <div className="pt-2 mt-2 border-t border-[#DFEAF0]">
+                    <p className="text-xs font-black text-[#087F8C] px-2 py-1">مكتبة الفيديوهات الطبية</p>
+                    {MEDICAL_VIDEO_PERMISSIONS.map(perm => (
+                      <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
+                        <input
+                          type="checkbox"
+                          checked={addUserForm.permissions.includes(perm.id)}
+                          onChange={() => handleToggleAddPermission(perm.id)}
+                          className="w-4 h-4 text-[#087F8C] rounded-sm border-[#DFEAF0] focus:ring-[#087F8C]"
+                        />
+                        <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
+                      </label>
+                    ))}
+                  </div>
                 </div>
               </div>
             )}
@@ -742,6 +756,20 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                             <div className="pt-2 mt-2 border-t border-[#DFEAF0]">
                               <p className="text-xs font-black text-[#087F8C] px-2 py-1">العروض</p>
                               {OFFER_PERMISSIONS.map(perm => (
+                                <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
+                                  <input
+                                    type="checkbox"
+                                    checked={editForm.permissions.includes(perm.id)}
+                                    onChange={() => handleTogglePermission(perm.id)}
+                                    className="w-4 h-4 text-[#087F8C] rounded-sm border-[#DFEAF0] focus:ring-[#087F8C]"
+                                  />
+                                  <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
+                                </label>
+                              ))}
+                            </div>
+                            <div className="pt-2 mt-2 border-t border-[#DFEAF0]">
+                              <p className="text-xs font-black text-[#087F8C] px-2 py-1">مكتبة الفيديوهات الطبية</p>
+                              {MEDICAL_VIDEO_PERMISSIONS.map(perm => (
                                 <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
                                   <input
                                     type="checkbox"

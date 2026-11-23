@@ -1,6 +1,11 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { isMissingOffersTableError, readFallbackOffers } from '@/barada/offers';
+import {
+  isMissingMedicalVideosTableError,
+  readFallbackCategories,
+  readFallbackVideos,
+} from '@/barada/medicalVideos';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
 // Types for realtime data
@@ -24,6 +29,8 @@ export interface RealtimeData {
   doctors: any[];
   services: any[];
   offers: any[];
+  medicalVideos: any[];
+  medicalVideoCategories: any[];
   contractingCompanies: any[];
   staffMembers: StaffMember[];
 }
@@ -38,6 +45,8 @@ interface UseRealtimeSyncOptions {
   onDoctorsChange?: (doctors: any[]) => void;
   onServicesChange?: (services: any[]) => void;
   onOffersChange?: (offers: any[]) => void;
+  onMedicalVideosChange?: (videos: any[]) => void;
+  onMedicalVideoCategoriesChange?: (categories: any[]) => void;
   onContractingCompaniesChange?: (companies: any[]) => void;
   onStaffMembersChange?: (staffMembers: StaffMember[]) => void;
 }
@@ -79,6 +88,8 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
     doctors: [],
     services: [],
     offers: [],
+    medicalVideos: [],
+    medicalVideoCategories: [],
     contractingCompanies: [],
     staffMembers: [],
   });
@@ -113,6 +124,8 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
         doctorsRes,
         servicesRes,
         offersRes,
+        medicalVideosRes,
+        medicalCategoriesRes,
         contractingCompaniesRes,
         profilesRes,
         rolesRes,
@@ -126,6 +139,8 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
         supabase.from('doctors').select('*').order('name', { ascending: true }),
         supabase.from('services').select('*').order('title', { ascending: true }),
         supabase.from('offers').select('*').order('display_order', { ascending: true }).order('created_at', { ascending: false }),
+        supabase.from('medical_videos').select('*').order('display_order', { ascending: true }).order('created_at', { ascending: false }),
+        supabase.from('medical_video_categories').select('*').order('display_order', { ascending: true }).order('created_at', { ascending: true }),
         supabase.from('contracting_companies').select('*').order('name', { ascending: true }),
         supabase.from('profiles').select('user_id, name, username, login_username, permissions, is_active'),
         supabase.from('user_roles').select('user_id, role'),
@@ -142,6 +157,16 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
           ? readFallbackOffers()
           : offersRes.data || [];
 
+      const medicalVideosData =
+        medicalVideosRes.error && isMissingMedicalVideosTableError(medicalVideosRes.error)
+          ? readFallbackVideos()
+          : medicalVideosRes.data || [];
+
+      const medicalCategoriesData =
+        medicalCategoriesRes.error && isMissingMedicalVideosTableError(medicalCategoriesRes.error)
+          ? readFallbackCategories()
+          : medicalCategoriesRes.data || [];
+
       const newData: RealtimeData = {
         bookings: bookingsRes.data || [],
         operations: operationsRes.data || [],
@@ -152,6 +177,8 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
         doctors: doctorsRes.data || [],
         services: servicesRes.data || [],
         offers: offersData,
+        medicalVideos: medicalVideosData,
+        medicalVideoCategories: medicalCategoriesData,
         contractingCompanies: contractingCompaniesRes.data || [],
         staffMembers,
       };
@@ -167,6 +194,8 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
       optionsRef.current.onDoctorsChange?.(newData.doctors);
       optionsRef.current.onServicesChange?.(newData.services);
       optionsRef.current.onOffersChange?.(newData.offers);
+      optionsRef.current.onMedicalVideosChange?.(newData.medicalVideos);
+      optionsRef.current.onMedicalVideoCategoriesChange?.(newData.medicalVideoCategories);
       optionsRef.current.onContractingCompaniesChange?.(newData.contractingCompanies);
       optionsRef.current.onStaffMembersChange?.(newData.staffMembers);
       
@@ -259,6 +288,12 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
         case 'offers':
           optionsRef.current.onOffersChange?.(newData.offers);
           break;
+        case 'medicalVideos':
+          optionsRef.current.onMedicalVideosChange?.(newData.medicalVideos);
+          break;
+        case 'medicalVideoCategories':
+          optionsRef.current.onMedicalVideoCategoriesChange?.(newData.medicalVideoCategories);
+          break;
         case 'contractingCompanies':
           optionsRef.current.onContractingCompaniesChange?.(newData.contractingCompanies);
           break;
@@ -329,6 +364,16 @@ export function useRealtimeSync(options: UseRealtimeSyncOptions = {}) {
           'postgres_changes',
           { event: '*', schema: 'public', table: 'offers' },
           (payload) => handleRealtimeChange('offers', payload)
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'medical_videos' },
+          (payload) => handleRealtimeChange('medicalVideos', payload)
+        )
+        .on(
+          'postgres_changes',
+          { event: '*', schema: 'public', table: 'medical_video_categories' },
+          (payload) => handleRealtimeChange('medicalVideoCategories', payload)
         )
         .on(
           'postgres_changes',
