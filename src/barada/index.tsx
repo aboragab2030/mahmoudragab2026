@@ -44,10 +44,15 @@ import {
 import { ContractingSelector, ContractingManager, ContractingCompany, CONTRACTING_CHANGED_EVENT } from './contracting';
 import { PartnersSuccessHub } from './PartnersSuccessHub';
 import { PaymentsTab } from './PaymentsTab';
-import { InstapaySubmittedDialog, InstapayStatusLookup, submitInstapay, type InstapaySubmissionInput, type InstapayResult } from './InstapayFeature';
+import { InstapaySubmittedDialog, submitInstapay, type InstapaySubmissionInput, type InstapayResult } from './InstapayFeature';
+import { INSTAPAY_STATUS_LABELS, type InstapayStatus } from './instapayRules';
 import { usePaymobEnabled, startPaymobCheckout, PaymobResultDialog, PaymobSettingsPanel } from './PaymobFeature';
 import { StaffManagement } from './StaffManagement';
-import { canAccessSection, firstAccessibleSection } from './permissions';
+import { canAccessSection, firstAccessibleSection, hasPatientPermission, hasStaffBookingPermission } from './permissions';
+import { AccountingHub } from './AccountingHub';
+import { PatientManagementModal } from './PatientManagementModal';
+import { StaffBookingModal, type StaffBookingSubmitPayload } from './StaffBookingModal';
+import { ensureClinicErpSchemaReady, listPatients, recordClinicAudit, type PatientRecord } from './patientsService';
 import OverviewDashboard from './OverviewDashboard';
 import { createOperation, updateOperation, setOperationFields, deleteOperation, submitComplaint, deleteComplaint, markBookingReminderSent, mapOperationRow, mapComplaintRow, numericId, readLocalOperations, readLocalComplaints, importLocalRecords } from './clinicRecords';
 import { OffersSection } from './OffersSection';
@@ -77,6 +82,7 @@ interface Operation {
   patientAge?: number;
   doctorName: string;
   surgeryType: string;
+  eyeSide?: 'right' | 'left' | 'both';
   date: string;
   cost: number;
   reminderSent: boolean;
@@ -85,6 +91,12 @@ interface Operation {
   contractingCompanyId?: number; // Added field
   dbId?: string;
 }
+
+const EYE_SIDE_LABELS: Record<'right' | 'left' | 'both', string> = {
+  right: 'العين اليمنى',
+  left: 'العين اليسرى',
+  both: 'العينين',
+};
 
 interface Doctor {
   id: number;
@@ -223,9 +235,25 @@ interface Booking {
   reminderSent?: boolean; 
   reminderType?: 'sms' | 'email' | 'none';
   contractingCompanyId?: number;
+  contractingCompanyName?: string;
   contractingDocs?: Record<string, string>;
   paymentMethod?: 'cash' | 'instapay' | 'wallet' | 'paymob';
   paymentStatus?: 'pending' | 'paid';
+  instapayStatus?: string;
+  instapayBookingRef?: string;
+  instapayAmountDue?: number;
+  instapayReason?: string;
+  paymobStatus?: string;
+  paymobReference?: string;
+  patientId?: string;
+  bookingSource?: 'website' | 'staff' | 'admin';
+  createdByStaffId?: string;
+  createdByStaffName?: string;
+  assignedStaffId?: string;
+  assignedStaffName?: string;
+  updatedByStaffName?: string;
+  updatedAt?: string;
+  overrideReason?: string;
 }
 
 // Egypt Governorates list
@@ -1465,6 +1493,7 @@ const BookingModal = ({
 const LoginView = ({ onLogin, settings, isLoading: externalLoading }: { onLogin: (usernameOrEmail: string, password: string) => Promise<{ error: string | null }>, settings: AppSettings, isLoading?: boolean }) => {
     const [usernameOrEmail, setUsernameOrEmail] = useState('');
     const [password, setPassword] = useState('');
+    const [showPassword, setShowPassword] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [error, setError] = useState('');
 
@@ -1519,7 +1548,16 @@ const LoginView = ({ onLogin, settings, isLoading: externalLoading }: { onLogin:
                         <label className="block text-xs font-bold text-[#718394] mb-1.5">كلمة المرور</label>
                         <div className="relative">
                             <Shield className="absolute right-3.5 top-3.5 text-[#718394]" size={18} />
-                            <input type="password" value={password} onChange={e => { setPassword(e.target.value); setError(''); }} className="w-full bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-3.5 pr-11 text-[#172B3A] focus:bg-white focus:ring-2 focus:ring-[#25B8C7]/25 focus:border-[#087F8C] outline-hidden transition-all font-bold" placeholder="••••••••" />
+                            <input type={showPassword ? 'text' : 'password'} value={password} onChange={e => { setPassword(e.target.value); setError(''); }} className="w-full bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-3.5 pr-11 pl-11 text-[#172B3A] focus:bg-white focus:ring-2 focus:ring-[#25B8C7]/25 focus:border-[#087F8C] outline-hidden transition-all font-bold" placeholder="••••••••" />
+                            <button
+                                type="button"
+                                onClick={() => setShowPassword(prev => !prev)}
+                                className="absolute left-3.5 top-3.5 text-[#718394] hover:text-[#172B3A] transition-colors cursor-pointer"
+                                aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                                title={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                            >
+                                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                            </button>
                         </div>
                     </div>
                     {error && (
@@ -2081,15 +2119,18 @@ const AiAssistant = ({ language }: { language: 'ar' | 'en' }) => {
 
 const AdminPanel = ({ 
   doctors, setDoctors, users, setUsers, currentUser, currentUserUuid, allBookings, setBookings, operations, setOperations,
-  onCancelBooking, onConfirmBooking, onEditBooking, onDeleteBooking, onSendReminder,
-  complaints, setComplaints, heroImages, setHeroImages, partners, setPartners, settings, setSettings, services, setServices, t, handleWhatsAppReminder, handleSmsReminder, onConfirmPayment, onOffersChanged, onVideosChanged, onNotify
+  onCancelBooking, onConfirmBooking, onEditBooking, onDeleteBooking, onCreateStaffBooking, onSendReminder,
+  complaints, setComplaints, heroImages, setHeroImages, partners, setPartners, settings, setSettings, services, setServices, t, handleWhatsAppReminder, handleSmsReminder, onOffersChanged, onVideosChanged, onRefresh, onNotify
 }: { 
-  doctors: Doctor[], setDoctors: React.Dispatch<React.SetStateAction<Doctor[]>>, users: User[], setUsers: React.Dispatch<React.SetStateAction<User[]>>, currentUser: User, currentUserUuid?: string, allBookings: Booking[], setBookings: React.Dispatch<React.SetStateAction<Booking[]>>, operations: Operation[], setOperations: React.Dispatch<React.SetStateAction<Operation[]>>, onCancelBooking: (id: number) => void, onConfirmBooking: (id: number) => void, onEditBooking: (booking: Booking) => void, onDeleteBooking: (id: number) => void, onSendReminder: (id: number, itemType: 'booking' | 'operation') => void, complaints: Complaint[], setComplaints: React.Dispatch<React.SetStateAction<Complaint[]>>, heroImages: HeroImage[], setHeroImages: React.Dispatch<React.SetStateAction<HeroImage[]>>, partners: Partner[], setPartners: React.Dispatch<React.SetStateAction<Partner[]>>, settings: AppSettings, setSettings: React.Dispatch<React.SetStateAction<AppSettings>>, services: ServiceItem[], setServices: React.Dispatch<React.SetStateAction<ServiceItem[]>>, t: any, handleWhatsAppReminder: (rem: any) => void, handleSmsReminder: (rem: any) => void, onConfirmPayment: (id: number) => void, onOffersChanged?: () => void, onVideosChanged?: () => void, onNotify?: (title: string, message: string, type: 'success' | 'warning' | 'info') => void
+  doctors: Doctor[], setDoctors: React.Dispatch<React.SetStateAction<Doctor[]>>, users: User[], setUsers: React.Dispatch<React.SetStateAction<User[]>>, currentUser: User, currentUserUuid?: string, allBookings: Booking[], setBookings: React.Dispatch<React.SetStateAction<Booking[]>>, operations: Operation[], setOperations: React.Dispatch<React.SetStateAction<Operation[]>>, onCancelBooking: (id: number) => void, onConfirmBooking: (id: number) => void, onEditBooking: (booking: Booking) => void, onDeleteBooking: (id: number) => void, onCreateStaffBooking: (payload: StaffBookingSubmitPayload) => Promise<void>, onSendReminder: (id: number, itemType: 'booking' | 'operation') => void, complaints: Complaint[], setComplaints: React.Dispatch<React.SetStateAction<Complaint[]>>, heroImages: HeroImage[], setHeroImages: React.Dispatch<React.SetStateAction<HeroImage[]>>, partners: Partner[], setPartners: React.Dispatch<React.SetStateAction<Partner[]>>, settings: AppSettings, setSettings: React.Dispatch<React.SetStateAction<AppSettings>>, services: ServiceItem[], setServices: React.Dispatch<React.SetStateAction<ServiceItem[]>>, t: any, handleWhatsAppReminder: (rem: any) => void, handleSmsReminder: (rem: any) => void, onOffersChanged?: () => void, onVideosChanged?: () => void, onRefresh?: () => Promise<void> | void, onNotify?: (title: string, message: string, type: 'success' | 'warning' | 'info') => void
 }) => {
   // Access realtime data for Supabase operations
-  const { data: realtimeData, isLoading: realtimeLoading } = useRealtimeSync({ enabled: true });
+  const { data: realtimeData, isLoading: realtimeLoading, refresh: refreshPanelRealtime } = useRealtimeSync({ enabled: true });
+  const handleRefreshAll = async () => {
+    await Promise.all([refreshPanelRealtime(), Promise.resolve(onRefresh?.())]);
+  };
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'doctors' | 'users' | 'bookings' | 'reports' | 'hero-images' | 'partners' | 'settings' | 'services' | 'offers' | 'medical-videos' | 'complaints' | 'reminders' | 'backup' | 'operations' | 'patient-stats' | 'intelligence' | 'payments' | 'contact-logs' | 'paymob-settings'>('overview');
+  const [activeTab, setActiveTab] = useState<'overview' | 'doctors' | 'users' | 'bookings' | 'reports' | 'hero-images' | 'partners' | 'settings' | 'services' | 'offers' | 'medical-videos' | 'complaints' | 'reminders' | 'backup' | 'operations' | 'patient-stats' | 'intelligence' | 'payments' | 'accounting' | 'contact-logs' | 'paymob-settings'>('overview');
   const [contactLogs, setContactLogs] = useState<any[]>([]);
   const [contactLogsLoading, setContactLogsLoading] = useState(false);
   const [contactStaffFilter, setContactStaffFilter] = useState('');
@@ -2112,7 +2153,7 @@ const AdminPanel = ({
   const [newPartner, setNewPartner] = useState({ name: '', logo: '', description: '' });
   const [newService, setNewService] = useState({ title: '', description: '', iconName: 'Eye', color: 'text-blue-600', price: 200 });
   const [editingServiceId, setEditingServiceId] = useState<number | null>(null);
-  const [newOp, setNewOp] = useState<Omit<Operation, 'id' | 'reminderSent' | 'status'>>({ patientName: '', patientPhone: '', patientPhone2: '', patientEmail: '', patientAge: undefined, doctorName: '', surgeryType: '', date: '', cost: 0, notes: '', contractingCompanyId: undefined });
+  const [newOp, setNewOp] = useState<Omit<Operation, 'id' | 'reminderSent' | 'status'>>({ patientName: '', patientPhone: '', patientPhone2: '', patientEmail: '', patientAge: undefined, doctorName: '', surgeryType: '', eyeSide: undefined, date: '', cost: 0, notes: '', contractingCompanyId: undefined });
   const [editingOpId, setEditingOpId] = useState<number | null>(null);
   const [tempSettings, setTempSettings] = useState<AppSettings>(settings);
   const [phonesInput, setPhonesInput] = useState(settings.phones.join('\n'));
@@ -2127,6 +2168,13 @@ const AdminPanel = ({
   const [bookingAddressFilter, setBookingAddressFilter] = useState<string>('');
   const [bookingContractingId, setBookingContractingId] = useState<string>(''); 
   const [bookingPhoneFilter, setBookingPhoneFilter] = useState<string>(''); 
+  const [bookingSourceFilter, setBookingSourceFilter] = useState<string>('');
+  const [bookingStaffFilter, setBookingStaffFilter] = useState<string>('');
+  const [isStaffBookingOpen, setIsStaffBookingOpen] = useState(false);
+  const [staffBookingPrefillPatient, setStaffBookingPrefillPatient] = useState<PatientRecord | null>(null);
+  const [isPatientModalOpen, setIsPatientModalOpen] = useState(false);
+  const [patientModalMode, setPatientModalMode] = useState<'list' | 'profile'>('list');
+  const [selectedPatientForProfile, setSelectedPatientForProfile] = useState<PatientRecord | null>(null);
   const [contractingList, setContractingList] = useState<ContractingCompany[]>([]); 
   const [sortDirection, setSortDirection] = useState<'asc' | 'desc'>('asc');
   
@@ -2166,11 +2214,21 @@ const AdminPanel = ({
 
   const fetchContactLogs = async () => {
     setContactLogsLoading(true);
+    setContactLogsNotice(null);
     try {
       const { data, error } = await supabase.from('contact_logs').select('*').order('created_at', { ascending: false }).limit(200);
-      if (!error && data) setContactLogs(data);
-    } catch { /* silent */ }
-    setContactLogsLoading(false);
+      if (error) {
+        console.error('Error fetching contact logs:', error);
+        setContactLogsNotice({ type: 'error', message: 'تعذر تحديث سجل الاتصالات والتذكيرات.' });
+        return;
+      }
+      setContactLogs(data || []);
+    } catch (err) {
+      console.error('Error fetching contact logs:', err);
+      setContactLogsNotice({ type: 'error', message: 'تعذر تحديث سجل الاتصالات والتذكيرات.' });
+    } finally {
+      setContactLogsLoading(false);
+    }
   };
 
   const handleClearContactLogs = async () => {
@@ -2541,7 +2599,7 @@ const handlePrint = (title: string, contentHtml: string) => {
     const saved = await createOperation({ ...newOp, status: 'pending', reminderSent: false });
     if (!saved) return;
     setOperations(prev => prev.some(o => o.dbId === saved.dbId) ? prev : [...prev, saved]);
-    setNewOp({ patientName: '', patientPhone: '', patientPhone2: '', patientEmail: '', patientAge: undefined, doctorName: '', surgeryType: '', date: '', cost: 0, notes: '', contractingCompanyId: undefined }); alert('تمت إضافة العملية بنجاح');
+    setNewOp({ patientName: '', patientPhone: '', patientPhone2: '', patientEmail: '', patientAge: undefined, doctorName: '', surgeryType: '', eyeSide: undefined, date: '', cost: 0, notes: '', contractingCompanyId: undefined }); alert('تمت إضافة العملية بنجاح');
   };
 
   const handleSaveOpEdit = async () => {
@@ -2549,8 +2607,8 @@ const handlePrint = (title: string, contentHtml: string) => {
     if (!validateOperationInput()) return;
     const target = operations.find(o => o.id === editingOpId);
     if (target?.dbId && !(await updateOperation(target.dbId, newOp))) return;
-    setOperations(prev => prev.map(o => o.id === editingOpId ? { ...o, patientName: newOp.patientName, patientPhone: newOp.patientPhone, patientPhone2: newOp.patientPhone2, patientEmail: newOp.patientEmail, patientAge: newOp.patientAge, doctorName: newOp.doctorName, surgeryType: newOp.surgeryType, date: newOp.date, cost: newOp.cost, notes: newOp.notes, contractingCompanyId: newOp.contractingCompanyId } : o));
-    setEditingOpId(null); setNewOp({ patientName: '', patientPhone: '', patientPhone2: '', patientEmail: '', patientAge: undefined, doctorName: '', surgeryType: '', date: '', cost: 0, notes: '', contractingCompanyId: undefined }); alert('تم تحديث بيانات العملية بنجاح');
+    setOperations(prev => prev.map(o => o.id === editingOpId ? { ...o, patientName: newOp.patientName, patientPhone: newOp.patientPhone, patientPhone2: newOp.patientPhone2, patientEmail: newOp.patientEmail, patientAge: newOp.patientAge, doctorName: newOp.doctorName, surgeryType: newOp.surgeryType, eyeSide: newOp.eyeSide, date: newOp.date, cost: newOp.cost, notes: newOp.notes, contractingCompanyId: newOp.contractingCompanyId } : o));
+    setEditingOpId(null); setNewOp({ patientName: '', patientPhone: '', patientPhone2: '', patientEmail: '', patientAge: undefined, doctorName: '', surgeryType: '', eyeSide: undefined, date: '', cost: 0, notes: '', contractingCompanyId: undefined }); alert('تم تحديث بيانات العملية بنجاح');
   };
 
   const handleToggleOpStatus = async (id: number, status: 'confirmed' | 'cancelled' | 'pending') => {
@@ -2559,23 +2617,60 @@ const handlePrint = (title: string, contentHtml: string) => {
     setOperations(prev => prev.map(op => op.id === id ? { ...op, status } : op));
   };
 
-  const handleStartEditOp = (op: Operation) => { setEditingOpId(op.id); setNewOp({ patientName: op.patientName, patientPhone: op.patientPhone || '', patientPhone2: op.patientPhone2 || '', patientEmail: op.patientEmail || '', patientAge: op.patientAge, doctorName: op.doctorName, surgeryType: op.surgeryType, date: op.date, cost: op.cost, notes: op.notes || '', contractingCompanyId: op.contractingCompanyId }); window.scrollTo({ top: 0, behavior: 'smooth' }); };
+  const handleStartEditOp = (op: Operation) => { setEditingOpId(op.id); setNewOp({ patientName: op.patientName, patientPhone: op.patientPhone || '', patientPhone2: op.patientPhone2 || '', patientEmail: op.patientEmail || '', patientAge: op.patientAge, doctorName: op.doctorName, surgeryType: op.surgeryType, eyeSide: op.eyeSide, date: op.date, cost: op.cost, notes: op.notes || '', contractingCompanyId: op.contractingCompanyId }); window.scrollTo({ top: 0, behavior: 'smooth' }); };
   
   const handleExportData = () => { void downloadFullBackup(backupFileName); };
   const handleImportData = (e: React.ChangeEvent<HTMLInputElement>) => { const file = e.target.files?.[0]; e.target.value = ''; if (file) void restoreFromFile(file); };
 
+  const canViewAllBookings = hasStaffBookingPermission(currentUser, 'staff_bookings_view_all');
+  const canViewOwnBookings = hasStaffBookingPermission(currentUser, 'staff_bookings_view_own');
+
+  const openPatientProfileForBooking = async (booking: Booking) => {
+    try {
+      const patients = await listPatients();
+      const matched =
+        (booking.patientId ? patients.find((p) => p.id === booking.patientId) : undefined) ||
+        patients.find((p) => p.phone.replace(/\D/g, '') === booking.phone.replace(/\D/g, ''));
+      if (matched) {
+        setSelectedPatientForProfile(matched);
+        setPatientModalMode('profile');
+      } else {
+        setSelectedPatientForProfile(null);
+        setPatientModalMode('list');
+      }
+      setIsPatientModalOpen(true);
+    } catch {
+      setSelectedPatientForProfile(null);
+      setPatientModalMode('list');
+      setIsPatientModalOpen(true);
+    }
+  };
+
   const filteredBookings = allBookings.filter(b => { 
+    if (!canViewAllBookings) {
+      if (!canViewOwnBookings) return false;
+      const isMine =
+        Boolean(currentUserUuid) &&
+        (b.createdByStaffId === currentUserUuid || b.assignedStaffId === currentUserUuid);
+      if (!isMine) return false;
+    }
     let matches = true; 
     if (bookingStart) matches = matches && b.date >= bookingStart; 
     if (bookingEnd) matches = matches && b.date <= bookingEnd; 
     if (bookingDoctorId) matches = matches && b.doctorId === Number(bookingDoctorId); 
     if (bookingStatus) matches = matches && b.status === bookingStatus; 
-    if (bookingPaymentStatus) matches = matches && b.paymentStatus === bookingPaymentStatus; // Updated logic
+    if (bookingPaymentStatus) matches = matches && b.paymentStatus === bookingPaymentStatus;
     if (bookingPatientName) matches = matches && b.patientName.toLowerCase().includes(bookingPatientName.toLowerCase()); 
     if (bookingPhoneFilter) matches = matches && !!(b.phone.includes(bookingPhoneFilter) || (b.phone2 && b.phone2.includes(bookingPhoneFilter)));
     if (bookingService) matches = matches && b.service === bookingService; 
     if (bookingAddressFilter) matches = matches && b.address?.toLowerCase().includes(bookingAddressFilter.toLowerCase());
     if (bookingContractingId) matches = matches && b.contractingCompanyId === Number(bookingContractingId);
+    if (bookingSourceFilter) matches = matches && (b.bookingSource || 'website') === bookingSourceFilter;
+    if (bookingStaffFilter) {
+      matches =
+        matches &&
+        (b.createdByStaffId === bookingStaffFilter || b.assignedStaffId === bookingStaffFilter);
+    }
     return matches; 
   }).sort((a, b) => { 
     let comparison = a.date.localeCompare(b.date); 
@@ -2693,6 +2788,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                     {canAccessSection(currentUser, 'patient-stats') && (<button onClick={() => setActiveTab('patient-stats')} className={tabClass('patient-stats')}><PieChart size={18} /> إحصائيات المرضى</button>)}
                     {canAccessSection(currentUser, 'intelligence') && (<button onClick={() => setActiveTab('intelligence')} className={tabClass('intelligence')}><Brain size={18} /> الذكاء الإداري</button>)}
                     {canAccessSection(currentUser, 'payments') && (<button onClick={() => setActiveTab('payments')} className={tabClass('payments')}><CreditCard size={18} /> المدفوعات</button>)}
+                    {canAccessSection(currentUser, 'accounting') && (<button onClick={() => setActiveTab('accounting')} className={tabClass('accounting')}><Landmark size={18} /> الحسابات</button>)}
                     {canAccessSection(currentUser, 'contact-logs') && (<button onClick={() => { setActiveTab('contact-logs'); if (contactLogs.length === 0) fetchContactLogs(); }} className={tabClass('contact-logs')}><History size={18} /> سجل الاتصالات</button>)}
                     <div className="h-px bg-[#DFEAF0] mx-3 my-3"></div>
                     {canAccessSection(currentUser, 'partners') && (<button onClick={() => setActiveTab('partners')} className={tabClass('partners')}><Building2 size={18} /> {settings.language === 'ar' ? 'شركاء النجاح' : 'Partners of Success'}</button>)}
@@ -2718,6 +2814,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                     settings={settings}
                     cardClass={cardClass}
                     inputClass={inputClass}
+                    onRefresh={handleRefreshAll}
                   />
                 )}
                 {activeTab === 'doctors' && (
@@ -2751,6 +2848,35 @@ const handlePrint = (title: string, contentHtml: string) => {
                 )}
                 {activeTab === 'bookings' && (
                     <div className="space-y-6 animate-in fade-in duration-300">
+                        <div className="flex flex-wrap items-center justify-between gap-3 bg-white p-4 rounded-2xl border border-[#DFEAF0] shadow-[0_10px_28px_-16px_rgba(11,31,53,0.1)]">
+                          <div>
+                            <h3 className="text-base font-black text-[#172B3A]">إدارة حجوزات المركز وتسجيل المرضى</h3>
+                            <p className="text-xs text-[#718394] font-semibold">
+                              إضافة حجز بواسطة الموظف مع نفس قواعد الأطباء والمواعيد، وإدارة ملفات المرضى دون تكرار.
+                            </p>
+                          </div>
+                          <div className="flex flex-wrap gap-2">
+                            {hasStaffBookingPermission(currentUser, 'staff_bookings_create') && (
+                              <button
+                                type="button"
+                                onClick={() => { setStaffBookingPrefillPatient(null); setIsStaffBookingOpen(true); }}
+                                className="fv-btn-primary px-4 py-2.5 rounded-xl font-black text-xs flex items-center gap-2"
+                              >
+                                <Plus size={16} /> إضافة حجز بواسطة الموظف
+                              </button>
+                            )}
+                            {(hasPatientPermission(currentUser, 'patients_view') || hasPatientPermission(currentUser, 'patients_search')) && (
+                              <button
+                                type="button"
+                                onClick={() => { setSelectedPatientForProfile(null); setPatientModalMode('list'); setIsPatientModalOpen(true); }}
+                                className="bg-[#F5FAFC] text-[#087F8C] border border-[#087F8C]/30 hover:bg-white px-4 py-2.5 rounded-xl font-black text-xs flex items-center gap-2 transition-colors"
+                              >
+                                <Users size={16} /> سجل المرضى
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
                         <div className={cardClass}>
                           <h3 className="text-lg font-black text-[#172B3A] mb-5 flex items-center gap-2"><Filter size={18} className="text-[#087F8C]"/> فرز الحجوزات</h3>
                           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -2761,16 +2887,18 @@ const handlePrint = (title: string, contentHtml: string) => {
                             <div><label className="text-xs font-bold text-[#718394] mb-1 block">حالة الحجز</label><select value={bookingStatus} onChange={e => setBookingStatus(e.target.value)} className={inputClass}><option value="">الكل</option><option value="confirmed">{t.confirmed}</option><option value="cancelled">{t.cancelled}</option></select></div>
                             <div><label className="text-xs font-bold text-[#718394] mb-1 block">حالة الدفع</label><select value={bookingPaymentStatus} onChange={e => setBookingPaymentStatus(e.target.value)} className={inputClass}><option value="">الكل</option><option value="paid">تم الدفع</option><option value="pending">في انتظار الدفع</option></select></div>
                             <div><label className="text-xs font-bold text-[#718394] mb-1 block">جهة التعاقد</label><select value={bookingContractingId} onChange={e => setBookingContractingId(e.target.value)} className={inputClass}><option value="">الكل</option><option value="-1">خاص (بدون تعاقد)</option>{contractingList.map(c => <option key={c.id} value={c.id}>{c.name}</option>)}</select></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">مصدر الحجز</label><select value={bookingSourceFilter} onChange={e => setBookingSourceFilter(e.target.value)} className={inputClass}><option value="">جميع المصادر</option><option value="website">الموقع الإلكتروني</option><option value="staff">حجوزات الموظفين</option><option value="admin">حجوزات الإدارة</option></select></div>
+                            <div><label className="text-xs font-bold text-[#718394] mb-1 block">الموظف المسؤول</label><select value={bookingStaffFilter} onChange={e => setBookingStaffFilter(e.target.value)} className={inputClass}><option value="">جميع الموظفين</option>{realtimeData.staffMembers.map(s => <option key={s.user_id} value={s.user_id}>{s.name}</option>)}</select></div>
                             <div><label className="text-xs font-bold text-[#718394] mb-1 block">فلتر العنوان</label><input type="text" value={bookingAddressFilter} onChange={e => setBookingAddressFilter(e.target.value)} className={inputClass} placeholder="ابحث بالعنوان..." /></div>
                             <div><label className="text-xs font-bold text-[#718394] mb-1 block">من تاريخ</label><input type="date" value={bookingStart} onChange={e => setBookingStart(e.target.value)} className={inputClass} /></div>
                             <div><label className="text-xs font-bold text-[#718394] mb-1 block">إلى تاريخ</label><input type="date" value={bookingEnd} onChange={e => setBookingEnd(e.target.value)} className={inputClass} /></div>
-                            <div className="flex items-end"><button onClick={() => { setBookingPatientName(''); setBookingPhoneFilter(''); setBookingDoctorId(''); setBookingStatus(''); setBookingPaymentStatus(''); setBookingStart(''); setBookingEnd(''); setBookingAddressFilter(''); setBookingService(''); setBookingContractingId(''); }} className="text-red-600 font-bold text-xs hover:underline mb-3">مسح الفلاتر</button></div>
+                            <div className="flex items-end"><button onClick={() => { setBookingPatientName(''); setBookingPhoneFilter(''); setBookingDoctorId(''); setBookingStatus(''); setBookingPaymentStatus(''); setBookingStart(''); setBookingEnd(''); setBookingAddressFilter(''); setBookingService(''); setBookingContractingId(''); setBookingSourceFilter(''); setBookingStaffFilter(''); }} className="text-red-600 font-bold text-xs hover:underline mb-3">مسح الفلاتر</button></div>
                           </div>
                         </div>
                         <div className={`${cardClass} overflow-x-auto p-0`}><div className="p-6 flex justify-between items-center border-b border-[#DFEAF0]"><h3 className="text-lg font-black text-[#172B3A]">جدول الحجوزات (<span className="fv-num">{filteredBookings.length}</span>)</h3><button onClick={() => handlePrint('تقرير الحجوزات', `<table><thead><tr><th>المريض</th><th>الهواتف</th><th>العنوان</th><th>الطبيب</th><th>اسم الإجراء</th><th>جهة التعاقد</th><th>التاريخ</th><th>الوقت</th></tr></thead><tbody>${filteredBookings.map(b => {
                             const companyName = b.contractingCompanyId ? (contractingList.find(c => c.id === b.contractingCompanyId)?.name || 'تعاقد غير معروف') : 'حساب خاص';
                             return `<tr><td>${b.patientName}</td><td>${b.phone}${b.phone2 ? ` / ${b.phone2}` : ''}</td><td>${b.address || '-'}</td><td>${b.doctorName}</td><td>${b.service}</td><td>${companyName}</td><td>${b.date}</td><td>${b.time}</td></tr>`;
-                        }).join('')}</tbody></table>`)} className="text-[#087F8C] bg-[#087F8C]/10 hover:bg-[#087F8C]/20 px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-xs transition-colors"><Printer size={15}/> طباعة التقرير</button></div><table className="w-full text-right"><thead className="bg-[#F5FAFC] text-[#718394] border-b border-[#DFEAF0]"><tr><th className="p-4 text-xs font-bold">{t.patient}</th><th className="p-4 text-xs font-bold">{t.appointment}</th><th className="p-4 text-xs font-bold">{t.doctorService}</th><th className="p-4 text-xs font-bold">{t.status}</th><th className="p-4 text-xs font-bold text-center">{t.management}</th></tr></thead><tbody className="divide-y divide-[#DFEAF0]">{filteredBookings.map(booking => (<tr key={booking.id} className="hover:bg-[#F5FAFC] transition-colors"><td className="p-4"><div className="font-bold text-sm text-[#172B3A]">{booking.patientName}</div><div className="text-[11px] text-[#718394] fv-num" dir="ltr">{booking.phone}{booking.phone2 && ` / ${booking.phone2}`}</div><div className="text-[10px] text-[#718394] font-semibold">{booking.address}</div></td><td className="p-4 fv-num"><div className="text-xs font-bold text-[#172B3A]">{booking.date}</div><div className="text-[11px] text-[#718394]">{booking.time}</div></td><td className="p-4"><div className="text-xs font-bold text-[#087F8C]">د. {booking.doctorName}</div><div className="text-[11px] text-[#718394]"><span className="font-bold text-[#172B3A]">اسم الإجراء:</span> {booking.service}</div><div className="text-[11px] text-[#718394]"><span className="font-bold text-[#172B3A]">نوع الكشف:</span> {booking.bookingType === 'contract' || booking.contractingCompanyId ? 'تعاقد' : 'نقدي'}</div>{(booking.bookingType === 'contract' || booking.contractingCompanyId) && <div className="text-[11px] text-[#718394]"><span className="font-bold text-[#172B3A]">جهة التعاقد:</span> {contractingList.find(c => c.id === booking.contractingCompanyId)?.name || 'تعاقد غير معروف'}</div>}{booking.notes && <div className="text-[11px] text-[#718394] whitespace-pre-wrap break-words"><span className="font-bold text-[#172B3A]">ملاحظات إضافية:</span> {booking.notes}</div>}</td><td className="p-4"><span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${booking.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{booking.status === 'confirmed' ? t.confirmed : t.cancelled}</span>
+                        }).join('')}</tbody></table>`)} className="text-[#087F8C] bg-[#087F8C]/10 hover:bg-[#087F8C]/20 px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-xs transition-colors"><Printer size={15}/> طباعة التقرير</button></div><table className="w-full text-right"><thead className="bg-[#F5FAFC] text-[#718394] border-b border-[#DFEAF0]"><tr><th className="p-4 text-xs font-bold">{t.patient}</th><th className="p-4 text-xs font-bold">{t.appointment}</th><th className="p-4 text-xs font-bold">{t.doctorService}</th><th className="p-4 text-xs font-bold">{t.status}</th><th className="p-4 text-xs font-bold text-center">{t.management}</th></tr></thead><tbody className="divide-y divide-[#DFEAF0]">{filteredBookings.map(booking => (<tr key={booking.id} className="hover:bg-[#F5FAFC] transition-colors"><td className="p-4"><div className="font-bold text-sm text-[#172B3A]">{booking.patientName}</div><div className="text-[11px] text-[#718394] fv-num" dir="ltr">{booking.phone}{booking.phone2 && ` / ${booking.phone2}`}</div><div className="text-[10px] text-[#718394] font-semibold">{booking.address}</div><div className="mt-1.5 flex flex-wrap gap-1"><span className={`text-[10px] px-2 py-0.5 rounded-md font-bold border ${booking.bookingSource === 'staff' ? 'bg-indigo-50 text-indigo-700 border-indigo-200' : booking.bookingSource === 'admin' ? 'bg-purple-50 text-purple-700 border-purple-200' : 'bg-slate-50 text-slate-600 border-slate-200'}`}>{booking.bookingSource === 'staff' ? 'حجز موظف' : booking.bookingSource === 'admin' ? 'حجز إدارة' : 'حجز موقع'}</span>{booking.overrideReason && <span className="text-[10px] px-2 py-0.5 rounded-md font-bold bg-amber-50 text-amber-800 border border-amber-200" title={booking.overrideReason}>استثناء موثق</span>}</div>{(booking.assignedStaffName || booking.createdByStaffName) && <div className="text-[10px] text-[#087F8C] font-bold mt-1">أنشأه/المسؤول: {booking.createdByStaffName || booking.assignedStaffName}{booking.assignedStaffName && booking.createdByStaffName && booking.assignedStaffName !== booking.createdByStaffName ? ` (المسؤول: ${booking.assignedStaffName})` : ''}{booking.createdAt ? ` • ${String(booking.createdAt).slice(0, 10)}` : ''}</div>}{booking.updatedByStaffName && <div className="text-[10px] text-[#718394] font-semibold">آخر تعديل: {booking.updatedByStaffName}{booking.updatedAt ? ` (${String(booking.updatedAt).slice(0, 10)})` : ''}</div>}</td><td className="p-4 fv-num"><div className="text-xs font-bold text-[#172B3A]">{booking.date}</div><div className="text-[11px] text-[#718394]">{booking.time}</div></td><td className="p-4"><div className="text-xs font-bold text-[#087F8C]">د. {booking.doctorName}</div><div className="text-[11px] text-[#718394]"><span className="font-bold text-[#172B3A]">اسم الإجراء:</span> {booking.service}</div><div className="text-[11px] text-[#718394]"><span className="font-bold text-[#172B3A]">نوع الكشف:</span> {booking.bookingType === 'contract' || booking.contractingCompanyId ? 'تعاقد' : 'نقدي'}</div>{(booking.bookingType === 'contract' || booking.contractingCompanyId) && <div className="text-[11px] text-[#718394]"><span className="font-bold text-[#172B3A]">جهة التعاقد:</span> {contractingList.find(c => c.id === booking.contractingCompanyId)?.name || 'تعاقد غير معروف'}</div>}{booking.notes && <div className="text-[11px] text-[#718394] whitespace-pre-wrap break-words"><span className="font-bold text-[#172B3A]">ملاحظات إضافية:</span> {booking.notes}</div>}</td><td className="p-4"><span className={`inline-flex px-2.5 py-0.5 rounded-full text-[10px] font-bold ${booking.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-red-50 text-red-700 border border-red-200'}`}>{booking.status === 'confirmed' ? t.confirmed : t.cancelled}</span>
                         {booking.paymentMethod && (
                             <div className="mt-1.5 flex items-center gap-1">
                                 <span className={`text-[10px] px-2 py-0.5 rounded-md font-bold ${booking.paymentMethod === 'cash' ? 'bg-emerald-50 text-emerald-700' : booking.paymentMethod === 'instapay' ? 'bg-purple-50 text-purple-700' : 'bg-amber-50 text-amber-700'}`}>
@@ -2784,12 +2912,51 @@ const handlePrint = (title: string, contentHtml: string) => {
                             </div>
                         )}
                         </td><td className="p-4 text-center"><div className="flex justify-center gap-1.5">
-                        {booking.paymentStatus === 'pending' && booking.paymentMethod !== 'cash' && (
-                            <button onClick={() => onConfirmPayment(booking.id)} className="p-2 bg-purple-50 text-purple-600 rounded-lg hover:bg-purple-100" title="تأكيد استلام المبلغ">
-                                <Banknote size={15}/>
+                        {hasPatientPermission(currentUser, 'patients_view') && (
+                            <button onClick={() => openPatientProfileForBooking(booking)} className="p-2 bg-slate-100 text-slate-700 rounded-lg hover:bg-slate-200" title="ملف المريض">
+                                <User size={15}/>
                             </button>
                         )}
-                        <button onClick={() => onEditBooking(booking)} className="p-2 bg-[#087F8C]/10 text-[#087F8C] rounded-lg hover:bg-[#087F8C]/20" title="تعديل الحجز"><Edit2 size={15}/></button>{booking.status === 'confirmed' ? (<button onClick={() => onCancelBooking(booking.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100"><X size={15}/></button>) : (<button onClick={() => onConfirmBooking(booking.id)} className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100"><CheckCircle size={15}/></button>)}{currentUser.role === 'admin' && (<button onClick={() => setDeletingBookingId(booking.id)} className="p-2 bg-[#F5FAFC] text-[#718394] rounded-lg hover:bg-red-600 hover:text-white transition-all" title="حذف الحجز نهائياً"><Trash2 size={15}/></button>)}</div></td></tr>))}</tbody></table></div>
+                        {hasStaffBookingPermission(currentUser, 'staff_bookings_edit') && (
+                            <button onClick={() => onEditBooking(booking)} className="p-2 bg-[#087F8C]/10 text-[#087F8C] rounded-lg hover:bg-[#087F8C]/20" title="تعديل الحجز"><Edit2 size={15}/></button>
+                        )}
+                        {hasStaffBookingPermission(currentUser, 'staff_bookings_cancel') && (
+                            booking.status === 'confirmed' ? (<button onClick={() => onCancelBooking(booking.id)} className="p-2 bg-red-50 text-red-600 rounded-lg hover:bg-red-100" title="إلغاء الحجز"><X size={15}/></button>) : (<button onClick={() => onConfirmBooking(booking.id)} className="p-2 bg-emerald-50 text-emerald-600 rounded-lg hover:bg-emerald-100" title="إعادة تأكيد"><CheckCircle size={15}/></button>)
+                        )}
+                        {hasStaffBookingPermission(currentUser, 'staff_bookings_delete') && (<button onClick={() => setDeletingBookingId(booking.id)} className="p-2 bg-[#F5FAFC] text-[#718394] rounded-lg hover:bg-red-600 hover:text-white transition-all" title="حذف الحجز نهائياً"><Trash2 size={15}/></button>)}</div></td></tr>))}</tbody></table></div>
+
+                        <StaffBookingModal
+                          isOpen={isStaffBookingOpen}
+                          onClose={() => { setIsStaffBookingOpen(false); setStaffBookingPrefillPatient(null); }}
+                          doctors={doctors}
+                          services={services}
+                          bookings={allBookings}
+                          contractingList={contractingList}
+                          staffMembers={realtimeData.staffMembers}
+                          workingHours={settings.workingHours}
+                          currentUser={currentUser}
+                          actor={{ userId: currentUserUuid, name: currentUser.name }}
+                          prefilledPatient={staffBookingPrefillPatient}
+                          inputClass={inputClass}
+                          onSubmitBooking={onCreateStaffBooking}
+                        />
+
+                        <PatientManagementModal
+                          isOpen={isPatientModalOpen}
+                          initialMode={patientModalMode}
+                          initialPatient={selectedPatientForProfile}
+                          onClose={() => { setIsPatientModalOpen(false); setSelectedPatientForProfile(null); }}
+                          currentUser={currentUser}
+                          actor={{ userId: currentUserUuid, name: currentUser.name }}
+                          bookings={allBookings}
+                          operations={operations}
+                          inputClass={inputClass}
+                          onCreateBookingForPatient={(patient) => {
+                            setIsPatientModalOpen(false);
+                            setStaffBookingPrefillPatient(patient);
+                            setIsStaffBookingOpen(true);
+                          }}
+                        />
                     </div>
                 )}
                 {activeTab === 'users' && (
@@ -2830,6 +2997,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                           inputClass={inputClass}
                           onPrint={handlePrint}
                           onNotify={onNotify || (() => {})}
+                          onRefresh={handleRefreshAll}
                         />
                         <div className="w-full h-px bg-[#DFEAF0] my-6"></div>
                         <div className={cardClass}>
@@ -3152,7 +3320,10 @@ const handlePrint = (title: string, contentHtml: string) => {
                     realtimeLoaded={!realtimeLoading}
                     cardClass={cardClass}
                     inputClass={inputClass}
-                    onOffersChanged={onOffersChanged}
+                    onOffersChanged={() => {
+                      void refreshPanelRealtime();
+                      onOffersChanged?.();
+                    }}
                   />
                 )}
                 {activeTab === 'medical-videos' && (
@@ -3164,7 +3335,10 @@ const handlePrint = (title: string, contentHtml: string) => {
                     realtimeLoaded={!realtimeLoading}
                     cardClass={cardClass}
                     inputClass={inputClass}
-                    onVideosChanged={onVideosChanged}
+                    onVideosChanged={() => {
+                      void refreshPanelRealtime();
+                      onVideosChanged?.();
+                    }}
                   />
                 )}
                 {activeTab === 'complaints' && (
@@ -3271,7 +3445,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                                const esc = (v: unknown) => String(v ?? '-').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                                handlePrint('تقرير سجل الاتصالات والتذكيرات', `<table><thead><tr><th>الموظف</th><th>المريض</th><th>الهاتف</th><th>النوع</th><th>القسم</th><th>الطبيب</th><th>التاريخ</th></tr></thead><tbody>${filteredContactLogs.map(log => `<tr><td>${esc(log.staff_name)}</td><td>${esc(log.patient_name)}</td><td>${esc(log.patient_phone)}</td><td>${log.contact_type === 'whatsapp' ? 'واتساب' : 'SMS'}</td><td>${log.item_type === 'booking' ? 'حجز' : 'عملية'}</td><td>${esc(log.doctor_name)}</td><td>${esc(new Date(log.created_at).toLocaleString('ar-EG'))}</td></tr>`).join('')}</tbody></table>`);
                              }} className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#087F8C]/10 cursor-pointer transition-colors"><Printer size={15}/> طباعة</button>
-                             <button onClick={fetchContactLogs} className="bg-[#F5FAFC] text-[#1769AA] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#1769AA]/10 cursor-pointer transition-colors"><RotateCcw size={15}/> تحديث</button>
+                             <button type="button" onClick={fetchContactLogs} disabled={contactLogsLoading} className="bg-[#F5FAFC] text-[#1769AA] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#1769AA]/10 disabled:opacity-60 cursor-pointer transition-colors"><RotateCcw size={15} className={contactLogsLoading ? 'animate-spin' : ''}/> تحديث</button>
                              {currentUser?.role === 'admin' && (
                                <button
                                  onClick={() => setClearingContactLogsModal(true)}
@@ -3351,6 +3525,19 @@ const handlePrint = (title: string, contentHtml: string) => {
                            <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">السن</label><input type="number" min={1} max={120} value={newOp.patientAge ?? ''} onChange={e => setNewOp({...newOp, patientAge: e.target.value ? Number(e.target.value) : undefined})} className={`${inputClass} fv-num`} placeholder="السن" /></div>
                            <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">الطبيب الجراح</label><select value={newOp.doctorName} onChange={e => setNewOp({...newOp, doctorName: e.target.value})} className={inputClass}><option value="">اختر الطبيب</option>{doctors.map(d => <option key={d.id} value={d.name}>{d.name}</option>)}</select></div>
                            <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">نوع العملية</label><input type="text" value={newOp.surgeryType} onChange={e => setNewOp({...newOp, surgeryType: e.target.value})} className={inputClass} placeholder="مياه بيضاء، ليزك..." /></div>
+                           <div>
+                             <label className="text-xs font-bold text-[#718394] mb-1.5 block">العين</label>
+                             <select
+                               value={newOp.eyeSide || ''}
+                               onChange={e => setNewOp({ ...newOp, eyeSide: (e.target.value || undefined) as 'right' | 'left' | 'both' | undefined })}
+                               className={inputClass}
+                             >
+                               <option value="">اختر العين</option>
+                               <option value="right">العين اليمنى</option>
+                               <option value="left">العين اليسرى</option>
+                               <option value="both">العينين</option>
+                             </select>
+                           </div>
                            <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">تاريخ العملية</label><input type="date" value={newOp.date} onChange={e => setNewOp({...newOp, date: e.target.value})} className={`${inputClass} fv-num`} /></div>
                            <div><label className="text-xs font-bold text-[#718394] mb-1.5 block">التكلفة (ج.م)</label><input type="number" value={newOp.cost} onChange={e => setNewOp({...newOp, cost: Number(e.target.value)})} className={`${inputClass} fv-num`} /></div>
                            
@@ -3371,7 +3558,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                         </div>
                         <div className="mt-8 flex gap-3">
                            <button onClick={editingOpId ? handleSaveOpEdit : handleAddOp} className="fv-btn-primary text-white font-bold py-3 px-8 rounded-xl flex items-center gap-2 cursor-pointer">{editingOpId ? 'حفظ التعديلات' : 'تسجيل العملية'}</button>
-                           {editingOpId && <button onClick={() => { setEditingOpId(null); setNewOp({ patientName: '', patientPhone: '', patientPhone2: '', patientEmail: '', patientAge: undefined, doctorName: '', surgeryType: '', date: '', cost: 0, notes: '', contractingCompanyId: undefined }); }} className="bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-bold py-3 px-8 rounded-xl hover:text-[#172B3A] cursor-pointer">إلغاء</button>}
+                           {editingOpId && <button onClick={() => { setEditingOpId(null); setNewOp({ patientName: '', patientPhone: '', patientPhone2: '', patientEmail: '', patientAge: undefined, doctorName: '', surgeryType: '', eyeSide: undefined, date: '', cost: 0, notes: '', contractingCompanyId: undefined }); }} className="bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] font-bold py-3 px-8 rounded-xl hover:text-[#172B3A] cursor-pointer">إلغاء</button>}
                         </div>
                      </div>
                      <div className={cardClass}>
@@ -3402,9 +3589,9 @@ const handlePrint = (title: string, contentHtml: string) => {
 
                               <input type="text" placeholder="بحث باسم المريض..." value={opSearchName} onChange={e => setOpSearchName(e.target.value)} className="bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl p-2 text-xs font-bold text-[#172B3A] outline-hidden focus:border-[#087F8C] w-36" />
                               
-                              <button onClick={() => handlePrint('تقرير سجل العمليات', `<table><thead><tr><th>المريض</th><th>الهواتف</th><th>العملية</th><th>جهة التعاقد</th><th>الطبيب</th><th>التاريخ</th><th>التكلفة</th><th>الحالة</th></tr></thead><tbody>${filteredOperations.map(op => {
+                              <button onClick={() => handlePrint('تقرير سجل العمليات', `<table><thead><tr><th>المريض</th><th>الهواتف</th><th>العملية</th><th>العين</th><th>جهة التعاقد</th><th>الطبيب</th><th>التاريخ</th><th>التكلفة</th><th>الحالة</th></tr></thead><tbody>${filteredOperations.map(op => {
                                   const company = contractingList.find(c => c.id === op.contractingCompanyId);
-                                  return `<tr><td>${op.patientName}</td><td>${op.patientPhone} ${op.patientPhone2 ? '/ ' + op.patientPhone2 : ''}</td><td>${op.surgeryType}</td><td>${company ? company.name : 'حساب خاص'}</td><td>${op.doctorName}</td><td>${op.date}</td><td>${op.cost}</td><td>${op.status === 'confirmed' ? 'ناجحة' : op.status === 'cancelled' ? 'ملغاة' : 'مجدولة'}</td></tr>`;
+                                  return `<tr><td>${op.patientName}</td><td>${op.patientPhone} ${op.patientPhone2 ? '/ ' + op.patientPhone2 : ''}</td><td>${op.surgeryType}</td><td>${op.eyeSide ? EYE_SIDE_LABELS[op.eyeSide] : '-'}</td><td>${company ? company.name : 'حساب خاص'}</td><td>${op.doctorName}</td><td>${op.date}</td><td>${op.cost}</td><td>${op.status === 'confirmed' ? 'ناجحة' : op.status === 'cancelled' ? 'ملغاة' : 'مجدولة'}</td></tr>`;
                               }).join('')}</tbody></table>`)} className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] p-2 rounded-xl hover:bg-[#087F8C]/10 cursor-pointer transition-colors" title="طباعة السجل"><Printer size={18}/></button>
                            </div>
                         </div>
@@ -3428,7 +3615,14 @@ const handlePrint = (title: string, contentHtml: string) => {
                                             )}
                                          </div>
                                        </td>
-                                       <td className="p-3.5 text-sm font-bold text-[#087F8C]">{op.surgeryType}</td>
+                                       <td className="p-3.5 text-sm font-bold text-[#087F8C]">
+                                         <div>{op.surgeryType}</div>
+                                         {op.eyeSide && (
+                                           <span className="inline-block mt-1 px-2 py-0.5 bg-[#EBF8FA] text-[#087F8C] rounded-md text-[10px] font-black border border-[#087F8C]/20">
+                                             {EYE_SIDE_LABELS[op.eyeSide]}
+                                           </span>
+                                         )}
+                                       </td>
                                        <td className="p-3.5 text-sm text-[#172B3A]">{op.doctorName}</td>
                                        <td className="p-3.5 text-sm font-bold text-[#172B3A] fv-num">{op.date}</td>
                                        <td className="p-3.5"><span className={`px-2.5 py-1 rounded-md text-[10px] font-black ${op.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200/80' : op.status === 'cancelled' ? 'bg-red-50 text-red-700 border border-red-200/80' : 'bg-amber-50 text-amber-700 border border-amber-200/80'}`}>{op.status === 'confirmed' ? 'تمت بنجاح' : op.status === 'cancelled' ? 'ملغاة' : 'مجدولة'}</span></td>
@@ -3476,6 +3670,25 @@ const handlePrint = (title: string, contentHtml: string) => {
                      onPrint={handlePrint}
                      isAdmin={currentUser.role === 'admin'}
                      showInstapayReview={currentUser.role === 'admin' || currentUser.permissions.includes('review_instapay')}
+                     currentUser={currentUser}
+                     currentUserUuid={currentUserUuid}
+                     onSyncedPayment={handleRefreshAll}
+                   />
+                )}
+                {activeTab === 'accounting' && (
+                   <AccountingHub
+                     currentUser={currentUser}
+                     currentUserUuid={currentUserUuid}
+                     rawBookings={realtimeData.bookings}
+                     doctors={doctors}
+                     services={services}
+                     contractingList={contractingList}
+                     staffMembers={realtimeData.staffMembers}
+                     cardClass={cardClass}
+                     inputClass={inputClass}
+                     onPrint={handlePrint}
+                     onNotify={onNotify}
+                     onRefresh={handleRefreshAll}
                    />
                 )}
                 </>)}
@@ -3715,100 +3928,303 @@ const Footer = ({ settings, t, onNavigate }: { settings: AppSettings, t: any, on
     </footer>
 );
 
-const MyBookingsView = ({ bookings, phone, setPhone, onSearch, onEditBooking, onCancelBooking }: { 
-  bookings: Booking[]; 
-  phone: string; 
-  setPhone: (p: string) => void; 
-  onSearch: () => void; 
-  onEditBooking: (booking: Booking) => void; 
-  onCancelBooking: (id: number) => void; 
+const PAYMENT_METHOD_LABELS: Record<string, string> = {
+  cash: 'كاش في المركز',
+  instapay: 'إنستاباي (InstaPay)',
+  wallet: 'محفظة إلكترونية',
+  paymob: 'دفع إلكتروني',
+};
+
+const getBookingPaymentSummary = (booking: Booking) => {
+  const methodLabel = booking.paymentMethod
+    ? PAYMENT_METHOD_LABELS[booking.paymentMethod] || booking.paymentMethod
+    : 'الدفع عند الحضور';
+
+  if (booking.instapayStatus) {
+    const label =
+      INSTAPAY_STATUS_LABELS[booking.instapayStatus as InstapayStatus] || booking.instapayStatus;
+    const tone =
+      booking.instapayStatus === 'PAID'
+        ? 'bg-emerald-50 text-emerald-700 border-emerald-200'
+        : booking.instapayStatus === 'REJECTED' || booking.instapayStatus === 'MISMATCH'
+          ? 'bg-red-50 text-red-700 border-red-200'
+          : 'bg-amber-50 text-amber-700 border-amber-200';
+    return { methodLabel, statusLabel: label, tone };
+  }
+
+  if (booking.paymentStatus === 'paid' || booking.paymobStatus === 'paid') {
+    return {
+      methodLabel,
+      statusLabel: 'تم الدفع',
+      tone: 'bg-emerald-50 text-emerald-700 border-emerald-200',
+    };
+  }
+
+  if (booking.paymentMethod === 'paymob' && booking.paymobStatus === 'failed') {
+    return {
+      methodLabel,
+      statusLabel: 'فشل الدفع',
+      tone: 'bg-red-50 text-red-700 border-red-200',
+    };
+  }
+
+  if (booking.paymentMethod === 'cash' || !booking.paymentMethod) {
+    return {
+      methodLabel,
+      statusLabel: 'الدفع عند الحضور',
+      tone: 'bg-[#EBF8FA] text-[#087F8C] border-[#B8E6EC]',
+    };
+  }
+
+  return {
+    methodLabel,
+    statusLabel: 'قيد الانتظار',
+    tone: 'bg-amber-50 text-amber-700 border-amber-200',
+  };
+};
+
+const MyBookingsView = ({
+  bookings,
+  phone,
+  setPhone,
+  onSearch,
+  onEditBooking,
+  onCancelBooking,
+  contractingCompanies = [],
+  isSearching = false,
+  hasSearched = false,
+}: {
+  bookings: Booking[];
+  phone: string;
+  setPhone: (p: string) => void;
+  onSearch: () => void;
+  onEditBooking: (booking: Booking) => void;
+  onCancelBooking: (id: number) => void;
+  contractingCompanies?: ContractingCompany[];
+  isSearching?: boolean;
+  hasSearched?: boolean;
 }) => {
+  const confirmedCount = bookings.filter((b) => b.status === 'confirmed').length;
+  const cancelledCount = bookings.filter((b) => b.status === 'cancelled').length;
+  const paidCount = bookings.filter(
+    (b) =>
+      b.paymentStatus === 'paid' ||
+      b.instapayStatus === 'PAID' ||
+      b.paymobStatus === 'paid',
+  ).length;
+
   return (
     <section className="py-16 md:py-20 px-4 max-w-7xl mx-auto min-h-[75vh]">
       <div className="text-center mb-10">
         <span className="text-[#087F8C] text-xs font-extrabold uppercase tracking-widest mb-2 block">إدارة المواعيد</span>
         <h2 className="text-3xl md:text-4xl font-black text-[#172B3A] mb-3 fv-balance">حجوزاتي</h2>
-        <p className="text-[#718394] font-medium">تابع حالة حجوزاتك وقم بإدارتها بكل سهولة</p>
+        <p className="text-[#718394] font-medium">اعرض كافة بيانات الحجز وحالة الدفع وسجل حجوزاتك برقم هاتف الحجز فقط</p>
       </div>
 
-      <div className="max-w-md mx-auto mb-12">
+      <div className="max-w-md mx-auto mb-10">
         <div className="flex gap-2">
           <input
             type="tel"
-            placeholder="أدخل رقم الهاتف للبحث..."
+            placeholder="أدخل رقم هاتف الحجز للبحث..."
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter') {
+                e.preventDefault();
+                onSearch();
+              }
+            }}
             dir="ltr"
             className="flex-1 p-3.5 rounded-xl bg-white border border-[#DFEAF0] text-[#172B3A] focus:ring-2 focus:ring-[#25B8C7]/25 focus:border-[#087F8C] outline-hidden font-bold text-left fv-num"
           />
           <button
+            type="button"
             onClick={onSearch}
-            className="fv-btn-primary px-6 rounded-xl font-black text-sm"
+            disabled={isSearching}
+            className="fv-btn-primary px-6 rounded-xl font-black text-sm disabled:opacity-60"
           >
-            بحث
+            {isSearching ? 'جاري البحث...' : 'بحث'}
           </button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        {bookings.map((booking: Booking) => (
-          <div key={booking.id} className="bg-white p-6 rounded-2xl border border-[#DFEAF0] shadow-[0_10px_28px_-16px_rgba(11,31,53,0.1)] relative group overflow-hidden">
-            <div className="flex justify-between items-start mb-4">
-              <div>
-                <div className="flex items-center gap-2 mb-1.5">
-                  <span className="text-[#087F8C] font-black fv-mono text-sm">#{booking.id.toString().slice(-4)}</span>
-                  <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
-                    booking.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
-                  }`}>
-                    {booking.status === 'confirmed' ? 'مؤكد' : 'ملغي'}
-                  </span>
-                </div>
-                <h3 className="font-black text-[#172B3A]">{booking.patientName}</h3>
-              </div>
-              <div className="bg-[#087F8C]/10 p-2.5 rounded-xl text-[#087F8C]">
-                <Calendar size={20} />
-              </div>
+      {bookings.length > 0 && (
+        <div className="bg-white rounded-2xl border border-[#DFEAF0] p-5 mb-8 shadow-[0_10px_28px_-16px_rgba(11,31,53,0.08)] flex flex-wrap items-center justify-between gap-4">
+          <div className="flex items-center gap-3">
+            <div className="bg-[#087F8C]/10 p-2.5 rounded-xl text-[#087F8C]">
+              <History size={20} />
             </div>
-
-            <div className="space-y-2 mb-6">
-              <div className="flex items-center gap-2 text-sm text-[#718394] font-medium fv-num">
-                <Clock size={14} className="text-[#087F8C]" /> <span>{booking.date} - {booking.time}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-[#718394] font-medium">
-                <Stethoscope size={14} className="text-[#1769AA]" /> <span>{booking.service}</span>
-              </div>
-              <div className="flex items-center gap-2 text-sm text-[#718394] font-medium">
-                <User size={14} className="text-[#087F8C]" /> <span>{booking.doctorName}</span>
-              </div>
+            <div>
+              <h3 className="font-black text-[#172B3A] text-base">سجل حجوزات المريض</h3>
+              <p className="text-xs text-[#718394] font-bold">
+                رقم الهاتف: <span dir="ltr" className="fv-mono text-[#087F8C]">{phone.trim()}</span>
+              </p>
             </div>
-
-            {/* أزرار الإدارة للمريض - تعديل وإلغاء */}
-            {booking.status === 'confirmed' && (
-              <div className="flex gap-2 pt-4 border-t border-[#DFEAF0]">
-                <button 
-                  onClick={() => onEditBooking(booking)}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-[#087F8C]/10 text-[#087F8C] py-2.5 rounded-xl text-sm font-bold hover:bg-[#087F8C]/20 transition-colors"
-                >
-                  <Edit2 size={14} /> تعديل
-                </button>
-                <button 
-                  onClick={() => { if(confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) onCancelBooking(booking.id); }}
-                  className="flex-1 flex items-center justify-center gap-1.5 bg-red-50 text-red-600 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors"
-                >
-                  <Trash2 size={14} /> إلغاء
-                </button>
-              </div>
-            )}
-            {booking.status === 'cancelled' && (
-              <div className="pt-4 border-t border-[#DFEAF0] text-center">
-                <span className="text-red-600 text-xs font-bold">تم إلغاء هذا الحجز</span>
-              </div>
-            )}
           </div>
-        ))}
+          <div className="flex flex-wrap gap-2 text-xs font-black fv-num">
+            <span className="px-3 py-1.5 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A]">
+              إجمالي الحجوزات: {bookings.length}
+            </span>
+            <span className="px-3 py-1.5 rounded-xl bg-emerald-50 border border-emerald-200 text-emerald-700">
+              مؤكدة: {confirmedCount}
+            </span>
+            <span className="px-3 py-1.5 rounded-xl bg-amber-50 border border-amber-200 text-amber-700">
+              ملغاة: {cancelledCount}
+            </span>
+            <span className="px-3 py-1.5 rounded-xl bg-[#EBF8FA] border border-[#B8E6EC] text-[#087F8C]">
+              مدفوعة: {paidCount}
+            </span>
+          </div>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+        {bookings.map((booking: Booking) => {
+          const paymentInfo = getBookingPaymentSummary(booking);
+          const companyName =
+            booking.contractingCompanyName ||
+            (booking.contractingCompanyId
+              ? contractingCompanies.find((c) => c.id === booking.contractingCompanyId)?.name
+              : undefined);
+          const locationText =
+            booking.address ||
+            [booking.governorate, booking.center].filter(Boolean).join(' - ');
+
+          return (
+            <div key={booking.databaseId || booking.id} className="bg-white p-6 rounded-2xl border border-[#DFEAF0] shadow-[0_10px_28px_-16px_rgba(11,31,53,0.1)] relative group overflow-hidden flex flex-col justify-between">
+              <div>
+                <div className="flex justify-between items-start mb-4">
+                  <div>
+                    <div className="flex flex-wrap items-center gap-2 mb-1.5">
+                      <span className="text-[#087F8C] font-black fv-mono text-sm">#{booking.id.toString().slice(-4)}</span>
+                      {booking.instapayBookingRef && (
+                        <span className="text-[11px] font-black fv-mono text-[#1769AA] bg-[#EBF8FA] px-2 py-0.5 rounded-md border border-[#DFEAF0]" dir="ltr">
+                          {booking.instapayBookingRef}
+                        </span>
+                      )}
+                      <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-bold ${
+                        booking.status === 'confirmed' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' : 'bg-amber-50 text-amber-700 border border-amber-200'
+                      }`}>
+                        {booking.status === 'confirmed' ? 'مؤكد' : 'ملغي'}
+                      </span>
+                    </div>
+                    <h3 className="font-black text-[#172B3A]">{booking.patientName}</h3>
+                  </div>
+                  <div className="bg-[#087F8C]/10 p-2.5 rounded-xl text-[#087F8C]">
+                    <Calendar size={20} />
+                  </div>
+                </div>
+
+                <div className="space-y-2 mb-4">
+                  <div className="flex items-center gap-2 text-sm text-[#718394] font-medium fv-num">
+                    <Clock size={14} className="text-[#087F8C] shrink-0" /> <span>{booking.date} - {booking.time}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-[#718394] font-medium">
+                    <Stethoscope size={14} className="text-[#1769AA] shrink-0" /> <span>{booking.service}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-sm text-[#718394] font-medium">
+                    <User size={14} className="text-[#087F8C] shrink-0" /> <span>{booking.doctorName}</span>
+                  </div>
+                  <div className="flex items-center gap-2 text-xs text-[#718394] font-bold fv-mono">
+                    <Phone size={13} className="text-[#087F8C] shrink-0" />
+                    <span dir="ltr">{booking.phone}{booking.phone2 ? ` / ${booking.phone2}` : ''}</span>
+                  </div>
+                  {booking.age ? (
+                    <div className="flex items-center gap-2 text-xs text-[#718394] font-bold fv-num">
+                      <UserRound size={13} className="text-[#087F8C] shrink-0" />
+                      <span>السن: {booking.age} سنة</span>
+                    </div>
+                  ) : null}
+                  {booking.patientEmail && (
+                    <div className="flex items-center gap-2 text-xs text-[#718394] font-medium break-all">
+                      <Mail size={13} className="text-[#087F8C] shrink-0" />
+                      <span dir="ltr">{booking.patientEmail}</span>
+                    </div>
+                  )}
+                  {locationText && (
+                    <div className="flex items-center gap-2 text-xs text-[#718394] font-medium">
+                      <MapPin size={13} className="text-[#087F8C] shrink-0" />
+                      <span>{locationText}</span>
+                    </div>
+                  )}
+                  <div className="flex items-center gap-2 text-xs text-[#718394] font-bold">
+                    <Building2 size={13} className="text-[#1769AA] shrink-0" />
+                    <span>
+                      نوع الحجز: {booking.bookingType === 'contract' ? 'تعاقد' : 'نقدي'}
+                      {companyName ? ` (${companyName})` : ''}
+                    </span>
+                  </div>
+                  {booking.notes && (
+                    <div className="flex items-start gap-2 text-xs text-[#718394] font-medium bg-[#F5FAFC] p-2.5 rounded-xl border border-[#DFEAF0]/80">
+                      <StickyNote size={13} className="text-[#087F8C] shrink-0 mt-0.5" />
+                      <span>{booking.notes}</span>
+                    </div>
+                  )}
+                  {booking.createdAt && (
+                    <div className="text-[11px] text-[#718394] font-medium fv-num">
+                      تاريخ تسجيل الحجز: {new Date(booking.createdAt).toLocaleString('ar-EG')}
+                    </div>
+                  )}
+                </div>
+
+                {/* حالة الدفع */}
+                <div className="mb-5 p-3.5 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] space-y-1.5">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-[#718394] flex items-center gap-1.5">
+                      <CreditCard size={13} className="text-[#087F8C]" /> طريقة الدفع:
+                    </span>
+                    <span className="text-xs font-black text-[#172B3A]">{paymentInfo.methodLabel}</span>
+                  </div>
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-xs font-bold text-[#718394]">حالة الدفع:</span>
+                    <span className={`px-2.5 py-0.5 rounded-full text-[11px] font-black border ${paymentInfo.tone}`}>
+                      {paymentInfo.statusLabel}
+                    </span>
+                  </div>
+                  {typeof booking.instapayAmountDue === 'number' && (
+                    <div className="flex items-center justify-between gap-2 text-[11px] text-[#718394] font-bold fv-num">
+                      <span>المبلغ المستحق:</span>
+                      <span className="text-[#087F8C] font-black">{booking.instapayAmountDue} ج.م</span>
+                    </div>
+                  )}
+                  {booking.instapayReason && (
+                    <div className="text-[11px] text-red-600 font-bold pt-1">
+                      ملاحظة الدفع: {booking.instapayReason}
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* أزرار الإدارة للمريض - تعديل وإلغاء */}
+              <div>
+                {booking.status === 'confirmed' && (
+                  <div className="flex gap-2 pt-4 border-t border-[#DFEAF0]">
+                    <button 
+                      onClick={() => onEditBooking(booking)}
+                      className="flex-1 flex items-center justify-center gap-1.5 bg-[#087F8C]/10 text-[#087F8C] py-2.5 rounded-xl text-sm font-bold hover:bg-[#087F8C]/20 transition-colors"
+                    >
+                      <Edit2 size={14} /> تعديل
+                    </button>
+                    <button 
+                      onClick={() => { if(confirm('هل أنت متأكد من إلغاء هذا الحجز؟')) onCancelBooking(booking.id); }}
+                      className="flex-1 flex items-center justify-center gap-1.5 bg-red-50 text-red-600 py-2.5 rounded-xl text-sm font-bold hover:bg-red-100 transition-colors"
+                    >
+                      <Trash2 size={14} /> إلغاء
+                    </button>
+                  </div>
+                )}
+                {booking.status === 'cancelled' && (
+                  <div className="pt-4 border-t border-[#DFEAF0] text-center">
+                    <span className="text-red-600 text-xs font-bold">تم إلغاء هذا الحجز</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          );
+        })}
       </div>
       
-      {bookings.length === 0 && phone && (
+      {bookings.length === 0 && (hasSearched || Boolean(phone)) && !isSearching && (
         <div className="text-center py-16 bg-white rounded-3xl border border-dashed border-[#DFEAF0]">
           <div className="w-14 h-14 bg-[#F5FAFC] rounded-2xl border border-[#DFEAF0] flex items-center justify-center mx-auto mb-4 text-[#718394]">
             <Search size={28} />
@@ -3816,8 +4232,6 @@ const MyBookingsView = ({ bookings, phone, setPhone, onSearch, onEditBooking, on
           <p className="text-[#718394] font-bold">لم يتم العثور على حجوزات لهذا الرقم</p>
         </div>
       )}
-
-      <InstapayStatusLookup />
     </section>
   );
 };
@@ -3909,6 +4323,8 @@ const App = () => {
     if (currentUser && !realtimeLoading) {
       const mappedBookings = realtimeData.bookings.map((b: any) => ({
         id: parseInt(b.id.slice(-8), 16) || Date.now(),
+        databaseId: b.id,
+        patientId: b.patient_id || undefined,
         patientName: b.patient_name,
         phone: b.phone,
         phone2: b.phone2,
@@ -3932,6 +4348,14 @@ const App = () => {
         contractingDocs: b.contracting_docs,
         paymentMethod: b.payment_method,
         paymentStatus: b.payment_status,
+        bookingSource: b.booking_source || 'website',
+        createdByStaffId: b.created_by_staff_id || undefined,
+        createdByStaffName: b.created_by_staff_name || undefined,
+        assignedStaffId: b.assigned_staff_id || undefined,
+        assignedStaffName: b.assigned_staff_name || undefined,
+        updatedByStaffName: b.updated_by_staff_name || undefined,
+        updatedAt: b.updated_at || undefined,
+        overrideReason: b.override_reason || undefined,
       }));
       setBookings(mappedBookings);
     }
@@ -3968,6 +4392,9 @@ const App = () => {
   
   const [searchPhone, setSearchPhone] = useState('');
   const [foundBookings, setFoundBookings] = useState<Booking[]>([]);
+  const [isSearchingBookings, setIsSearchingBookings] = useState(false);
+  const [hasSearchedBookings, setHasSearchedBookings] = useState(false);
+  const [publicContractingCompanies, setPublicContractingCompanies] = useState<ContractingCompany[]>([]);
 
   const t = settings.language === 'ar' ? TRANSLATIONS.ar : TRANSLATIONS.en;
 
@@ -4016,6 +4443,7 @@ const App = () => {
     supabase.rpc('get_payment_methods').then(({ data, error }) => {
       if (!error && Array.isArray(data)) setSettings(prev => ({ ...prev, paymentMethods: data as unknown as PaymentMethod[] }));
     });
+    ContractingManager.getAll().then(setPublicContractingCompanies).catch(() => {});
   }, []);
 
 const handleNavigate = (sectionId: string) => {
@@ -4100,7 +4528,6 @@ const handleNavigate = (sectionId: string) => {
         contracting_company_id: data.contractingCompanyId || null,
         contracting_docs: data.contractingDocs || null,
         payment_method: data.paymentMethod || null,
-        payment_status: data.paymentStatus || 'pending',
         status: 'confirmed',
       };
       
@@ -4111,9 +4538,15 @@ const handleNavigate = (sectionId: string) => {
         );
         
         if (originalBooking) {
+          const staffUpdateFields = currentUser
+            ? {
+                updated_by_staff_id: baradaUser?.id || null,
+                updated_by_staff_name: baradaUser?.name || currentUser.name,
+              }
+            : {};
           const { error } = await supabase
             .from('bookings')
-            .update(bookingData as any)
+            .update({ ...bookingData, ...staffUpdateFields } as any)
             .eq('id', originalBooking.id);
             
           if (error) throw error;
@@ -4121,25 +4554,37 @@ const handleNavigate = (sectionId: string) => {
         } else {
           // Fallback to local update if UUID not found
           setBookings(prev => prev.map(b => b.id === editingBooking.id ? { ...b, ...data } : b));
+          setFoundBookings(prev => prev.map(b => b.id === editingBooking.id ? { ...b, ...data } : b));
           addNotification('تم تعديل الحجز', `تم تعديل حجز المريض ${data.patientName} بنجاح`, 'success');
+        }
+        if (originalBooking) {
+          setFoundBookings(prev => prev.map(b => b.id === editingBooking.id ? { ...b, ...data } : b));
         }
       } else {
         const newBookingId = crypto.randomUUID();
         const cancellationToken = crypto.randomUUID();
         const { error } = await supabase
           .from('bookings')
-          .insert([{ ...bookingData, id: newBookingId, cancellation_token: cancellationToken } as any]);
+          .insert([{ ...bookingData, id: newBookingId, cancellation_token: cancellationToken, payment_status: 'pending' } as any]);
           
         if (error) throw error;
-        setBookings(prev => [...prev, {
-          ...data, id: parseInt(newBookingId.slice(-8), 16), databaseId: newBookingId,
-          cancellationToken, status: 'confirmed', createdAt: new Date().toISOString(),
-        }]);
-        addNotification('حجز جديد', `تم تسجيل حجز جديد للمريض ${data.patientName}`, 'success');
+        let createdInstapayMeta: Partial<Booking> = {};
         if (data.instapay) {
           const res = await submitInstapay(newBookingId, data.phone, data.instapay);
           setInstapayResult(res);
+          if (!res.error) {
+            createdInstapayMeta = {
+              instapayStatus: 'PENDING_REVIEW',
+              instapayBookingRef: res.bookingRef,
+              instapayAmountDue: res.amountDue,
+            };
+          }
         }
+        setBookings(prev => [...prev, {
+          ...data, ...createdInstapayMeta, id: parseInt(newBookingId.slice(-8), 16), databaseId: newBookingId,
+          cancellationToken, status: 'confirmed', createdAt: new Date().toISOString(),
+        }]);
+        addNotification('حجز جديد', `تم تسجيل حجز جديد للمريض ${data.patientName}`, 'success');
         if (data.paymentMethod === 'paymob') {
           setPaymobRedirecting(true);
           const res = await startPaymobCheckout(newBookingId, data.phone);
@@ -4166,13 +4611,168 @@ const handleNavigate = (sectionId: string) => {
     setEditingBooking(null);
   };
 
-  const handleBookingSearch = () => {
-      if (searchPhone.length < 11) {
+  const handleCreateStaffBooking = async (payload: StaffBookingSubmitPayload) => {
+    await ensureClinicErpSchemaReady();
+    const doctorData = realtimeData.doctors.find((d: any) => d.name === payload.doctorName);
+    const doctorUuid = doctorData?.id || null;
+    const newBookingId = crypto.randomUUID();
+    const cancellationToken = crypto.randomUUID();
+
+    const insertRow = {
+      id: newBookingId,
+      cancellation_token: cancellationToken,
+      patient_id: payload.patientId || null,
+      patient_name: payload.patientName,
+      phone: payload.phone,
+      phone2: payload.phone2 || null,
+      address: payload.address || null,
+      age: payload.age || null,
+      governorate: payload.governorate || null,
+      center: payload.center || null,
+      notes: payload.notes || null,
+      booking_type: payload.bookingType || 'cash',
+      doctor_id: doctorUuid,
+      doctor_name: payload.doctorName,
+      service: payload.service,
+      date: payload.date,
+      time: payload.time,
+      contracting_company_id: payload.contractingCompanyId || null,
+      payment_method: payload.paymentMethod || 'cash',
+      payment_status: 'pending',
+      status: 'confirmed',
+      booking_source: payload.bookingSource,
+      created_by_staff_id: baradaUser?.id || null,
+      created_by_staff_name: baradaUser?.name || currentUser?.name || null,
+      assigned_staff_id: payload.assignedStaffId || baradaUser?.id || null,
+      assigned_staff_name: payload.assignedStaffName || baradaUser?.name || currentUser?.name || null,
+      override_reason: payload.overrideReason || null,
+    };
+
+    const { error } = await supabase.from('bookings').insert([insertRow as any]);
+    if (error) {
+      const msg = String(error.message || '');
+      if (msg.includes('DOCTOR_DAY_FULL')) {
+        throw new Error('اكتمل الحد الأقصى لحجوزات الطبيب في هذا اليوم.');
+      }
+      if (msg.includes('DOCTOR_HOUR_FULL')) {
+        throw new Error('اكتملت السعة الساعية للطبيب في هذه الساعة.');
+      }
+      if (msg.includes('OVERRIDE_PERMISSION_REQUIRED')) {
+        throw new Error('ليست لديك صلاحية استثناء قيود الحجز.');
+      }
+      if (msg.includes('OVERRIDE_REASON_REQUIRED')) {
+        throw new Error('يجب كتابة سبب موثق عند استثناء قيود الحجز.');
+      }
+      throw new Error(msg || 'تعذر حفظ حجز الموظف');
+    }
+
+    if (payload.overrideReason) {
+      await recordClinicAudit({
+        actorUserId: baradaUser?.id,
+        actorName: baradaUser?.name || currentUser?.name || 'موظف',
+        module: 'bookings',
+        action: 'BOOKING_RULE_OVERRIDE',
+        entityType: 'booking',
+        entityId: newBookingId,
+        summary: `تسجيل حجز باستثناء للطبيب ${payload.doctorName} يوم ${payload.date} (${payload.time})`,
+        reason: payload.overrideReason,
+        newValues: insertRow,
+      });
+    }
+
+    setBookings((prev) => [
+      ...prev,
+      {
+        id: parseInt(newBookingId.slice(-8), 16) || Date.now(),
+        databaseId: newBookingId,
+        cancellationToken,
+        patientId: payload.patientId,
+        patientName: payload.patientName,
+        phone: payload.phone,
+        phone2: payload.phone2,
+        address: payload.address,
+        age: payload.age,
+        governorate: payload.governorate,
+        center: payload.center,
+        notes: payload.notes,
+        bookingType: payload.bookingType,
+        doctorId: payload.doctorId,
+        doctorName: payload.doctorName,
+        service: payload.service,
+        date: payload.date,
+        time: payload.time,
+        status: 'confirmed',
+        createdAt: new Date().toISOString(),
+        contractingCompanyId: payload.contractingCompanyId,
+        paymentMethod: payload.paymentMethod || 'cash',
+        paymentStatus: payload.paymentStatus,
+        bookingSource: payload.bookingSource,
+        createdByStaffId: baradaUser?.id,
+        createdByStaffName: baradaUser?.name || currentUser?.name,
+        assignedStaffId: payload.assignedStaffId || baradaUser?.id,
+        assignedStaffName: payload.assignedStaffName || baradaUser?.name || currentUser?.name,
+        overrideReason: payload.overrideReason,
+      },
+    ]);
+    addNotification('حجز موظف جديد', `تم تسجيل حجز للمريض ${payload.patientName}`, 'success');
+    await refreshData();
+  };
+
+  const handleBookingSearch = async () => {
+      const normalizedPhone = searchPhone.replace(/\D/g, '').trim();
+      if (normalizedPhone.length < 11) {
           alert('يرجى إدخال رقم هاتف صحيح');
           return;
       }
-      const results = bookings.filter(b => b.phone === searchPhone || b.phone2 === searchPhone);
-      setFoundBookings(results);
+      setSearchPhone(normalizedPhone);
+      setIsSearchingBookings(true);
+      setHasSearchedBookings(true);
+      try {
+        const localMatches = bookings.filter(
+          (b) => b.phone === normalizedPhone || b.phone2 === normalizedPhone,
+        );
+        const { data: backendData } = await invokeBackend('lookup-patient-bookings', {
+          body: { phone: normalizedPhone },
+        });
+        const serverBookings: Booking[] = Array.isArray(backendData?.bookings)
+          ? backendData.bookings
+          : [];
+
+        const mergedByKey = new globalThis.Map<string, Booking>();
+        for (const local of localMatches) {
+          const key = local.databaseId || `id:${local.id}`;
+          mergedByKey.set(key, local);
+        }
+        for (const remote of serverBookings) {
+          const key = remote.databaseId || `id:${remote.id}`;
+          const existing =
+            mergedByKey.get(key) ||
+            localMatches.find((l) => l.id === remote.id || (remote.databaseId && l.databaseId === remote.databaseId));
+          mergedByKey.set(key, {
+            ...existing,
+            ...remote,
+            cancellationToken: existing?.cancellationToken,
+            databaseId: remote.databaseId || existing?.databaseId,
+          });
+        }
+
+        const mergedList = [...mergedByKey.values()].sort((a, b) => {
+          const aTime = a.createdAt ? new Date(a.createdAt).getTime() : 0;
+          const bTime = b.createdAt ? new Date(b.createdAt).getTime() : 0;
+          if (bTime !== aTime) return bTime - aTime;
+          return `${b.date} ${b.time}`.localeCompare(`${a.date} ${a.time}`);
+        });
+
+        setFoundBookings(mergedList);
+      } catch (err) {
+        console.error('Error searching bookings:', err);
+        const fallbackResults = bookings.filter(
+          (b) => b.phone === normalizedPhone || b.phone2 === normalizedPhone,
+        );
+        setFoundBookings(fallbackResults);
+      } finally {
+        setIsSearchingBookings(false);
+      }
   };
 
   const addNotification = (title: string, message: string, type: 'success' | 'warning' | 'info') => {
@@ -4200,7 +4800,15 @@ const handleNavigate = (sectionId: string) => {
       if (originalBooking) {
         const { error } = await supabase
           .from('bookings')
-          .update({ status: 'cancelled' })
+          .update({
+            status: 'cancelled',
+            ...(currentUser
+              ? {
+                  updated_by_staff_id: baradaUser?.id || null,
+                  updated_by_staff_name: baradaUser?.name || currentUser.name,
+                }
+              : {}),
+          } as any)
           .eq('id', originalBooking.id);
           
         if (error) throw error;
@@ -4234,7 +4842,15 @@ const handleNavigate = (sectionId: string) => {
       if (originalBooking) {
         const { error } = await supabase
           .from('bookings')
-          .update({ status: 'confirmed' })
+          .update({
+            status: 'confirmed',
+            ...(currentUser
+              ? {
+                  updated_by_staff_id: baradaUser?.id || null,
+                  updated_by_staff_name: baradaUser?.name || currentUser.name,
+                }
+              : {}),
+          } as any)
           .eq('id', originalBooking.id);
           
         if (error) throw error;
@@ -4347,31 +4963,6 @@ const handleNavigate = (sectionId: string) => {
       logContact('whatsapp', item, filledMessage);
   };
 
-  const handleConfirmPayment = async (id: number) => {
-      try {
-        // Find the original UUID from realtime data
-        const originalBooking = realtimeData.bookings.find((b: any) => 
-          parseInt(b.id.slice(-8), 16) === id
-        );
-        
-        if (originalBooking) {
-          const { error } = await supabase
-            .from('bookings')
-            .update({ payment_status: 'paid' })
-            .eq('id', originalBooking.id);
-            
-          if (error) throw error;
-        } else {
-          // Fallback to local update
-          setBookings(prev => prev.map(b => b.id === id ? { ...b, paymentStatus: 'paid' } : b));
-        }
-        addNotification('تأكيد الدفع', 'تم تأكيد استلام المبلغ بنجاح', 'success');
-      } catch (error) {
-        console.error('Error confirming payment:', error);
-        alert('حدث خطأ أثناء تأكيد الدفع');
-      }
-  };
-
   return (
     <div dir={settings.language === 'ar' ? 'rtl' : 'ltr'} className={`font-sans barada-app-bg ${settings.language === 'ar' ? 'font-cairo' : ''}`}>
       <Navbar 
@@ -4421,6 +5012,7 @@ const handleNavigate = (sectionId: string) => {
            onConfirmBooking={handleConfirmStatusBooking}
            onEditBooking={handleEditBooking}
            onDeleteBooking={handleDeleteBooking}
+           onCreateStaffBooking={handleCreateStaffBooking}
            onSendReminder={handleSendReminder}
            complaints={complaints} setComplaints={setComplaints}
            heroImages={heroImages} setHeroImages={setHeroImages}
@@ -4430,9 +5022,14 @@ const handleNavigate = (sectionId: string) => {
            t={t}
            handleSmsReminder={handleSmsReminder}
            handleWhatsAppReminder={handleWhatsAppReminder}
-           onConfirmPayment={handleConfirmPayment}
-           onOffersChanged={() => { void refreshPublicData('offers'); }}
-           onVideosChanged={() => { void Promise.all([refreshPublicData('medicalVideos'), refreshPublicData('medicalVideoCategories')]); }}
+           onOffersChanged={() => { void Promise.all([refreshData(), refreshPublicData('offers')]); }}
+           onVideosChanged={() => { void Promise.all([refreshData(), refreshPublicData('medicalVideos'), refreshPublicData('medicalVideoCategories')]); }}
+           onRefresh={async () => {
+             await Promise.all([
+               refreshData(),
+               ...(['doctors', 'services', 'offers', 'medicalVideos', 'medicalVideoCategories', 'heroImages', 'partners', 'settings'] as const).map(refreshPublicData),
+             ]);
+           }}
            onNotify={addNotification}
         />
       )}
@@ -4441,10 +5038,13 @@ const handleNavigate = (sectionId: string) => {
           <MyBookingsView 
             bookings={foundBookings} 
             phone={searchPhone} 
-            setPhone={setSearchPhone} 
+            setPhone={(p) => { setSearchPhone(p); if (!p) setHasSearchedBookings(false); }} 
             onSearch={handleBookingSearch}
             onEditBooking={handleEditBooking}
             onCancelBooking={handleCancelBooking}
+            contractingCompanies={publicContractingCompanies}
+            isSearching={isSearchingBookings}
+            hasSearched={hasSearchedBookings}
           />
       )}
 

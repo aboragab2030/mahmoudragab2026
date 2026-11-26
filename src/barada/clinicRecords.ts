@@ -24,6 +24,7 @@ export const mapOperationRow = (o: any) => ({
   reminderSent: !!o.reminder_sent,
   status: (o.status || 'pending') as 'pending' | 'confirmed' | 'cancelled',
   notes: o.notes || undefined,
+  eyeSide: (o.eye_side === 'right' || o.eye_side === 'left' || o.eye_side === 'both' ? o.eye_side : undefined) as 'right' | 'left' | 'both' | undefined,
   contractingCompanyId: o.contracting_company_id ?? undefined,
 });
 
@@ -48,6 +49,7 @@ const operationToRow = (op: any) => ({
   date: op.date,
   cost: Math.round(Number(op.cost) || 0),
   notes: op.notes || null,
+  eye_side: op.eyeSide || null,
   contracting_company_id: op.contractingCompanyId ?? null,
 });
 

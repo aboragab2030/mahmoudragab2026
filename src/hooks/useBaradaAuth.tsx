@@ -33,66 +33,11 @@ export const MODULE_PERMISSIONS = {
   audit: 'view_audit_log',
 };
 
+import { DASHBOARD_PERMISSIONS } from '@/barada/permissions';
+
 const ALL_PERMISSIONS = [
-  'manage_doctors',
-  'manage_bookings',
-  'manage_partners',
-  'manage_content',
-  'view_reports',
-  'manage_settings',
-  'manage_complaints',
-  'manage_reminders',
-  'manage_operations',
-  'manage_users',
-  'manage_payments',
-  'review_instapay',
+  ...DASHBOARD_PERMISSIONS.map((p) => p.id),
   'view_audit_log',
-  'view_overview',
-  'view_intelligence',
-  'view_contact_logs',
-  'manage_hero_images',
-  'manage_backup',
-  'view_offers',
-  'create_offers',
-  'edit_offers',
-  'delete_offers',
-  'manage_offer_visibility',
-  'upload_offer_images',
-  'medical_videos_view',
-  'medical_videos_create',
-  'medical_videos_edit',
-  'medical_videos_delete',
-  'medical_videos_publish',
-  'medical_videos_manage_categories',
-  'medical_videos_upload',
-  'medical_videos_manage_featured',
-  'partners_view',
-  'partners_view_dashboard',
-  'partners_view_organizations',
-  'partners_create_organizations',
-  'partners_edit_organizations',
-  'partners_delete_organizations',
-  'partners_manage_contacts',
-  'partners_view_activities',
-  'partners_create_activities',
-  'partners_edit_activities',
-  'partners_delete_activities',
-  'partners_view_contracts',
-  'partners_create_contracts',
-  'partners_edit_contracts',
-  'partners_delete_contracts',
-  'partners_renew_contracts',
-  'partners_manage_contract_documents',
-  'partners_view_referrals',
-  'partners_view_revenue',
-  'partners_view_financial_reports',
-  'partners_export_reports',
-  'partners_view_followups',
-  'partners_create_followups',
-  'partners_edit_followups',
-  'partners_assign_followups',
-  'partners_manage_renewal_alerts',
-  'partners_manage_settings',
 ];
 
 // Helper function to check if user has specific permission
@@ -250,38 +195,28 @@ export function useBaradaAuth() {
   // Sign in with username or email
   const signIn = async (usernameOrEmail: string, password: string): Promise<{ error: string | null }> => {
     try {
-      let email = usernameOrEmail;
+      const trimmedInput = usernameOrEmail.trim();
+      let email = trimmedInput;
       
       // Check if input looks like an email
-      const isEmail = usernameOrEmail.includes('@');
+      const isEmail = trimmedInput.includes('@');
       
       if (!isEmail) {
         // Try to find user by login_username
         const { data: userData, error: lookupError } = await supabase
-          .rpc('get_user_by_login_username', { p_login_username: usernameOrEmail });
+          .rpc('get_user_by_login_username', { p_login_username: trimmedInput });
         
-        if (lookupError || !userData || userData.length === 0) {
+        if (lookupError || !userData || !Array.isArray(userData) || userData.length === 0) {
           // Fallback: try to find by display username in profiles
           const { data: profileData } = await supabase
             .from('profiles')
             .select('user_id')
-            .eq('username', usernameOrEmail)
+            .eq('username', trimmedInput)
             .eq('is_active', true)
             .single();
           
           if (profileData) {
-            // Get the email from auth.users via a join query
-            const { data: authData } = await supabase
-              .from('profiles')
-              .select('user_id')
-              .eq('user_id', profileData.user_id)
-              .single();
-            
-            if (authData) {
-              // We need to get email from the user - this is tricky
-              // For now, we'll try using the username as email prefix
-              return { error: 'اسم المستخدم غير موجود. يرجى استخدام البريد الإلكتروني' };
-            }
+            return { error: 'اسم المستخدم غير موجود. يرجى استخدام البريد الإلكتروني' };
           }
           
           return { error: 'اسم المستخدم غير موجود أو الحساب معطل' };
@@ -290,20 +225,46 @@ export function useBaradaAuth() {
         email = userData[0].email;
       }
 
-      const { error } = await supabase.auth.signInWithPassword({
+      const { data: signInData, error } = await supabase.auth.signInWithPassword({
         email,
         password,
       });
 
       if (error) {
+        const msg = error.message || '';
         // Map common errors to Arabic messages
-        if (error.message.includes('Invalid login credentials')) {
+        if (/invalid login credentials|invalid.*credentials|invalid.*password/i.test(msg)) {
           return { error: 'اسم المستخدم أو كلمة المرور غير صحيحة' };
         }
-        if (error.message.includes('Email not confirmed')) {
+        if (/email not confirmed/i.test(msg)) {
           return { error: 'يرجى تأكيد البريد الإلكتروني أولاً' };
         }
+        if (/disabled|banned/i.test(msg)) {
+          return { error: 'الحساب معطل، يرجى التواصل مع الإدارة' };
+        }
+        if (/rate limit|too many requests/i.test(msg)) {
+          return { error: 'محاولات كثيرة، يرجى المحاولة بعد قليل' };
+        }
         return { error: 'حدث خطأ أثناء تسجيل الدخول' };
+      }
+
+      const signedInUser = signInData?.user ?? signInData?.session?.user;
+      if (signedInUser) {
+        const profile = await fetchUserRole(
+          signedInUser.id,
+          signedInUser.email || email,
+          signedInUser.user_metadata?.name || signedInUser.email?.split('@')[0] || '',
+        );
+        if (!profile) {
+          await supabase.auth.signOut();
+          return { error: 'الحساب معطل أو لا يملك صلاحية الدخول' };
+        }
+        setAuthState({
+          user: signedInUser,
+          session: signInData?.session ?? null,
+          baradaUser: profile,
+          isLoading: false,
+        });
       }
 
       return { error: null };

@@ -1,14 +1,24 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import DOMPurify from 'dompurify';
 import { 
   CreditCard, Search, Phone, Hash, Filter, Banknote, 
   CheckCircle, Clock, XCircle, RefreshCw, Printer, Wallet,
-  Building2, FileText, Trash2
+  FileText, Trash2, Plus, X
 } from 'lucide-react';
+import { toast } from 'sonner';
 import { InstapayReviewPanel } from './InstapayFeature';
 import { PaymobPaymentsList } from './PaymobFeature';
 import { isBookingUuid, isCancelledPaidNotice } from './paymentsLog';
+import { hasPatientBillingPermission, type PermissionUser } from './permissions';
+import {
+  PATIENT_FINANCIAL_STATUS_BADGE,
+  confirmUnifiedBookingPayment,
+  loadPatientBillingRecords,
+  syncBookingsToPatientBilling,
+  type PatientBillingRecord,
+} from './patientBillingService';
+import type { AccountingAccount, AccountingPaymentMethod } from './accountingTypes';
 
 // Types matching DB schema
 interface Payment {
@@ -25,6 +35,10 @@ interface Payment {
   notes: string | null;
   created_at: string;
   updated_at: string;
+  confirmed_by_staff_name?: string | null;
+  is_partial?: boolean | null;
+  refunded_amount?: number | null;
+  account_id?: string | null;
 }
 
 interface PaymentNotification {
@@ -62,9 +76,20 @@ interface PaymentsTabProps {
   onPrint: (title: string, content: string) => void;
   isAdmin?: boolean;
   showInstapayReview?: boolean;
+  currentUser?: PermissionUser & { name?: string };
+  currentUserUuid?: string;
+  onSyncedPayment?: () => Promise<void> | void;
 }
 
-export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass, onPrint, isAdmin = false, showInstapayReview = true }) => {
+export const PaymentsTab: React.FC<PaymentsTabProps> = ({
+  cardClass,
+  inputClass,
+  onPrint,
+  isAdmin = false,
+  showInstapayReview = true,
+  currentUser,
+  onSyncedPayment,
+}) => {
   const [payments, setPayments] = useState<Payment[]>([]);
   const [notifications, setNotifications] = useState<PaymentNotification[]>([]);
   const [loading, setLoading] = useState(true);
@@ -72,14 +97,40 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
   const [cancelledBookingIds, setCancelledBookingIds] = useState<Set<string>>(new Set());
   const [deletingId, setDeletingId] = useState<string | null>(null);
 
+  // Unified booking payment confirmation permissions
+  const canConfirmFull =
+    isAdmin || (currentUser ? hasPatientBillingPermission(currentUser, 'payment_confirm') : false);
+  const canConfirmPartial =
+    isAdmin ||
+    (currentUser
+      ? hasPatientBillingPermission(currentUser, 'payment_confirm_partial') ||
+        hasPatientBillingPermission(currentUser, 'payment_confirm')
+      : false);
+  const canCollectBookingPayment = canConfirmFull || canConfirmPartial;
+
+  // Collection Modal State
+  const [collectOpen, setCollectOpen] = useState(false);
+  const [collectLoading, setCollectLoading] = useState(false);
+  const [collectSubmitting, setCollectSubmitting] = useState(false);
+  const [pendingRecords, setPendingRecords] = useState<PatientBillingRecord[]>([]);
+  const [accountsList, setAccountsList] = useState<AccountingAccount[]>([]);
+  const [collectSearch, setCollectSearch] = useState('');
+  const [selectedBookingId, setSelectedBookingId] = useState('');
+  const [collectAmount, setCollectAmount] = useState('');
+  const [collectMethod, setCollectMethod] = useState<AccountingPaymentMethod>('cash');
+  const [collectAccountId, setCollectAccountId] = useState('');
+  const [collectRef, setCollectRef] = useState('');
+  const [collectNotes, setCollectNotes] = useState('');
+  const [collectIssueVoucher, setCollectIssueVoucher] = useState(false);
+
   // Search/Filter states
   const [searchName, setSearchName] = useState('');
   const [searchPhone, setSearchPhone] = useState('');
   const [searchTransactionId, setSearchTransactionId] = useState('');
   const [filterPaymentType, setFilterPaymentType] = useState('');
   const [filterStatus, setFilterStatus] = useState('paid'); // Default to showing paid only
-  const [dateFrom, setDateFrom] = useState('');
-  const [dateTo, setDateTo] = useState('');
+  const [dateFrom] = useState('');
+  const [dateTo] = useState('');
 
   // Fetch payments from Supabase
   const fetchPayments = async () => {
@@ -161,6 +212,133 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
       setNotifications(prev => prev.filter(n => n.id !== notificationId));
     } catch (err) {
       console.error('Failed to mark notification as read:', err);
+    }
+  };
+
+  const handleRefresh = () => Promise.all([fetchPayments(), fetchNotifications()]);
+
+  const openCollectModal = async () => {
+    if (!canCollectBookingPayment) {
+      toast.error('ليست لديك صلاحية تأكيد أو تحصيل المدفوعات');
+      return;
+    }
+    setCollectOpen(true);
+    setCollectLoading(true);
+    try {
+      await syncBookingsToPatientBilling();
+      const [records, accRes] = await Promise.all([
+        loadPatientBillingRecords(),
+        supabase.from('accounting_accounts' as any).select('*').eq('is_active', true).order('name'),
+      ]);
+      const unpaidOrPartial = records.filter(
+        r =>
+          r.bookingStatus !== 'cancelled' &&
+          r.remainingBalance > 0 &&
+          (r.financialStatus === 'غير مدفوع' || r.financialStatus === 'مدفوع جزئيًا'),
+      );
+      setPendingRecords(unpaidOrPartial);
+      const mappedAccs: AccountingAccount[] = Array.isArray(accRes.data)
+        ? accRes.data.map((a: any) => ({
+            id: String(a.id),
+            accountType: a.account_type === 'bank' ? 'bank' : 'cashbox',
+            name: String(a.name || ''),
+            currency: String(a.currency || 'EGP'),
+            openingBalance: Number(a.opening_balance || 0),
+            openingBalanceDate: String(a.opening_balance_date || ''),
+            isActive: a.is_active !== false,
+            createdAt: String(a.created_at || ''),
+            updatedAt: String(a.updated_at || ''),
+          }))
+        : [];
+      setAccountsList(mappedAccs);
+      if (mappedAccs[0] && !collectAccountId) {
+        setCollectAccountId(mappedAccs[0].id);
+      }
+      if (unpaidOrPartial[0]) {
+        const first = unpaidOrPartial[0];
+        setSelectedBookingId(first.bookingId);
+        setCollectAmount(
+          canConfirmFull
+            ? String(first.remainingBalance)
+            : String(Math.max(Math.round((first.remainingBalance / 2) * 100) / 100, 1)),
+        );
+      } else {
+        setSelectedBookingId('');
+        setCollectAmount('');
+      }
+    } catch (err: any) {
+      toast.error(err?.message || 'تعذر تحميل الحجوزات المستحقة');
+    } finally {
+      setCollectLoading(false);
+    }
+  };
+
+  const selectedRecord = useMemo(
+    () => pendingRecords.find(r => r.bookingId === selectedBookingId) || null,
+    [pendingRecords, selectedBookingId],
+  );
+
+  const filteredPendingRecords = useMemo(() => {
+    const q = collectSearch.trim().toLowerCase();
+    if (!q) return pendingRecords;
+    return pendingRecords.filter(
+      r =>
+        r.patientName.toLowerCase().includes(q) ||
+        r.patientPhone.includes(q) ||
+        r.doctorName.toLowerCase().includes(q) ||
+        r.serviceName.toLowerCase().includes(q) ||
+        r.bookingId.toLowerCase().includes(q),
+    );
+  }, [pendingRecords, collectSearch]);
+
+  const handleConfirmUnifiedCollection = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!selectedRecord) {
+      toast.error('يرجى اختيار الحجز المراد تحصيل دفعته');
+      return;
+    }
+    const amt = Math.round(Number(collectAmount) * 100) / 100;
+    if (!Number.isFinite(amt) || amt <= 0) {
+      toast.error('يرجى إدخال مبلغ صحيح أكبر من صفر');
+      return;
+    }
+    if (amt > selectedRecord.remainingBalance + 0.01) {
+      toast.error(`المبلغ يتجاوز المتبقي المستحق (${selectedRecord.remainingBalance} ج.م)`);
+      return;
+    }
+    const isPartial =
+      (selectedRecord.finalAmountDue > 0 && amt < selectedRecord.remainingBalance - 0.01) ||
+      selectedRecord.paidAmount > 0;
+    if (!isPartial && !canConfirmFull) {
+      toast.error('صلاحيتك تتيح تأكيد الدفعات الجزئية فقط؛ التحصيل الكامل يتطلب صلاحية payment_confirm');
+      return;
+    }
+    if (isPartial && !canConfirmPartial) {
+      toast.error('ليست لديك صلاحية تأكيد السداد الجزئي');
+      return;
+    }
+
+    setCollectSubmitting(true);
+    try {
+      const tx = await confirmUnifiedBookingPayment({
+        bookingId: selectedRecord.bookingId,
+        amount: amt,
+        paymentMethod: collectMethod,
+        accountId: collectAccountId || undefined,
+        confirmedVia: 'payments_section',
+        transactionRef: collectRef || undefined,
+        notes: collectNotes || undefined,
+        issueVoucher: collectIssueVoucher,
+      });
+      toast.success(`تم تأكيد استلام الدفعة (${tx.transactionRef}) وترحيلها تلقائياً للحسابات`);
+      setCollectOpen(false);
+      setCollectRef('');
+      setCollectNotes('');
+      await Promise.all([handleRefresh(), Promise.resolve(onSyncedPayment?.())]);
+    } catch (err: any) {
+      toast.error(err?.message || 'تعذر تأكيد استلام الدفعة');
+    } finally {
+      setCollectSubmitting(false);
     }
   };
 
@@ -286,10 +464,21 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
             <CreditCard className="text-[#087F8C]" />
             سجل المدفوعات المؤكدة <span className="fv-num text-[#087F8C]">({filteredPayments.length})</span>
           </h3>
-          <div className="flex gap-2">
+          <div className="flex flex-wrap gap-2">
+            {canCollectBookingPayment && (
+              <button
+                type="button"
+                onClick={openCollectModal}
+                className="bg-[#087F8C] text-white px-4 py-2.5 rounded-xl font-black text-xs hover:bg-[#066D78] flex items-center gap-1.5 cursor-pointer transition-colors"
+              >
+                <Plus size={16} /> تأكيد / تحصيل سداد حجز
+              </button>
+            )}
             <button 
-              onClick={fetchPayments} 
-              className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] p-2.5 rounded-xl hover:bg-[#087F8C]/10 cursor-pointer transition-colors"
+              type="button"
+              onClick={handleRefresh}
+              disabled={loading}
+              className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] p-2.5 rounded-xl hover:bg-[#087F8C]/10 disabled:opacity-60 cursor-pointer transition-colors"
               title="تحديث"
             >
               <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
@@ -478,11 +667,28 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
                       <td className="p-3.5 fv-num">
                         <span className={`font-black text-base ${c('text-[#172B3A]')}`}>{payment.amount}</span>
                         <span className={`text-xs ${c('text-[#718394]')} mr-1`}>ج.م</span>
+                        {Number(payment.refunded_amount || 0) > 0 && (
+                          <div className="text-[10px] font-black text-purple-700 mt-0.5">
+                            مسترد: {payment.refunded_amount} ج.م
+                          </div>
+                        )}
                       </td>
                       <td className="p-3.5">
-                        <span className={`px-2.5 py-1 rounded-md text-[10px] font-black ${STATUS_COLORS[payment.status]}`}>
-                          {STATUS_LABELS[payment.status]}
-                        </span>
+                        <div className="flex flex-wrap items-center gap-1">
+                          <span className={`px-2.5 py-1 rounded-md text-[10px] font-black ${STATUS_COLORS[payment.status]}`}>
+                            {STATUS_LABELS[payment.status]}
+                          </span>
+                          {payment.is_partial && (
+                            <span className="px-2 py-0.5 rounded-md text-[10px] font-black bg-amber-50 text-amber-800 border border-amber-200">
+                              جزئي
+                            </span>
+                          )}
+                        </div>
+                        {payment.confirmed_by_staff_name && (
+                          <div className="text-[10px] text-[#718394] font-semibold mt-1">
+                            أكدها: {payment.confirmed_by_staff_name}
+                          </div>
+                        )}
                       </td>
                       <td className={`p-3.5 text-xs fv-num ${c('text-[#172B3A]')}`}>
                         {new Date(payment.created_at).toLocaleDateString('ar-EG')}
@@ -544,6 +750,193 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({ cardClass, inputClass,
 
        {showInstapayReview && <InstapayReviewPanel cardClass={cardClass} inputClass={inputClass} onPrint={onPrint} isAdmin={isAdmin} />}
       <PaymobPaymentsList cardClass={cardClass} />
+
+      {/* Unified Booking Payment Confirmation Modal */}
+      {collectOpen && (
+        <div className="fixed inset-0 z-[110] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs" role="dialog" aria-modal="true">
+          <div className="bg-white rounded-3xl border border-[#DFEAF0] shadow-2xl max-w-2xl w-full p-6 md:p-7 max-h-[92vh] overflow-y-auto relative" dir="rtl">
+            <button
+              type="button"
+              onClick={() => setCollectOpen(false)}
+              aria-label="إغلاق"
+              className="absolute top-4 left-4 p-2 rounded-full hover:bg-[#F5FAFC] text-[#718394] hover:text-[#172B3A]"
+            >
+              <X size={20} />
+            </button>
+            <h3 className="text-lg font-black text-[#172B3A] mb-1">تأكيد وتحصيل سداد حجز</h3>
+            <p className="text-xs text-[#718394] font-semibold mb-4">
+              يتم توثيق الدفعة برقم معاملة موحد وتحديث رصيد المريض والحسابات تلقائياً دون أي تكرار.
+            </p>
+
+            {collectLoading ? (
+              <div className="py-10 text-center text-[#718394]">
+                <RefreshCw size={28} className="animate-spin mx-auto mb-2 text-[#087F8C]" />
+                <p className="text-xs font-bold">جاري تحميل الحجوزات المستحقة...</p>
+              </div>
+            ) : pendingRecords.length === 0 ? (
+              <div className="p-6 rounded-2xl bg-[#F5FAFC] border border-[#DFEAF0] text-center text-xs font-bold text-[#718394]">
+                لا توجد حجوزات غير مدفوعة أو مدفوعة جزئياً حالياً.
+              </div>
+            ) : (
+              <form onSubmit={handleConfirmUnifiedCollection} className="space-y-4">
+                <div>
+                  <label className="text-xs font-bold text-[#718394] mb-1 block">ابحث عن الحجز أو المريض</label>
+                  <input
+                    type="text"
+                    value={collectSearch}
+                    onChange={e => setCollectSearch(e.target.value)}
+                    placeholder="الاسم، الهاتف، الطبيب، أو رقم الحجز..."
+                    className={inputClass}
+                  />
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#718394] mb-1 block">اختر الحجز المستحق *</label>
+                  <select
+                    value={selectedBookingId}
+                    onChange={e => {
+                      const nextId = e.target.value;
+                      setSelectedBookingId(nextId);
+                      const rec = pendingRecords.find(r => r.bookingId === nextId);
+                      if (rec) {
+                        setCollectAmount(
+                          canConfirmFull
+                            ? String(rec.remainingBalance)
+                            : String(Math.max(Math.round((rec.remainingBalance / 2) * 100) / 100, 1)),
+                        );
+                      }
+                    }}
+                    className={inputClass}
+                    required
+                  >
+                    {filteredPendingRecords.map(r => (
+                      <option key={r.bookingId} value={r.bookingId}>
+                        {r.patientName} ({r.patientPhone}) — {r.serviceName} / د. {r.doctorName} — {r.appointmentDate} — المتبقي: {r.remainingBalance} ج.م
+                      </option>
+                    ))}
+                  </select>
+                </div>
+
+                {selectedRecord && (
+                  <div className="bg-[#F5FAFC] border border-[#DFEAF0] rounded-2xl p-3.5 grid grid-cols-2 sm:grid-cols-4 gap-2 text-xs">
+                    <div>
+                      <span className="text-[#718394] block">الإجمالي بعد الخصم</span>
+                      <span className="font-black text-[#172B3A] fv-num">{selectedRecord.finalAmountDue} ج.م</span>
+                    </div>
+                    <div>
+                      <span className="text-[#718394] block">المدفوع مسبقاً</span>
+                      <span className="font-black text-emerald-700 fv-num">{selectedRecord.paidAmount} ج.م</span>
+                    </div>
+                    <div>
+                      <span className="text-[#718394] block">المتبقي للسداد</span>
+                      <span className="font-black text-rose-700 fv-num">{selectedRecord.remainingBalance} ج.م</span>
+                    </div>
+                    <div>
+                      <span className="text-[#718394] block">الحالة الحالية</span>
+                      <span className={`inline-block mt-0.5 px-2 py-0.5 rounded-md border text-[10px] font-black ${PATIENT_FINANCIAL_STATUS_BADGE[selectedRecord.financialStatus]}`}>
+                        {selectedRecord.financialStatus}
+                      </span>
+                    </div>
+                  </div>
+                )}
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                  <div>
+                    <label className="text-xs font-bold text-[#718394] mb-1 block">المبلغ المستلم فعلياً (ج.م) *</label>
+                    <input
+                      type="number"
+                      step="0.01"
+                      min="0.01"
+                      max={selectedRecord?.remainingBalance}
+                      value={collectAmount}
+                      onChange={e => setCollectAmount(e.target.value)}
+                      className={`${inputClass} fv-num`}
+                      required
+                    />
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-[#718394] mb-1 block">وسيلة الدفع *</label>
+                    <select
+                      value={collectMethod}
+                      onChange={e => setCollectMethod(e.target.value as AccountingPaymentMethod)}
+                      className={inputClass}
+                    >
+                      <option value="cash">نقدي (خزينة)</option>
+                      <option value="instapay">إنستا باي</option>
+                      <option value="wallet">محفظة إلكترونية</option>
+                      <option value="card">بطاقة بنكية (POS)</option>
+                      <option value="bank_transfer">تحويل بنكي</option>
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-[#718394] mb-1 block">الخزينة / الحساب البنكي المستلم</label>
+                    <select
+                      value={collectAccountId}
+                      onChange={e => setCollectAccountId(e.target.value)}
+                      className={inputClass}
+                    >
+                      <option value="">بدون ربط حسابي مباشر</option>
+                      {accountsList.map(a => (
+                        <option key={a.id} value={a.id}>
+                          {a.name} ({a.accountType === 'bank' ? 'بنك' : 'خزينة'})
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                  <div>
+                    <label className="text-xs font-bold text-[#718394] mb-1 block">مرجع العملية (اختياري)</label>
+                    <input
+                      type="text"
+                      value={collectRef}
+                      onChange={e => setCollectRef(e.target.value)}
+                      placeholder="يُنشأ تلقائياً إذا تُرك فارغاً"
+                      className={`${inputClass} fv-mono`}
+                    />
+                  </div>
+                </div>
+
+                <div>
+                  <label className="text-xs font-bold text-[#718394] mb-1 block">ملاحظات التحصيل (اختياري)</label>
+                  <input
+                    type="text"
+                    value={collectNotes}
+                    onChange={e => setCollectNotes(e.target.value)}
+                    placeholder="تفاصيل إضافية..."
+                    className={inputClass}
+                  />
+                </div>
+
+                <label className="flex items-center gap-2 text-xs font-bold text-[#172B3A] cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={collectIssueVoucher}
+                    onChange={e => setCollectIssueVoucher(e.target.checked)}
+                    className="w-4 h-4 accent-[#087F8C]"
+                  />
+                  <span>إصدار سند قبض مالي تلقائياً لهذه الدفعة</span>
+                </label>
+
+                <div className="flex gap-2 pt-2">
+                  <button
+                    type="submit"
+                    disabled={collectSubmitting}
+                    className="flex-1 bg-[#087F8C] text-white py-3 rounded-xl font-black text-xs hover:bg-[#066D78] disabled:opacity-60"
+                  >
+                    {collectSubmitting ? 'جاري تأكيد السداد...' : 'تأكيد استلام الدفعة'}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setCollectOpen(false)}
+                    className="flex-1 bg-[#F5FAFC] border border-[#DFEAF0] py-3 rounded-xl font-bold text-xs text-[#718394]"
+                  >
+                    إلغاء
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

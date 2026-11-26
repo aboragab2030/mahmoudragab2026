@@ -230,6 +230,11 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
     void fetchOffers();
   }, [fetchOffers]);
 
+  const handleRefreshOffers = useCallback(async () => {
+    await fetchOffers();
+    onOffersChanged?.();
+  }, [fetchOffers, onOffersChanged]);
+
   // Keep list in sync when realtime offers arrive
   useEffect(() => {
     if (!canView || usingFallbackStore || !Array.isArray(realtimeOffers)) return;
@@ -1046,7 +1051,7 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
             </div>
             <button
               type="button"
-              onClick={() => void fetchOffers()}
+              onClick={() => void handleRefreshOffers()}
               disabled={loading}
               className="bg-[#F5FAFC] border border-[#DFEAF0] hover:border-[#087F8C] text-[#172B3A] px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
             >

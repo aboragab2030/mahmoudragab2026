@@ -135,6 +135,7 @@ export const PaymobSettingsPanel = ({ cardClass, inputClass }: { cardClass: stri
   const [info, setInfo] = useState<SettingsResponse | null>(null);
   const [editing, setEditing] = useState<Record<string, boolean>>({});
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState<{ type: 'ok' | 'error'; text: string } | null>(null);
   const [confirmLive, setConfirmLive] = useState(false);
@@ -154,14 +155,23 @@ export const PaymobSettingsPanel = ({ cardClass, inputClass }: { cardClass: stri
     setEditing({});
   };
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    const res = await callSettings('GET');
-    if (res.error) setMessage({ type: 'error', text: res.error });
-    else applyResponse(res.data);
-    setLoading(false);
+  const load = useCallback(async (isManualRefresh = false) => {
+    if (isManualRefresh) {
+      setRefreshing(true);
+      setMessage(null);
+    } else {
+      setLoading(true);
+    }
+    try {
+      const res = await callSettings('GET');
+      if (res.error) setMessage({ type: 'error', text: res.error });
+      else applyResponse(res.data);
+    } finally {
+      if (isManualRefresh) setRefreshing(false);
+      else setLoading(false);
+    }
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(false); }, [load]);
 
   const save = async () => {
     setSaving(true); setMessage(null); setConfirmLive(false);
@@ -243,7 +253,7 @@ export const PaymobSettingsPanel = ({ cardClass, inputClass }: { cardClass: stri
             <h3 className="text-xl font-black text-[#172B3A]">إعدادات الدفع الإلكتروني (Paymob)</h3>
             <p className="text-xs text-[#718394] font-medium mt-1">الدفع بالبطاقات والمحافظ الإلكترونية مع تأكيد الحجز تلقائياً.</p>
           </div>
-          <button onClick={load} className="px-3.5 py-2 rounded-xl border border-[#DFEAF0] bg-[#EBF8FA] hover:bg-[#087F8C] text-[#087F8C] hover:text-white flex items-center gap-2 font-bold text-xs transition-colors"><RefreshCw size={15} /> تحديث</button>
+          <button type="button" onClick={() => void load(true)} disabled={refreshing} className="px-3.5 py-2 rounded-xl border border-[#DFEAF0] bg-[#EBF8FA] hover:bg-[#087F8C] text-[#087F8C] hover:text-white flex items-center gap-2 font-bold text-xs transition-colors disabled:opacity-60"><RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> تحديث</button>
         </div>
 
         {form.mode === 'live' && info?.settings?.mode === 'live' && info?.settings?.enabled && (
@@ -322,19 +332,27 @@ const STATUS_LABELS: Record<string, { label: string; cls: string }> = {
 export const PaymobPaymentsList = ({ cardClass }: { cardClass: string }) => {
   const [rows, setRows] = useState<any[] | null>(null);
   const [bookings, setBookings] = useState<Record<string, any>>({});
+  const [refreshing, setRefreshing] = useState(false);
 
   const load = useCallback(async () => {
-    const { data, error } = await supabase.from('paymob_payments' as any).select('*').order('created_at', { ascending: false }).limit(200);
-    if (error) { setRows([]); return; }
-    const list = (data || []) as any[];
-    setRows(list);
-    const ids = Array.from(new Set(list.map(r => r.booking_id)));
-    if (ids.length) {
-      const { data: bk } = await supabase.from('bookings').select('id, patient_name, phone').in('id', ids);
-      setBookings(Object.fromEntries((bk || []).map((b: any) => [b.id, b])));
+    setRefreshing(true);
+    try {
+      const { data, error } = await supabase.from('paymob_payments' as any).select('*').order('created_at', { ascending: false }).limit(200);
+      if (error) { setRows([]); return; }
+      const list = (data || []) as any[];
+      setRows(list);
+      const ids = Array.from(new Set(list.map(r => r.booking_id).filter(Boolean)));
+      if (ids.length) {
+        const { data: bk } = await supabase.from('bookings').select('id, patient_name, phone').in('id', ids);
+        setBookings(Object.fromEntries((bk || []).map((b: any) => [b.id, b])));
+      } else {
+        setBookings({});
+      }
+    } finally {
+      setRefreshing(false);
     }
   }, []);
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => { void load(); }, [load]);
 
   if (rows === null || rows.length === 0) return null;
 
@@ -342,7 +360,7 @@ export const PaymobPaymentsList = ({ cardClass }: { cardClass: string }) => {
     <div className={`${cardClass} overflow-x-auto`} dir="rtl">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-black text-[#172B3A]">مدفوعات Paymob</h3>
-        <button onClick={load} className="px-3.5 py-2 rounded-xl border border-[#DFEAF0] bg-[#EBF8FA] hover:bg-[#087F8C] text-[#087F8C] hover:text-white flex items-center gap-2 font-bold text-xs transition-colors"><RefreshCw size={15} /> تحديث</button>
+        <button type="button" onClick={() => void load()} disabled={refreshing} className="px-3.5 py-2 rounded-xl border border-[#DFEAF0] bg-[#EBF8FA] hover:bg-[#087F8C] text-[#087F8C] hover:text-white flex items-center gap-2 font-bold text-xs transition-colors disabled:opacity-60"><RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> تحديث</button>
       </div>
       <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
         <table className="w-full text-right text-sm">

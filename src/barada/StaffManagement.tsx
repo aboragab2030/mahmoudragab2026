@@ -1,12 +1,21 @@
 import { useState, useEffect, useCallback } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeBackend } from '@/lib/backend';
-import { UserCog, Edit2, Save, X, User, Shield, RefreshCw, Crown, UserCheck, Trash2, AlertTriangle, Power, Key, Lock } from 'lucide-react';
+import { UserCog, Edit2, Save, X, User, Shield, RefreshCw, Crown, UserCheck, Trash2, AlertTriangle, Power, Key, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
 import type { StaffMember } from '@/hooks/useRealtimeSync';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
-import { DASHBOARD_PERMISSIONS, MEDICAL_VIDEO_PERMISSIONS, OFFER_PERMISSIONS, PARTNER_PERMISSIONS } from './permissions';
+import {
+  ACCOUNTING_PERMISSIONS,
+  DASHBOARD_PERMISSIONS,
+  MEDICAL_VIDEO_PERMISSIONS,
+  OFFER_PERMISSIONS,
+  PARTNER_PERMISSIONS,
+  PATIENT_BILLING_PAYMENT_PERMISSIONS,
+  PATIENT_PERMISSIONS,
+  STAFF_BOOKING_PERMISSIONS,
+} from './permissions';
 
 // Available permissions for staff members: one per dashboard section
 const AVAILABLE_PERMISSIONS = DASHBOARD_PERMISSIONS;
@@ -38,6 +47,8 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
   const [passwordChangeId, setPasswordChangeId] = useState<string | null>(null);
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
+  const [showNewPassword, setShowNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [changingPassword, setChangingPassword] = useState(false);
   
   // Store profiles and roles separately for combining
@@ -229,6 +240,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
       toast.success('تم تحديث بيانات الموظف بنجاح');
       setEditingId(null);
       setEditForm({ name: '', username: '', loginUsername: '', role: 'staff', permissions: [], isActive: true });
+      await fetchStaffMembers();
     } catch (error) {
       console.error('Error updating staff:', error);
       toast.error('حدث خطأ أثناء تحديث البيانات');
@@ -253,6 +265,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
       if (error) throw error;
       
       toast.success(newStatus ? 'تم تفعيل الحساب' : 'تم تعطيل الحساب');
+      await fetchStaffMembers();
     } catch (error) {
       console.error('Error toggling user status:', error);
       toast.error('حدث خطأ أثناء تغيير حالة الحساب');
@@ -307,6 +320,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
 
       toast.success('تم حذف الموظف بنجاح');
       setDeleteConfirmId(null);
+      await fetchStaffMembers();
     } catch (error) {
       console.error('Error deleting staff:', error);
       toast.error('حدث خطأ أثناء حذف الموظف');
@@ -320,12 +334,16 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
     setPasswordChangeId(userId);
     setNewPassword('');
     setConfirmPassword('');
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const handlePasswordChangeCancel = () => {
     setPasswordChangeId(null);
     setNewPassword('');
     setConfirmPassword('');
+    setShowNewPassword(false);
+    setShowConfirmPassword(false);
   };
 
   const handlePasswordChange = async (userId: string) => {
@@ -346,6 +364,10 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
       });
 
       if (error) throw error;
+
+      if (!import.meta.env['VITE_SUPABASE_URL']) {
+        await supabase.auth.admin?.updateUserById?.(userId, { password: newPassword });
+      }
 
       toast.success('تم تغيير كلمة المرور بنجاح');
       handlePasswordChangeCancel();
@@ -380,18 +402,18 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
   // Add new user state
   const [showAddUser, setShowAddUser] = useState(false);
   const [addUserForm, setAddUserForm] = useState({
-    email: '',
     password: '',
     name: '',
     loginUsername: '',
     role: 'staff' as 'admin' | 'staff',
     permissions: [] as string[],
   });
+  const [showAddPassword, setShowAddPassword] = useState(false);
   const [addingUser, setAddingUser] = useState(false);
 
   const handleAddUser = async () => {
-    if (!addUserForm.email || !addUserForm.password || !addUserForm.name) {
-      toast.error('يرجى ملء البريد الإلكتروني وكلمة المرور والاسم');
+    if (!addUserForm.name.trim() || !addUserForm.loginUsername.trim() || !addUserForm.password) {
+      toast.error('يرجى ملء الاسم واسم المستخدم للدخول وكلمة المرور');
       return;
     }
     if (addUserForm.password.length < 6) {
@@ -401,22 +423,55 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
     
     setAddingUser(true);
     try {
+      const cleanName = addUserForm.name.trim();
+      const cleanLoginUsername = addUserForm.loginUsername.trim();
+      const assignedPermissions = addUserForm.role === 'admin' ? AVAILABLE_PERMISSIONS.map(p => p.id) : addUserForm.permissions;
+
       const { data, error } = await invokeBackend('add-staff-user', {
         body: {
-          email: addUserForm.email.trim(),
           password: addUserForm.password,
-          name: addUserForm.name.trim(),
-          loginUsername: addUserForm.loginUsername.trim() || null,
+          name: cleanName,
+          loginUsername: cleanLoginUsername,
           role: addUserForm.role,
-          permissions: addUserForm.role === 'admin' ? AVAILABLE_PERMISSIONS.map(p => p.id) : addUserForm.permissions,
+          permissions: assignedPermissions,
         }
       });
 
       if (error) throw error;
+
+      if (!import.meta.env['VITE_SUPABASE_URL'] && data?.userId && data?.email) {
+        await (supabase.auth.admin as any)?.createUser?.({
+          id: data.userId,
+          email: data.email,
+          password: addUserForm.password,
+          user_metadata: {
+            name: cleanName,
+            username: cleanLoginUsername,
+            login_username: cleanLoginUsername,
+            role: addUserForm.role,
+          },
+        });
+        await supabase.from('profiles').upsert(
+          {
+            user_id: data.userId,
+            name: cleanName,
+            username: cleanLoginUsername,
+            login_username: cleanLoginUsername,
+            permissions: assignedPermissions,
+            is_active: true,
+          },
+          { onConflict: 'user_id' },
+        );
+        await supabase.from('user_roles').upsert(
+          { user_id: data.userId, role: addUserForm.role },
+          { onConflict: 'user_id,role' },
+        );
+      }
       
       toast.success('تم إضافة المستخدم بنجاح');
       setShowAddUser(false);
-      setAddUserForm({ email: '', password: '', name: '', loginUsername: '', role: 'staff', permissions: [] });
+      setShowAddPassword(false);
+      setAddUserForm({ password: '', name: '', loginUsername: '', role: 'staff', permissions: [] });
       // Refresh the list
       await fetchStaffMembers();
     } catch (error: any) {
@@ -453,6 +508,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
               إضافة مستخدم
             </button>
             <button
+              type="button"
               onClick={fetchStaffMembers}
               disabled={loading}
               className="flex items-center gap-2 bg-[#F5FAFC] border border-[#DFEAF0] hover:border-[#087F8C] text-[#172B3A] px-4 py-2 rounded-xl text-sm font-bold transition-colors cursor-pointer"
@@ -482,28 +538,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                 />
               </div>
               <div>
-                <label className="text-xs font-bold text-[#718394] mb-1.5 block">البريد الإلكتروني *</label>
-                <input
-                  type="email"
-                  value={addUserForm.email}
-                  onChange={e => setAddUserForm({ ...addUserForm, email: e.target.value })}
-                  className={`${inputClass} fv-mono`}
-                  placeholder="example@email.com"
-                  dir="ltr"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-[#718394] mb-1.5 block">كلمة المرور *</label>
-                <input
-                  type="password"
-                  value={addUserForm.password}
-                  onChange={e => setAddUserForm({ ...addUserForm, password: e.target.value })}
-                  className={inputClass}
-                  placeholder="6 أحرف على الأقل"
-                />
-              </div>
-              <div>
-                <label className="text-xs font-bold text-[#718394] mb-1.5 block">اسم المستخدم للدخول (اختياري)</label>
+                <label className="text-xs font-bold text-[#718394] mb-1.5 block">اسم المستخدم للدخول *</label>
                 <input
                   type="text"
                   value={addUserForm.loginUsername}
@@ -512,6 +547,27 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                   placeholder="اسم مختصر لتسجيل الدخول"
                   dir="ltr"
                 />
+              </div>
+              <div className="md:col-span-2">
+                <label className="text-xs font-bold text-[#718394] mb-1.5 block">كلمة المرور *</label>
+                <div className="relative">
+                  <input
+                    type={showAddPassword ? 'text' : 'password'}
+                    value={addUserForm.password}
+                    onChange={e => setAddUserForm({ ...addUserForm, password: e.target.value })}
+                    className={`${inputClass} pl-11`}
+                    placeholder="6 أحرف على الأقل"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowAddPassword(prev => !prev)}
+                    className="absolute left-3 top-1/2 -translate-y-1/2 text-[#718394] hover:text-[#172B3A] transition-colors cursor-pointer"
+                    aria-label={showAddPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                    title={showAddPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                  >
+                    {showAddPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                  </button>
+                </div>
               </div>
             </div>
             <div>
@@ -551,6 +607,45 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                       />
                       <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
                     </label>
+                  ))}
+                  {[
+                    { title: 'تسجيل وإدارة المرضى', list: PATIENT_PERMISSIONS },
+                    { title: 'حجوزات الموظفين', list: STAFF_BOOKING_PERMISSIONS },
+                    { title: 'قسم الحسابات', list: ACCOUNTING_PERMISSIONS },
+                    { title: 'حسابات المرضى وتأكيد المدفوعات', list: PATIENT_BILLING_PAYMENT_PERMISSIONS },
+                  ].map(group => (
+                    <div key={group.title} className="pt-2 mt-2 border-t border-[#DFEAF0]">
+                      <div className="flex items-center justify-between px-2 py-1">
+                        <p className="text-xs font-black text-[#087F8C]">{group.title}</p>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            const ids = group.list.map(p => p.id);
+                            const allSelected = ids.every(id => addUserForm.permissions.includes(id));
+                            setAddUserForm(prev => ({
+                              ...prev,
+                              permissions: allSelected
+                                ? prev.permissions.filter(p => !ids.includes(p))
+                                : Array.from(new Set([...prev.permissions, ...ids])),
+                            }));
+                          }}
+                          className="text-[11px] font-bold text-[#1769AA] hover:underline"
+                        >
+                          {group.list.every(p => addUserForm.permissions.includes(p.id)) ? 'إلغاء الكل' : 'تحديد الكل'}
+                        </button>
+                      </div>
+                      {group.list.map(perm => (
+                        <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
+                          <input
+                            type="checkbox"
+                            checked={addUserForm.permissions.includes(perm.id)}
+                            onChange={() => handleToggleAddPermission(perm.id)}
+                            className="w-4 h-4 text-[#087F8C] rounded-sm border-[#DFEAF0] focus:ring-[#087F8C]"
+                          />
+                          <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
+                        </label>
+                      ))}
+                    </div>
                   ))}
                   <div className="pt-2 mt-2 border-t border-[#DFEAF0]">
                     <p className="text-xs font-black text-[#087F8C] px-2 py-1">شركاء النجاح</p>
@@ -770,6 +865,45 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                                 <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
                               </label>
                             ))}
+                            {[
+                              { title: 'تسجيل وإدارة المرضى', list: PATIENT_PERMISSIONS },
+                              { title: 'حجوزات الموظفين', list: STAFF_BOOKING_PERMISSIONS },
+                              { title: 'قسم الحسابات', list: ACCOUNTING_PERMISSIONS },
+                              { title: 'حسابات المرضى وتأكيد المدفوعات', list: PATIENT_BILLING_PAYMENT_PERMISSIONS },
+                            ].map(group => (
+                              <div key={group.title} className="pt-2 mt-2 border-t border-[#DFEAF0]">
+                                <div className="flex items-center justify-between px-2 py-1">
+                                  <p className="text-xs font-black text-[#087F8C]">{group.title}</p>
+                                  <button
+                                    type="button"
+                                    onClick={() => {
+                                      const ids = group.list.map(p => p.id);
+                                      const allSelected = ids.every(id => editForm.permissions.includes(id));
+                                      setEditForm(prev => ({
+                                        ...prev,
+                                        permissions: allSelected
+                                          ? prev.permissions.filter(p => !ids.includes(p))
+                                          : Array.from(new Set([...prev.permissions, ...ids])),
+                                      }));
+                                    }}
+                                    className="text-[11px] font-bold text-[#1769AA] hover:underline"
+                                  >
+                                    {group.list.every(p => editForm.permissions.includes(p.id)) ? 'إلغاء الكل' : 'تحديد الكل'}
+                                  </button>
+                                </div>
+                                {group.list.map(perm => (
+                                  <label key={perm.id} className="flex items-center gap-2.5 cursor-pointer hover:bg-[#F5FAFC] p-2 rounded-lg transition-colors">
+                                    <input
+                                      type="checkbox"
+                                      checked={editForm.permissions.includes(perm.id)}
+                                      onChange={() => handleTogglePermission(perm.id)}
+                                      className="w-4 h-4 text-[#087F8C] rounded-sm border-[#DFEAF0] focus:ring-[#087F8C]"
+                                    />
+                                    <span className="text-sm font-bold text-[#172B3A]">{perm.label}</span>
+                                  </label>
+                                ))}
+                              </div>
+                            ))}
                             <div className="pt-2 mt-2 border-t border-[#DFEAF0]">
                               <p className="text-xs font-black text-[#087F8C] px-2 py-1">شركاء النجاح</p>
                               {PARTNER_PERMISSIONS.map(perm => (
@@ -968,23 +1102,45 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                           </div>
                           <div>
                             <label className="text-xs font-bold text-[#718394] mb-1 block">كلمة المرور الجديدة</label>
-                            <input
-                              type="password"
-                              value={newPassword}
-                              onChange={e => setNewPassword(e.target.value)}
-                              className={inputClass}
-                              placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)"
-                            />
+                            <div className="relative">
+                              <input
+                                type={showNewPassword ? 'text' : 'password'}
+                                value={newPassword}
+                                onChange={e => setNewPassword(e.target.value)}
+                                className={`${inputClass} pl-11`}
+                                placeholder="كلمة المرور الجديدة (6 أحرف على الأقل)"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowNewPassword(prev => !prev)}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#718394] hover:text-[#172B3A] transition-colors cursor-pointer"
+                                aria-label={showNewPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                                title={showNewPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                              >
+                                {showNewPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                              </button>
+                            </div>
                           </div>
                           <div>
                             <label className="text-xs font-bold text-[#718394] mb-1 block">تأكيد كلمة المرور</label>
-                            <input
-                              type="password"
-                              value={confirmPassword}
-                              onChange={e => setConfirmPassword(e.target.value)}
-                              className={inputClass}
-                              placeholder="أعد كتابة كلمة المرور"
-                            />
+                            <div className="relative">
+                              <input
+                                type={showConfirmPassword ? 'text' : 'password'}
+                                value={confirmPassword}
+                                onChange={e => setConfirmPassword(e.target.value)}
+                                className={`${inputClass} pl-11`}
+                                placeholder="أعد كتابة كلمة المرور"
+                              />
+                              <button
+                                type="button"
+                                onClick={() => setShowConfirmPassword(prev => !prev)}
+                                className="absolute left-3 top-1/2 -translate-y-1/2 text-[#718394] hover:text-[#172B3A] transition-colors cursor-pointer"
+                                aria-label={showConfirmPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                                title={showConfirmPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
+                              >
+                                {showConfirmPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                              </button>
+                            </div>
                           </div>
                           <div className="flex gap-2">
                             <button

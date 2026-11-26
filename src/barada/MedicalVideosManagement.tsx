@@ -336,6 +336,11 @@ export const MedicalVideosManagement: React.FC<MedicalVideosManagementProps> = (
     void fetchLibrary();
   }, [fetchLibrary]);
 
+  const handleRefreshLibrary = useCallback(async () => {
+    await fetchLibrary();
+    onVideosChanged?.();
+  }, [fetchLibrary, onVideosChanged]);
+
   useEffect(() => {
     if (!canView || usingFallbackStore || !realtimeLoaded) return;
     const mappedCats = (realtimeCategories || []).map(mapCategoryRow);
@@ -1135,7 +1140,7 @@ export const MedicalVideosManagement: React.FC<MedicalVideosManagementProps> = (
             )}
             <button
               type="button"
-              onClick={() => void fetchLibrary()}
+              onClick={() => void handleRefreshLibrary()}
               disabled={loading}
               className="bg-[#F5FAFC] hover:bg-white text-[#172B3A] border border-[#DFEAF0] px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
             >

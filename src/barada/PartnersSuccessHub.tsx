@@ -193,6 +193,7 @@ export interface PartnersSuccessHubProps {
   inputClass: string;
   onPrint: (title: string, html: string) => void;
   onNotify: (title: string, message: string, type: 'success' | 'warning' | 'info') => void;
+  onRefresh?: () => Promise<void> | void;
 }
 
 const StatCard = ({
@@ -299,6 +300,7 @@ export const PartnersSuccessHub: React.FC<PartnersSuccessHubProps> = ({
   inputClass,
   onPrint,
   onNotify,
+  onRefresh,
 }) => {
   const perm = useCallback(
     (p: string) => hasPartnerPermission(currentUser, p),
@@ -1280,7 +1282,7 @@ export const PartnersSuccessHub: React.FC<PartnersSuccessHubProps> = ({
             )}
             <button
               type="button"
-              onClick={reloadAll}
+              onClick={() => void Promise.all([reloadAll(), Promise.resolve(onRefresh?.())])}
               disabled={loading}
               className="px-3.5 py-2 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] text-xs font-bold flex items-center gap-1.5 hover:border-[#087F8C] cursor-pointer"
             >

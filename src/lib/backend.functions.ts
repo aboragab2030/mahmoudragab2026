@@ -46,21 +46,48 @@ export const addStaffUser = createServerFn({ method: "POST" })
       }
 
       const { email, password, name, loginUsername, role, permissions } = data;
-      if (!email || !password || !name) return reply({ error: "email, password, and name are required" }, 400);
-      if (typeof email !== "string" || email.length > 255) return reply({ error: "Invalid email" }, 400);
+      const cleanName = typeof name === "string" ? name.trim() : "";
+      const cleanLoginUsername = typeof loginUsername === "string" ? loginUsername.trim() : "";
+      const cleanEmail = typeof email === "string" ? email.trim() : "";
+
+      if (!cleanName || !password || (!cleanEmail && !cleanLoginUsername)) {
+        return reply({ error: "الاسم واسم المستخدم للدخول وكلمة المرور مطلوبة" }, 400);
+      }
+      if (cleanEmail && cleanEmail.length > 255) return reply({ error: "Invalid email" }, 400);
+      if (cleanLoginUsername.length > 100) return reply({ error: "اسم المستخدم طويل جداً" }, 400);
       if (typeof password !== "string" || password.length < 6 || password.length > 128) {
         return reply({ error: "Password must be between 6 and 128 characters" }, 400);
       }
-      if (typeof name !== "string" || name.length > 100) return reply({ error: "Invalid name" }, 400);
+      if (cleanName.length > 100) return reply({ error: "Invalid name" }, 400);
 
       const validRole = role === "admin" ? "admin" : "staff";
       const validPermissions = Array.isArray(permissions) ? permissions.filter((p: unknown) => typeof p === "string") : [];
 
       const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
 
+      if (cleanLoginUsername) {
+        const { data: existingProfile } = await supabaseAdmin
+          .from("profiles")
+          .select("user_id")
+          .eq("login_username", cleanLoginUsername)
+          .maybeSingle();
+        if (existingProfile) {
+          return reply({ error: "اسم المستخدم للدخول مستخدم بالفعل" }, 400);
+        }
+      }
+
+      const asciiSlug = cleanLoginUsername
+        .toLowerCase()
+        .replace(/[^a-z0-9._-]/g, "")
+        .replace(/^\.+|\.+$/g, "")
+        .slice(0, 40);
+      const resolvedEmail =
+        cleanEmail ||
+        `${asciiSlug || `staff_${Buffer.from(cleanLoginUsername).toString("hex").slice(0, 12)}`}.${crypto.randomUUID().slice(0, 6)}@staff.barada.local`;
+
       let newUserId: string;
       const { data: newUser, error: createError } = await supabaseAdmin.auth.admin.createUser({
-        email: email.trim(),
+        email: resolvedEmail,
         password,
         email_confirm: true,
       });
@@ -69,7 +96,7 @@ export const addStaffUser = createServerFn({ method: "POST" })
         if (createError.message?.includes("already been registered")) {
           const { data: existingUsers, error: listError } = await supabaseAdmin.auth.admin.listUsers();
           if (listError) return reply({ error: "Failed to look up existing user" }, 400);
-          const existingUser = existingUsers.users.find((u) => u.email === email.trim());
+          const existingUser = existingUsers.users.find((u) => u.email === resolvedEmail);
           if (!existingUser) return reply({ error: "User exists but could not be found" }, 400);
           newUserId = existingUser.id;
           await supabaseAdmin.auth.admin.updateUserById(newUserId, { password });
@@ -85,8 +112,9 @@ export const addStaffUser = createServerFn({ method: "POST" })
       await supabaseAdmin.from("profiles").upsert(
         {
           user_id: newUserId,
-          name: name.trim(),
-          login_username: typeof loginUsername === "string" && loginUsername.trim() ? loginUsername.trim() : null,
+          name: cleanName,
+          username: cleanLoginUsername || null,
+          login_username: cleanLoginUsername || null,
           permissions: validPermissions,
           is_active: true,
         },
@@ -103,7 +131,7 @@ export const addStaffUser = createServerFn({ method: "POST" })
         await supabaseAdmin.from("user_roles").insert({ user_id: newUserId, role: validRole });
       }
 
-      return reply({ success: true, userId: newUserId });
+      return reply({ success: true, userId: newUserId, email: resolvedEmail });
     } catch (error) {
       console.error("Unexpected error:", error);
       return reply({ error: "Internal server error" }, 500);
@@ -592,3 +620,154 @@ export const getPartnerDocumentUrl = createServerFn({ method: "POST" })
       return reply({ error: "تعذر تحميل رابط المستند" }, 500);
     }
   });
+
+// ---------------------------------------------------------------------------
+// lookup-patient-bookings (public lookup by exact booking phone number only)
+// Returns patient booking details, payment status, and booking history
+// without exposing cancellation_token or unrelated bookings.
+// ---------------------------------------------------------------------------
+export const lookupPatientBookings = createServerFn({ method: "POST" })
+  .validator(asBody)
+  .handler(async ({ data }): Promise<BackendResult> => {
+    try {
+      const rawPhone = typeof data?.phone === "string" ? data.phone : "";
+      const cleanPhone = rawPhone.replace(/\D/g, "").trim();
+      if (!/^\d{11,15}$/.test(cleanPhone)) {
+        return reply({ error: "يرجى إدخال رقم هاتف صحيح" }, 400);
+      }
+
+      const db = await serviceClient();
+      const { data: rows, error } = await db
+        .from("bookings")
+        .select(
+          "id, patient_name, phone, phone2, patient_email, address, age, governorate, center, notes, booking_type, doctor_id, doctor_name, service, date, time, status, created_at, reminder_sent, reminder_type, contracting_company_id, contracting_docs, payment_method, payment_status",
+        )
+        .or(`phone.eq.${cleanPhone},phone2.eq.${cleanPhone}`)
+        .order("created_at", { ascending: false });
+
+      if (error) {
+        console.error("lookupPatientBookings error:", error);
+        return reply({ error: "تعذر البحث عن الحجوزات حالياً" }, 500);
+      }
+
+      const list = Array.isArray(rows) ? (rows as Record<string, any>[]) : [];
+      if (list.length === 0) {
+        return reply({ bookings: [] });
+      }
+
+      const bookingIds = list.map((b) => String(b.id));
+      const companyIds = [
+        ...new Set(
+          list
+            .map((b) => b.contracting_company_id)
+            .filter((id): id is number => typeof id === "number" && Number.isFinite(id)),
+        ),
+      ];
+
+      const [{ data: instapayRows }, { data: paymobRows }, { data: companyRows }] = await Promise.all([
+        db
+          .from("instapay_submissions" as any)
+          .select("booking_id, booking_ref, amount_due, status, reason, created_at")
+          .in("booking_id", bookingIds)
+          .order("created_at", { ascending: false }),
+        db
+          .from("paymob_payments" as any)
+          .select("booking_id, reference, amount_cents, status, created_at")
+          .in("booking_id", bookingIds)
+          .order("created_at", { ascending: false }),
+        companyIds.length > 0
+          ? db.from("contracting_companies").select("id, name").in("id", companyIds)
+          : Promise.resolve({ data: [] as any[] }),
+      ]);
+
+      const instapayByBooking = new Map<string, Record<string, any>>();
+      for (const row of (instapayRows ?? []) as Record<string, any>[]) {
+        const key = String(row.booking_id);
+        if (!instapayByBooking.has(key)) instapayByBooking.set(key, row);
+      }
+
+      const paymobByBooking = new Map<string, Record<string, any>>();
+      for (const row of (paymobRows ?? []) as Record<string, any>[]) {
+        const key = String(row.booking_id);
+        if (!paymobByBooking.has(key)) paymobByBooking.set(key, row);
+      }
+
+      const companyNameById = new Map<number, string>();
+      for (const row of (companyRows ?? []) as Record<string, any>[]) {
+        if (typeof row.id === "number" && typeof row.name === "string") {
+          companyNameById.set(row.id, row.name);
+        }
+      }
+
+      const bookings = list.map((b) => {
+        const bookingId = String(b.id);
+        const instapay = instapayByBooking.get(bookingId);
+        const paymob = paymobByBooking.get(bookingId);
+        const companyName =
+          typeof b.contracting_company_id === "number"
+            ? companyNameById.get(b.contracting_company_id)
+            : undefined;
+        return {
+          id: parseInt(bookingId.slice(-8), 16) || Date.now(),
+          databaseId: bookingId,
+          patientName: b.patient_name,
+          phone: b.phone,
+          phone2: b.phone2 || undefined,
+          patientEmail: b.patient_email || undefined,
+          address: b.address || "",
+          age: b.age ?? undefined,
+          governorate: b.governorate || undefined,
+          center: b.center || undefined,
+          notes: b.notes || undefined,
+          bookingType: b.booking_type || "cash",
+          doctorId: b.doctor_id ? parseInt(String(b.doctor_id).slice(-8), 16) || 0 : 0,
+          doctorName: b.doctor_name,
+          service: b.service,
+          date: b.date,
+          time: b.time,
+          status: b.status === "cancelled" ? "cancelled" : "confirmed",
+          createdAt: b.created_at,
+          reminderSent: !!b.reminder_sent,
+          reminderType: b.reminder_type || undefined,
+          contractingCompanyId: b.contracting_company_id ?? undefined,
+          contractingCompanyName: companyName,
+          contractingDocs: b.contracting_docs || undefined,
+          paymentMethod: b.payment_method || undefined,
+          paymentStatus: b.payment_status || undefined,
+          instapayStatus: instapay?.status || undefined,
+          instapayBookingRef: instapay?.booking_ref || undefined,
+          instapayAmountDue:
+            typeof instapay?.amount_due === "number" ? instapay.amount_due : undefined,
+          instapayReason: instapay?.reason || undefined,
+          paymobStatus: paymob?.status || undefined,
+          paymobReference: paymob?.reference || undefined,
+        };
+      });
+
+      return reply({ bookings });
+    } catch (error) {
+      console.error("lookupPatientBookings unexpected error:", error);
+      return reply({ error: "حدث خطأ غير متوقع" }, 500);
+    }
+  });
+
+// ---------------------------------------------------------------------------
+// ensure-clinic-erp-schema (staff/admin only)
+// ---------------------------------------------------------------------------
+export const ensureClinicErpSchema = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .validator(asBody)
+  .handler(async ({ context }): Promise<BackendResult> => {
+    try {
+      const { data: isStaff } = await context.supabase.rpc("is_staff_or_admin", {
+        _user_id: context.userId,
+      });
+      if (isStaff !== true) return reply({ error: "Unauthorized" }, 403);
+      const { tryApplyClinicErpMigration } = await import("@/lib/accountingMigration.server");
+      const result = await tryApplyClinicErpMigration();
+      return reply(result);
+    } catch {
+      return reply({ ok: true, migrated: false });
+    }
+  });
+

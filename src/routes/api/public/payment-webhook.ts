@@ -51,13 +51,18 @@ export const Route = createFileRoute("/api/public/payment-webhook")({
 
           const body = await request.json().catch(() => null);
           if (!body || typeof body !== "object") return json({ error: "Invalid body" }, 400);
-          const { patient_name, amount, transaction_id, payment_type, payment_type_detail, patient_phone } = body as Record<string, any>;
+          const { patient_name, amount, transaction_id, payment_type, payment_type_detail, patient_phone, booking_id } = body as Record<string, any>;
 
           if (!patient_name || typeof patient_name !== "string") return json({ error: "patient_name is required" }, 400);
           if (!amount || typeof amount !== "number" || amount <= 0) return json({ error: "valid amount is required" }, 400);
           if (!transaction_id || typeof transaction_id !== "string") return json({ error: "transaction_id is required" }, 400);
           if (patient_name.length > 200) return json({ error: "patient_name too long" }, 400);
           if (transaction_id.length > 100) return json({ error: "transaction_id too long" }, 400);
+
+          const validBookingId =
+            typeof booking_id === "string" && /^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/i.test(booking_id.trim())
+              ? booking_id.trim()
+              : null;
 
           const { supabaseAdmin: supabase } = await import("@/integrations/supabase/client.server");
 
@@ -80,6 +85,7 @@ export const Route = createFileRoute("/api/public/payment-webhook")({
               payment_type: normalizePaymentType(payment_type || "other"),
               payment_type_detail: typeof payment_type_detail === "string" ? payment_type_detail.trim() || null : null,
               status: "paid",
+              booking_id: validBookingId,
               matched_at: new Date().toISOString(),
             })
             .select()

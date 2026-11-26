@@ -1,0 +1,1008 @@
+# MASTER PROMPT – ULTRA-STRICT PROJECT ENHANCEMENT
+## Staff Booking Management + Independent Accounting System + Employee Permissions
+### Project: Barrada Eye Compass
+
+**GitHub Repository:** https://github.com/aboragab2030/mahmoudragab2026  
+**Live Application:** https://barrada-eye-compass.lovable.app  
+**Target Platform:** Google AI Studio  
+**Project Type:** Existing Production Application  
+**Implementation Strategy:** Additive Enhancement – Preserve Existing Architecture
+
+---
+
+# 1. MAIN OBJECTIVE
+
+Upgrade the existing Barrada Eye Compass application by implementing three integrated enhancements:
+
+### A. Staff Booking Management
+Allow authorized employees to create and manage patient bookings directly from the Admin Dashboard, independently from the public homepage booking process.
+
+### B. Independent Accounting Management
+Add a complete accounting section inside the Admin Dashboard, separate from the existing Payments section, while allowing controlled financial integration with bookings and other relevant business operations.
+
+### C. Employee Permissions Enhancement
+Extend the existing employee permissions system to support independent permissions for:
+
+- Patient registration by employees.
+- Booking creation and management by employees.
+- Accounting access and management.
+
+All features must integrate with the current project architecture.
+
+**CRITICAL:** Do not redesign, rebuild, replace, or restructure the existing application.
+
+---
+
+# 2. ULTRA-STRICT PROJECT PROTECTION
+
+This is an existing production system.
+
+You must preserve all existing functionality and visual identity.
+
+DO NOT change:
+
+- Homepage design or layout.
+- Public booking interface or its existing workflow.
+- Header, footer, navigation, or responsive behavior.
+- Admin Dashboard design or structure.
+- Existing patient management functionality.
+- Existing booking functionality.
+- Existing payment functionality.
+- Doctors and medical services.
+- Operations management.
+- Offers and contracting systems.
+- Employee management and authentication.
+- Existing database relationships.
+- Existing Supabase configuration.
+- Existing APIs and integrations.
+- Existing reports and statistics unless a new isolated report is required.
+
+### FILE LOCKING RULES
+
+1. Inspect the current source code before making changes.
+2. Reuse existing components and utilities.
+3. Create new files only when necessary.
+4. Modify existing files minimally.
+5. Never delete or rename existing files.
+6. Never replace existing components.
+7. Never refactor unrelated functionality.
+8. Never change existing database records.
+9. Never remove or weaken existing RLS policies.
+10. Do not introduce duplicate booking or payment systems.
+
+The only permitted changes are those strictly necessary to implement the requested features.
+
+---
+
+# 3. MANDATORY CODEBASE AUDIT
+
+Before implementation, inspect the complete existing project.
+
+Specifically examine:
+
+- `src/barada/index.tsx`
+- Existing booking components and booking workflows.
+- Existing patient registration and patient management.
+- Existing booking tables and database relationships.
+- Existing patient statistics and dashboards.
+- Existing payments components.
+- Existing employee management.
+- Existing permissions implementation.
+- Existing authentication and authorization.
+- Existing Supabase schema and RLS policies.
+- Existing realtime synchronization.
+- Existing notifications.
+- Existing reports and financial calculations.
+
+Identify the actual existing functionality before deciding what needs to be created.
+
+Prepare an internal integration map showing:
+
+- Existing booking functionality.
+- Existing patient registration functionality.
+- Existing payment functionality.
+- Existing financial data.
+- Existing employee permissions.
+- Missing capabilities.
+- Required new components.
+- Required minimal modifications.
+- Required database migrations.
+
+Do not assume a function is missing just because it is not visible in one component.
+
+If an equivalent function already exists, extend it instead of duplicating it.
+
+---
+
+# 4. STAFF BOOKING MANAGEMENT
+
+## 4.1 Separate Staff Booking Entry Point
+
+Add a dedicated action inside the existing Admin Dashboard:
+
+**إضافة حجز بواسطة الموظف**
+
+This action must be separate from the public homepage booking process.
+
+The existing public booking system must continue working exactly as it currently does.
+
+The new staff booking workflow must:
+
+- Be accessible only to authorized employees.
+- Use the existing patient database.
+- Use existing doctors and services.
+- Use existing booking validation rules.
+- Use existing working schedules and clinic settings.
+- Save the booking through the existing backend architecture.
+- Identify the employee who created the booking.
+- Record the booking source as an employee-created booking.
+
+### Booking Source Identification
+
+Each booking should have a reliable source classification:
+
+- `website` – حجز من الموقع.
+- `staff` – حجز بواسطة موظف.
+- `admin` – حجز بواسطة الإدارة, if needed by the existing architecture.
+
+Use existing source fields if available.
+
+If not available, add a safe and backward-compatible field.
+
+Do not infer the booking source from the employee's name or from the booking status.
+
+Record:
+
+- Created by employee ID.
+- Booking source.
+- Creation timestamp.
+- Last updated by employee ID, when applicable.
+
+Historical bookings must remain valid even if they have no source information.
+
+---
+
+## 4.2 Staff Booking Form
+
+Create a professional booking form using the existing design system.
+
+Required fields:
+
+### Patient Information
+
+- Search for an existing patient by name or phone.
+- Select an existing patient.
+- Register a new patient if the employee has permission.
+- Full patient name.
+- Phone number.
+- Additional patient details required by the existing system.
+
+### Booking Information
+
+- Doctor selection.
+- Medical specialty or service.
+- Booking type.
+- Appointment date.
+- Available appointment time.
+- Booking source.
+- Contracting organization, when applicable.
+- Booking notes.
+- Assigned employee.
+
+### Financial Information
+
+Display the applicable booking price according to existing doctor/service pricing rules.
+
+Allow authorized employees to record relevant booking financial information only according to the existing financial architecture.
+
+Do not automatically create a payment merely because a booking was created.
+
+### Booking Status
+
+Use the existing booking status values and transitions.
+
+Do not introduce incompatible booking statuses.
+
+---
+
+## 4.3 Booking Validation
+
+The staff booking form must apply the same core validation rules as the existing booking system.
+
+Requirements:
+
+- No past-date bookings.
+- No same-day bookings if the existing business rule prohibits them.
+- No bookings outside clinic working hours.
+- No booking on a doctor's unavailable day.
+- No duplicate booking in a conflicting appointment slot.
+- Validate doctor availability.
+- Validate patient phone number according to existing rules.
+- Prevent incomplete patient records.
+- Prevent unauthorized discounts or price changes.
+- Respect the existing follow-up booking limits and pricing rules.
+- Respect existing contract booking rules.
+
+IMPORTANT:
+
+Do not weaken existing booking restrictions to make staff booking easier.
+
+If an authorized administrator is allowed to override a specific restriction, implement an explicit override permission and record the reason in the audit log.
+
+---
+
+## 4.4 Staff Booking Management
+
+Inside the existing bookings management section, support filtering by booking source:
+
+- كل الحجوزات.
+- حجوزات الموقع.
+- حجوزات الموظفين.
+- حجوزات الإدارة.
+
+Display the booking source in the booking details.
+
+For employee-created bookings, display:
+
+- اسم الموظف الذي أنشأ الحجز.
+- تاريخ إنشاء الحجز.
+- آخر موظف قام بالتعديل.
+- تاريخ آخر تعديل.
+
+Provide filters by:
+
+- Employee.
+- Booking source.
+- Doctor.
+- Date.
+- Booking status.
+- Patient.
+- Contracting organization.
+
+Preserve all existing booking filters and management functions.
+
+Do not create a duplicate bookings page if the current bookings section can be extended safely.
+
+---
+
+# 5. PATIENT REGISTRATION BY EMPLOYEES
+
+Add a dedicated employee-accessible patient registration action:
+
+**تسجيل مريض جديد**
+
+This must be available independently from the public patient booking form.
+
+### Required Functionality
+
+- Register a new patient from the Admin Dashboard.
+- Search existing patients before creating a new record.
+- Detect possible duplicate records using phone number and available patient identifiers.
+- Edit patient information according to permissions.
+- Open the patient's profile.
+- View the patient's booking history.
+- View relevant financial references only when authorized.
+
+### Patient Data
+
+Reuse the existing patient schema and its validation rules.
+
+Do not create a separate patient database.
+
+Do not create duplicate patients when an existing patient record can be reused.
+
+Record the employee responsible for patient registration where supported.
+
+Preserve existing patient privacy and access restrictions.
+
+---
+
+# 6. INDEPENDENT ACCOUNTING MANAGEMENT
+
+Create a new independent Admin Dashboard section named:
+
+**الحسابات**
+
+This must be separate from the existing:
+
+**المدفوعات**
+
+The new accounting system must provide a comprehensive view of the clinic's financial activity.
+
+IMPORTANT DISTINCTION:
+
+- Payments = operational recording of patient payments and existing payment transactions.
+- Accounting = overall financial management, revenues, expenses, cash balances, financial obligations, accounting entries, and reports.
+
+The accounting section must integrate with existing business data without replacing the Payments section.
+
+Do not merge the two interfaces.
+
+Do not change existing payment workflows.
+
+---
+
+# 7. ACCOUNTING DASHBOARD
+
+Create an accounting overview using the existing dashboard design system.
+
+Display:
+
+1. إجمالي الإيرادات.
+2. إجمالي المصروفات.
+3. صافي الربح التشغيلي حسب البيانات المسجلة.
+4. إجمالي المبالغ المحصلة.
+5. إجمالي المبالغ المستحقة.
+6. رصيد الخزينة.
+7. أرصدة الحسابات البنكية.
+8. إجمالي سندات القبض.
+9. إجمالي سندات الصرف.
+10. المصروفات غير المسددة.
+11. الإيرادات الشهرية.
+12. المصروفات الشهرية.
+
+Provide date filters:
+
+- اليوم.
+- هذا الأسبوع.
+- هذا الشهر.
+- هذا العام.
+- فترة مخصصة.
+
+All figures must come from actual financial records.
+
+Never use demo or fabricated financial figures.
+
+---
+
+# 8. REVENUE MANAGEMENT – إدارة الإيرادات
+
+Add a revenue management module.
+
+Allow authorized accounting employees to record and classify revenue entries.
+
+Revenue fields:
+
+- رقم العملية.
+- تاريخ الإيراد.
+- نوع الإيراد.
+- مصدر الإيراد.
+- وصف الإيراد.
+- المبلغ.
+- طريقة التحصيل.
+- الخزينة أو الحساب المستلم.
+- المريض, if applicable.
+- الحجز المرتبط, if applicable.
+- الجهة المتعاقدة, if applicable.
+- الموظف المسؤول.
+- ملاحظات.
+- مرفقات.
+
+Revenue categories should be configurable.
+
+Examples:
+
+- إيرادات الكشوفات.
+- إيرادات الفحوصات.
+- إيرادات العمليات.
+- إيرادات الليزك.
+- إيرادات التعاقدات.
+- إيرادات أخرى.
+
+Support:
+
+- Add revenue.
+- Edit revenue according to permissions.
+- View revenue details.
+- Search and filter.
+- Attach supporting documents.
+- Cancel or reverse entries through a controlled accounting procedure.
+
+Do not silently delete financial transactions.
+
+---
+
+# 9. EXPENSE MANAGEMENT – إدارة المصروفات
+
+Add a dedicated expense management module.
+
+Expense fields:
+
+- رقم المصروف.
+- تاريخ المصروف.
+- تصنيف المصروف.
+- وصف المصروف.
+- المبلغ.
+- طريقة الدفع.
+- الخزينة أو الحساب البنكي.
+- الجهة المستفيدة.
+- رقم الفاتورة أو الإيصال.
+- الموظف المسؤول.
+- حالة السداد.
+- المبلغ المسدد.
+- المبلغ المتبقي.
+- مرفقات.
+- ملاحظات.
+
+Suggested categories:
+
+- الإيجارات.
+- الرواتب والأجور.
+- الكهرباء والمياه.
+- المستلزمات الطبية.
+- الصيانة.
+- التسويق والإعلانات.
+- النظافة.
+- الضيافة.
+- المصروفات الإدارية.
+- مصروفات أخرى.
+
+Support:
+
+- تسجيل مصروف جديد.
+- تعديل المصروف وفق الصلاحيات.
+- تسجيل سداد كامل أو جزئي.
+- متابعة المبالغ المتبقية.
+- البحث والتصفية.
+- عرض سجل المصروفات.
+- إرفاق الفواتير والإيصالات.
+
+Do not treat unpaid expenses as paid.
+
+Do not delete posted financial records without a controlled reversal process.
+
+---
+
+# 10. CASHBOX AND BANK ACCOUNTS – الخزائن والحسابات البنكية
+
+Add cashbox and bank account management.
+
+Support:
+
+- إضافة خزينة.
+- إضافة حساب بنكي.
+- تحديد اسم الحساب.
+- نوع الحساب.
+- الرصيد الافتتاحي.
+- تاريخ الرصيد الافتتاحي.
+- الرصيد الحالي.
+- تفعيل أو إيقاف الحساب.
+- عرض سجل الحركات المالية.
+
+Each account must support:
+
+- Incoming transactions.
+- Outgoing transactions.
+- Transfers between accounts.
+- Account reconciliation where applicable.
+- Balance calculation based on posted transactions.
+
+Transfers between accounts must not be counted as revenue or expense.
+
+Prevent unauthorized editing of opening balances and historical transactions.
+
+---
+
+# 11. RECEIPTS AND PAYMENT VOUCHERS
+
+Add separate accounting documents:
+
+### سند قبض
+
+- رقم السند.
+- التاريخ.
+- المستلم منه.
+- المبلغ.
+- سبب القبض.
+- طريقة التحصيل.
+- الخزينة أو الحساب البنكي.
+- الحجز أو المريض المرتبط، if applicable.
+- الموظف المسؤول.
+- ملاحظات.
+
+### سند صرف
+
+- رقم السند.
+- التاريخ.
+- المستفيد.
+- المبلغ.
+- سبب الصرف.
+- طريقة الدفع.
+- الخزينة أو الحساب البنكي.
+- المصروف المرتبط.
+- الموظف المسؤول.
+- ملاحظات.
+
+Support printing and exporting using existing utilities.
+
+Use unique sequential document numbers according to the current year and existing project conventions.
+
+---
+
+# 12. ACCOUNTING INTEGRATION WITH BOOKINGS AND PAYMENTS
+
+This is one of the most important requirements.
+
+The accounting system must connect with the existing booking and payment data without duplicating financial transactions.
+
+### Booking Integration
+
+For each booking, accounting should be able to reference:
+
+- Patient.
+- Doctor.
+- Service.
+- Booking source.
+- Booking date.
+- Booking price.
+- Contracting organization, when applicable.
+- Existing payment references.
+
+### Financial Separation
+
+Creating a booking must NOT automatically create a collected payment.
+
+A booking amount is not necessarily collected revenue.
+
+Distinguish clearly between:
+
+- قيمة الحجز.
+- القيمة المستحقة.
+- المبلغ المحصل.
+- المبلغ المتبقي.
+- الإيراد المحاسبي المعترف به.
+
+### Existing Payment Integration
+
+Inspect the existing payment schema and workflow first.
+
+If an existing patient payment is already represented in accounting, link to that transaction using its existing identifier.
+
+Do not create a second revenue transaction for the same payment.
+
+Implement a reliable source-reference mechanism to prevent duplicate financial entries.
+
+If a payment is reversed or refunded, reflect the accounting impact through an appropriate reversal or refund entry.
+
+Do not modify the existing payment record structure unless strictly necessary.
+
+### Accounting Integrity
+
+Use clear accounting rules for posting and reversing entries.
+
+For posted transactions, preserve the original record and use controlled reversal or adjustment entries rather than silent deletion.
+
+If full double-entry accounting is implemented, every posted journal entry must balance.
+
+Do not label the system as a complete double-entry accounting system unless balanced journal entries and the required ledgers are actually implemented.
+
+---
+
+# 13. ACCOUNTING REPORTS
+
+Create reports inside the new accounting section:
+
+- تقرير الإيرادات.
+- تقرير المصروفات.
+- تقرير صافي الربح التشغيلي.
+- تقرير الخزائن.
+- تقرير الحسابات البنكية.
+- تقرير سندات القبض.
+- تقرير سندات الصرف.
+- تقرير المبالغ المستحقة.
+- تقرير الإيرادات حسب الطبيب.
+- تقرير الإيرادات حسب الخدمة.
+- تقرير الإيرادات حسب مصدر الحجز.
+- تقرير الإيرادات حسب التعاقد.
+- تقرير مقارنة شهرية.
+- تقرير مقارنة سنوية.
+
+Support filters by:
+
+- Date range.
+- Branch, if the current system supports branches.
+- Doctor.
+- Employee.
+- Booking source.
+- Service.
+- Contracting organization.
+- Revenue or expense category.
+
+Support Excel/CSV/PDF exports using existing project utilities.
+
+Respect permissions when displaying and exporting sensitive financial information.
+
+---
+
+# 14. EMPLOYEE PERMISSIONS ENHANCEMENT
+
+Extend the existing employee permissions system.
+
+Do not create a new user management or authorization system.
+
+Add two main permission groups:
+
+1. الحجوزات وتسجيل المرضى.
+2. الحسابات.
+
+## A. Patient Registration Permissions
+
+Suggested permission identifiers, adapted to the existing naming convention:
+
+- `patients_create`
+- `patients_view`
+- `patients_edit`
+- `patients_search`
+- `patients_view_history`
+
+An employee with `patients_create` can register new patients.
+
+An employee with view-only permission cannot create or edit patient records.
+
+## B. Staff Booking Permissions
+
+- `staff_bookings_view`
+- `staff_bookings_create`
+- `staff_bookings_edit`
+- `staff_bookings_cancel`
+- `staff_bookings_delete`
+- `staff_bookings_view_all`
+- `staff_bookings_view_own`
+- `staff_bookings_override_rules`
+- `staff_bookings_assign_employee`
+
+The system must distinguish between:
+
+- Employees who can create bookings.
+- Employees who can view their own bookings.
+- Employees who can view all bookings.
+- Employees who can modify bookings.
+- Employees who can cancel bookings.
+- Employees who can override specific restrictions.
+
+Do not grant permissions automatically to all employees.
+
+Preserve all existing permissions and role assignments.
+
+## C. Accounting Permissions
+
+Add granular accounting permissions:
+
+### Main Access
+
+- `accounting_view`
+- `accounting_manage`
+
+### Revenue
+
+- `accounting_revenue_view`
+- `accounting_revenue_create`
+- `accounting_revenue_edit`
+- `accounting_revenue_reverse`
+
+### Expenses
+
+- `accounting_expenses_view`
+- `accounting_expenses_create`
+- `accounting_expenses_edit`
+- `accounting_expenses_approve`
+- `accounting_expenses_pay`
+- `accounting_expenses_reverse`
+
+### Cashboxes and Banks
+
+- `accounting_accounts_view`
+- `accounting_accounts_manage`
+- `accounting_transfers_create`
+
+### Vouchers
+
+- `accounting_receipts_view`
+- `accounting_receipts_create`
+- `accounting_disbursements_view`
+- `accounting_disbursements_create`
+
+### Reports
+
+- `accounting_reports_view`
+- `accounting_reports_export`
+
+### Advanced Controls
+
+- `accounting_manage_opening_balances`
+- `accounting_manage_categories`
+- `accounting_manage_settings`
+- `accounting_view_sensitive_data`
+
+Inspect existing permission identifiers before adding any new keys.
+
+Reuse equivalent existing permissions wherever possible.
+
+### Permission Enforcement
+
+Enforce all permissions at:
+
+1. Frontend UI.
+2. Backend/API.
+3. Database/RLS.
+
+Do not rely only on hiding buttons.
+
+An employee without accounting permissions must not be able to retrieve financial data through direct requests.
+
+An employee who can view accounting but cannot edit it must not be able to create or modify transactions.
+
+Sensitive financial reports must require explicit authorization.
+
+---
+
+# 15. AUDIT LOG AND FINANCIAL SECURITY
+
+Use the existing audit log mechanism if available.
+
+Record:
+
+- Employee who created a patient.
+- Employee who created a booking.
+- Employee who modified or canceled a booking.
+- Employee who created a revenue record.
+- Employee who recorded an expense.
+- Employee who approved or reversed a transaction.
+- Employee who transferred money between accounts.
+- Changes to opening balances.
+- Financial report exports, where supported.
+
+Record:
+
+- User ID.
+- Action.
+- Affected record ID.
+- Timestamp.
+- Previous values and new values where appropriate.
+- Reason for sensitive changes.
+
+Do not expose service-role keys or database secrets in frontend code.
+
+Never weaken existing security policies.
+
+---
+
+# 16. DATABASE AND SUPABASE INTEGRATION
+
+Use the existing Supabase project.
+
+Do not create a new project or separate backend.
+
+Inspect current database tables and relationships before making changes.
+
+Potential new accounting entities, only when equivalent functionality does not already exist:
+
+- Accounting revenue entries.
+- Accounting expense entries.
+- Cashbox and bank accounts.
+- Accounting vouchers.
+- Account transfers.
+- Accounting categories.
+- Accounting journal entries, if double-entry accounting is implemented.
+- Accounting source references.
+- Accounting audit records.
+
+Reuse existing patients, bookings, doctors, employees, and payment tables.
+
+### Database Requirements
+
+- Additive migrations only.
+- Preserve all existing records.
+- Preserve existing IDs and relationships.
+- Add appropriate indexes.
+- Add appropriate foreign keys.
+- Add RLS policies.
+- Validate all financial inputs on the server.
+- Prevent duplicate accounting references.
+- Preserve historical transactions.
+- Support safe rollback.
+
+Never drop or rename existing tables or columns.
+
+---
+
+# 17. USER INTERFACE REQUIREMENTS
+
+All new functionality must use the current Barrada Eye Compass design system.
+
+Mandatory requirements:
+
+- Arabic-first interface.
+- Full RTL support.
+- Existing colors.
+- Existing typography.
+- Existing cards, forms, tables, dialogs, and buttons.
+- Existing sidebar and navigation layout.
+- Responsive desktop and mobile behavior.
+- Consistent loading and error states.
+
+Add the new accounting section to the existing Admin Dashboard navigation using the current navigation mechanism.
+
+Add the staff booking action to the existing booking management interface.
+
+Add patient registration actions according to the existing patient management design.
+
+Do not redesign existing pages.
+
+Do not modify the homepage booking form.
+
+Do not change the visual identity.
+
+---
+
+# 18. REALTIME AND NOTIFICATIONS
+
+Integrate with the existing realtime and notification mechanisms where appropriate.
+
+Ensure:
+
+- Newly created staff bookings appear in the existing bookings list.
+- Booking source is saved and displayed correctly.
+- Patient records update correctly.
+- Accounting records update their relevant balances.
+- Reversed transactions update account balances correctly.
+- Existing payment notifications continue working.
+- No duplicate realtime subscriptions are created.
+- No duplicate notifications are sent.
+
+Do not introduce an external paid messaging service.
+
+---
+
+# 19. REQUIRED TESTING
+
+Before completion, run the following tests.
+
+### Staff Booking Tests
+
+- Create booking from the Admin Dashboard.
+- Verify the booking source is `staff`.
+- Verify employee ID is recorded.
+- Verify the booking appears in the existing bookings list.
+- Verify the public booking workflow still works.
+- Verify existing booking validation.
+- Verify doctor availability.
+- Verify conflicting appointments are rejected.
+- Verify employee permission restrictions.
+
+### Patient Registration Tests
+
+- Register a new patient.
+- Search an existing patient.
+- Prevent duplicate patient records.
+- Verify employee registration permissions.
+- Verify patient booking history.
+
+### Accounting Tests
+
+- Create revenue entry.
+- Create expense entry.
+- Record partial expense payment.
+- Record full expense payment.
+- Create receipt voucher.
+- Create disbursement voucher.
+- Create cashbox.
+- Record account transfer.
+- Verify account balances.
+- Verify reports.
+- Verify financial filters.
+- Verify reversal operations.
+
+### Financial Integrity Tests
+
+- Create a booking without a payment.
+- Verify no collected revenue is generated automatically.
+- Record an existing payment.
+- Verify it is not counted twice in accounting.
+- Reverse a payment and verify its accounting impact.
+- Verify refunds are treated correctly.
+- Verify transfers are not counted as income or expenses.
+- Verify posted accounting records cannot be silently deleted.
+
+### Employee Permission Tests
+
+- Admin with full permissions.
+- Employee with patient registration only.
+- Employee with booking creation only.
+- Employee with booking view-only access.
+- Employee with accounting view-only access.
+- Employee with accounting data-entry permissions.
+- Employee without financial permissions.
+- Unauthorized direct API access.
+
+### Existing System Regression Tests
+
+Confirm that all existing functionality remains operational:
+
+- Public homepage.
+- Public booking.
+- Patient management.
+- Existing bookings.
+- Doctors.
+- Operations.
+- Payments.
+- Offers.
+- Contracting.
+- Employee management.
+- Permissions.
+- Notifications.
+- Reports.
+- Realtime synchronization.
+- Authentication.
+
+Do not declare completion if any existing function has been broken.
+
+---
+
+# 20. IMPLEMENTATION PHASES
+
+Implement in controlled phases.
+
+**Phase 1 – Audit:** Inspect current booking, patient, payment, database, and permissions architecture.
+
+**Phase 2 – Employee Booking:** Add the separate staff booking creation workflow.
+
+**Phase 3 – Patient Registration:** Add employee-controlled patient registration.
+
+**Phase 4 – Permissions:** Integrate granular permissions for patient registration and staff bookings.
+
+**Phase 5 – Accounting Foundation:** Add accounting data structures and account management.
+
+**Phase 6 – Financial Operations:** Add revenues, expenses, receipts, disbursements, and transfers.
+
+**Phase 7 – Financial Integration:** Connect accounting to existing bookings and payments without duplication.
+
+**Phase 8 – Reports:** Add accounting dashboards and reports.
+
+**Phase 9 – Security:** Implement server-side authorization, RLS, and audit logs.
+
+**Phase 10 – Regression:** Test all new and existing workflows.
+
+Do not implement risky database changes in one uncontrolled operation.
+
+---
+
+# 21. FINAL DELIVERY REPORT
+
+After implementation, provide:
+
+1. Existing booking components reused.
+2. New staff booking workflow.
+3. Patient registration integration.
+4. New accounting components.
+5. Existing files modified.
+6. New files created.
+7. Database migrations added.
+8. New permissions added or reused.
+9. Financial integration methodology.
+10. How duplicate financial entries are prevented.
+11. Security and RLS changes.
+12. Tests performed and their results.
+13. Any remaining configuration or limitations.
+
+If a requirement conflicts with the existing architecture, stop and explain the conflict before making destructive changes.
+
+---
+
+# FINAL ACCEPTANCE CONDITIONS
+
+The application must support:
+
+**1. Public Bookings:** Continue working exactly as before.
+
+**2. Staff Bookings:** Employees can create bookings independently from the public homepage workflow, with employee identity and booking source recorded.
+
+**3. Patient Registration:** Authorized employees can register and manage patients according to their permissions.
+
+**4. Independent Accounting:** A new section named "الحسابات" manages revenues, expenses, cashboxes, bank accounts, receipts, disbursements, balances, and reports independently from the existing Payments section.
+
+**5. Financial Integration:** Accounting can reference bookings and existing payments without duplicate revenue or altered payment workflows.
+
+**6. Employee Permissions:** Administrators can independently assign permissions for patient registration, staff bookings, and accounting.
+
+**ABSOLUTE FINAL RULE: PRESERVE THE EXISTING APPLICATION. ADD ONLY THE REQUESTED FEATURES. NO REDESIGN. NO REBUILD. NO UNRELATED CHANGES. NO DATA LOSS.**

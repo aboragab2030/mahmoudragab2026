@@ -4,11 +4,13 @@ import {
   addStaffUser,
   adminUpdatePassword,
   aiChat,
+  ensureClinicErpSchema,
   ensureMedicalVideosSchema,
   ensureOffersSchema,
   ensurePartnersSchema,
   getMedicalVideoUrl,
   getPartnerDocumentUrl,
+  lookupPatientBookings,
   paymobCreatePayment,
   paymobSettings,
   staffSetup,
@@ -19,11 +21,13 @@ export type BackendName =
   | "add-staff-user"
   | "admin-update-password"
   | "ai-chat"
+  | "ensure-clinic-erp-schema"
   | "ensure-medical-videos-schema"
   | "ensure-offers-schema"
   | "ensure-partners-schema"
   | "get-medical-video-url"
   | "get-partner-document-url"
+  | "lookup-patient-bookings"
   | "paymob-create-payment"
   | "paymob-settings"
   | "staff-setup";
@@ -56,6 +60,9 @@ export async function invokeBackend(
       case "ai-chat":
         result = await aiChat({ data: body });
         break;
+      case "ensure-clinic-erp-schema":
+        result = await ensureClinicErpSchema({ data: body });
+        break;
       case "ensure-medical-videos-schema":
         result = await ensureMedicalVideosSchema({ data: body });
         break;
@@ -70,6 +77,9 @@ export async function invokeBackend(
         break;
       case "get-partner-document-url":
         result = await getPartnerDocumentUrl({ data: body });
+        break;
+      case "lookup-patient-bookings":
+        result = await lookupPatientBookings({ data: body });
         break;
       case "paymob-create-payment":
         result = await paymobCreatePayment({ data: body });

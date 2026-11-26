@@ -140,14 +140,15 @@ export const InstapayReviewPanel = ({ cardClass, inputClass, onPrint, isAdmin = 
     try {
       const { data: { user } } = await supabase.auth.getUser();
       if (!user) { setAllowed(false); return; }
-      const { data: ok } = await supabase.rpc('can_review_instapay', { _uid: user.id } as any);
-      setAllowed(!!ok);
-      if (!ok) return;
+      const { data: ok, error: permError } = await supabase.rpc('can_review_instapay', { _uid: user.id } as any);
+      const canAccess = permError ? isAdmin : Boolean(ok || isAdmin);
+      setAllowed(canAccess);
+      if (!canAccess) return;
       const { data, error } = await supabase.from('instapay_submissions' as any).select('*').order('created_at', { ascending: false });
       if (error) { setListMsg('تعذر تحديث القائمة. حاول مرة أخرى.'); return; }
       const list = (data || []) as unknown as Submission[];
       setRows(list);
-      const ids = list.map(r => r.booking_id);
+      const ids = [...new Set(list.map(r => r.booking_id).filter(Boolean))];
       if (ids.length) {
         const { data: bk } = await supabase.from('bookings').select('id, patient_name, phone, doctor_name, service, date, time').in('id', ids);
         setBookings(Object.fromEntries((bk || []).map((b: any) => [b.id, b])));
@@ -158,7 +159,7 @@ export const InstapayReviewPanel = ({ cardClass, inputClass, onPrint, isAdmin = 
     } finally {
       setRefreshing(false);
     }
-  }, []);
+  }, [isAdmin]);
   useEffect(() => { load(); }, [load]);
   // Keep the list current without a manual click (every 30 seconds while the panel is open).
   useEffect(() => {

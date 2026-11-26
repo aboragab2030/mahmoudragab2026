@@ -73,6 +73,7 @@ interface OverviewDashboardProps {
   settings: AppSettings;
   cardClass: string;
   inputClass: string;
+  onRefresh?: () => Promise<void> | void;
 }
 
 // =========== Helper functions ===========
@@ -123,10 +124,11 @@ const AlertItem = ({ icon: Icon, color, text, count }: { icon: any; color: strin
 
 // =========== Main Component ===========
 const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
-  bookings, operations, doctors, settings, cardClass, inputClass
+  bookings, operations, doctors, settings, cardClass, inputClass, onRefresh
 }) => {
   const [contactLogs, setContactLogs] = useState<any[]>([]);
   const [logsLoading, setLogsLoading] = useState(false);
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [activeSubTab, setActiveSubTab] = useState<'stats' | 'alerts' | 'reminders' | 'staff' | 'tables'>('stats');
   const [expandedSection, setExpandedSection] = useState<string | null>(null);
 
@@ -144,6 +146,15 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
       if (data) setContactLogs(data);
     } catch { /* silent */ }
     setLogsLoading(false);
+  };
+
+  const handleRefreshAll = async () => {
+    setIsRefreshing(true);
+    try {
+      await Promise.all([fetchLogs(), Promise.resolve(onRefresh?.())]);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
 
   const today = todayStr();
@@ -470,8 +481,8 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
           <p className="text-xs text-[#718394] font-bold mt-1">تحديث تلقائي كل 60 ثانية • بيانات حقيقية مباشرة</p>
         </div>
         <div className="flex gap-2">
-          <button onClick={fetchLogs} className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#087F8C]/10 transition-all cursor-pointer">
-            <RefreshCw size={14} className={logsLoading ? 'animate-spin' : ''} /> تحديث
+          <button onClick={() => void handleRefreshAll()} disabled={logsLoading || isRefreshing} className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#087F8C]/10 transition-all cursor-pointer disabled:opacity-60">
+            <RefreshCw size={14} className={logsLoading || isRefreshing ? 'animate-spin' : ''} /> تحديث
           </button>
           <button onClick={handlePrint} className="bg-white text-[#172B3A] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#F5FAFC] transition-all cursor-pointer">
             <Printer size={14} className="text-[#1769AA]" /> طباعة / PDF

@@ -486,7 +486,10 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
 
             <button
               type="button"
-              onClick={() => void loadFiles()}
+              onClick={() => {
+                setFeedback(null);
+                void loadFiles();
+              }}
               disabled={isLoadingFiles || isBusy}
               className="bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] px-4 py-3 rounded-xl font-bold text-xs hover:bg-white transition-all flex items-center gap-2 disabled:opacity-60"
             >
