@@ -5,7 +5,7 @@
 export type DashboardSection =
   | 'overview' | 'doctors' | 'bookings' | 'operations' | 'reminders' | 'patient-stats'
   | 'intelligence' | 'payments' | 'accounting' | 'contact-logs' | 'partners' | 'services' | 'offers' | 'medical-videos' | 'hero-images'
-  | 'complaints' | 'settings' | 'backup' | 'reports' | 'users' | 'paymob-settings';
+  | 'complaints' | 'general-evaluation' | 'settings' | 'backup' | 'reports' | 'users' | 'paymob-settings';
 
 export const PATIENT_PERMISSIONS: { id: string; label: string; group: string }[] = [
   { id: 'patients_view', label: 'عرض ملفات المرضى', group: 'تسجيل وإدارة المرضى' },
@@ -119,6 +119,20 @@ export const PARTNER_PERMISSIONS: { id: string; label: string; group: string }[]
   { id: 'partners_manage_settings', label: 'إدارة إعدادات شركاء النجاح', group: 'شركاء النجاح' },
 ];
 
+export const GENERAL_EVALUATION_PERMISSIONS: { id: string; label: string; group: string }[] = [
+  { id: 'general_evaluation_view', label: 'عرض قسم التقييم العام ولوحة المؤشرات', group: 'التقييم العام' },
+  { id: 'general_evaluation_manage', label: 'إدارة عامة لقسم التقييم العام', group: 'التقييم العام' },
+  { id: 'general_evaluation_view_reports', label: 'عرض تقارير رضا المرضى والتحليلات', group: 'التقييم العام' },
+  { id: 'general_evaluation_export', label: 'تصدير وطباعة تقارير التقييم العام', group: 'التقييم العام' },
+  { id: 'general_evaluation_manage_settings', label: 'إدارة إعدادات التقييم العام', group: 'التقييم العام' },
+  { id: 'general_evaluation_view_patient_details', label: 'عرض بيانات المريض الكاملة في التقييمات', group: 'التقييم العام' },
+  { id: 'general_evaluation_manage_complaints', label: 'إدارة الشكاوى والمقترحات داخل التقييم العام', group: 'التقييم العام' },
+  { id: 'general_evaluation_assign_complaints', label: 'تعيين مسؤول لمعالجة الشكاوى', group: 'التقييم العام' },
+  { id: 'general_evaluation_resolve_complaints', label: 'حل وإغلاق الشكاوى وتسجيل الإجراءات', group: 'التقييم العام' },
+  { id: 'general_evaluation_manage_followups', label: 'متابعة الشكاوى والتواصل مع المرضى', group: 'التقييم العام' },
+  { id: 'general_evaluation_view_doctor_ratings', label: 'عرض تقارير وتقييمات الأطباء', group: 'التقييم العام' },
+];
+
 export const DASHBOARD_PERMISSIONS: { id: string; label: string; group?: string }[] = [
   { id: 'view_overview', label: 'نظرة عامة' },
   { id: 'manage_doctors', label: 'إدارة الأطباء' },
@@ -140,6 +154,7 @@ export const DASHBOARD_PERMISSIONS: { id: string; label: string; group?: string 
   ...MEDICAL_VIDEO_PERMISSIONS,
   { id: 'manage_hero_images', label: 'إدارة الصور' },
   { id: 'manage_complaints', label: 'إدارة الشكاوى والمقترحات' },
+  ...GENERAL_EVALUATION_PERMISSIONS,
   { id: 'manage_settings', label: 'الإعدادات العامة' },
   { id: 'manage_backup', label: 'النسخ الاحتياطي' },
 ];
@@ -178,6 +193,7 @@ export const SECTION_PERMISSIONS: Record<DashboardSection, string[]> = {
   'medical-videos': MEDICAL_VIDEO_PERMISSIONS.map(p => p.id),
   'hero-images': ['manage_hero_images'],
   complaints: ['manage_complaints'],
+  'general-evaluation': GENERAL_EVALUATION_PERMISSIONS.map(p => p.id),
   settings: ['manage_settings'],
   backup: ['manage_backup'],
   users: [],
@@ -187,7 +203,7 @@ export const SECTION_PERMISSIONS: Record<DashboardSection, string[]> = {
 // Side menu order, used to pick the first section a staff member may open.
 export const SECTION_ORDER: DashboardSection[] = [
   'overview', 'doctors', 'bookings', 'operations', 'reminders', 'patient-stats', 'intelligence',
-  'payments', 'accounting', 'contact-logs', 'partners', 'services', 'offers', 'medical-videos', 'hero-images', 'complaints', 'users',
+  'payments', 'accounting', 'contact-logs', 'partners', 'services', 'offers', 'medical-videos', 'hero-images', 'general-evaluation', 'users',
   'settings', 'backup', 'paymob-settings',
 ];
 
@@ -261,3 +277,20 @@ export function hasPatientBillingPermission(user: PermissionUser, perm: string):
   return perms.includes(perm);
 }
 
+const GENERAL_EVALUATION_MANAGE_IMPLIED = new Set([
+  'general_evaluation_view',
+  'general_evaluation_view_reports',
+  'general_evaluation_manage_complaints',
+  'general_evaluation_assign_complaints',
+  'general_evaluation_resolve_complaints',
+  'general_evaluation_manage_followups',
+  'general_evaluation_view_doctor_ratings',
+]);
+
+export function hasGeneralEvaluationPermission(user: PermissionUser, perm: string): boolean {
+  if (!user) return false;
+  if (user.role === 'admin') return true;
+  const perms = user.permissions || [];
+  if (perms.includes(perm)) return true;
+  return perms.includes('general_evaluation_manage') && GENERAL_EVALUATION_MANAGE_IMPLIED.has(perm);
+}

@@ -10,6 +10,7 @@ import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/
 import {
   ACCOUNTING_PERMISSIONS,
   DASHBOARD_PERMISSIONS,
+  GENERAL_EVALUATION_PERMISSIONS,
   MEDICAL_VIDEO_PERMISSIONS,
   OFFER_PERMISSIONS,
   PARTNER_PERMISSIONS,
@@ -881,6 +882,7 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
                               { title: 'حجوزات الموظفين', list: STAFF_BOOKING_PERMISSIONS },
                               { title: 'قسم الحسابات', list: ACCOUNTING_PERMISSIONS },
                               { title: 'حسابات المرضى وتأكيد المدفوعات', list: PATIENT_BILLING_PAYMENT_PERMISSIONS },
+                              { title: 'التقييم العام', list: GENERAL_EVALUATION_PERMISSIONS },
                             ].map(group => (
                               <div key={group.title} className="pt-2 mt-2 border-t border-[#DFEAF0]">
                                 <div className="flex items-center justify-between px-2 py-1">

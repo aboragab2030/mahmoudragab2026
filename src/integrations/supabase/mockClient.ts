@@ -293,11 +293,48 @@ const createInitialTables = (): Record<string, Row[]> => ({
   accounting_account_transactions: [],
   patient_billing_records: [],
   patient_billing_transactions: [],
+  patient_experience_settings: [
+    {
+      id: 1,
+      public_form_enabled: true,
+      allow_anonymous_submission: true,
+      require_phone_for_complaint: true,
+      rate_limit_minutes: 10,
+      show_non_return_question: true,
+      show_waiting_time_section: true,
+      auto_create_complaint_on_low_rating: false,
+      low_rating_threshold: 2,
+      welcome_message_ar: "رأيك يهمنا لتطوير جودة الرعاية الطبية والخدمات المقدمة في مركز برادة للعيون",
+      welcome_message_en: "Your feedback helps us improve medical care and patient experience at Barada Eye Center",
+      thank_you_message_ar: "شكراً لمشاركتنا تقييمك. ملاحظاتك محل تقدير واهتمام إدارة المركز.",
+      thank_you_message_en: "Thank you for sharing your evaluation with Barada Eye Center.",
+      updated_by_staff_id: null,
+      updated_at: new Date().toISOString(),
+    },
+  ],
+  patient_experience_evaluations: [],
+  patient_experience_rating_details: [],
+  patient_non_return_reasons: [],
+  patient_experience_followups: [],
 });
+
+const GENERAL_EVALUATION_PERMS_LIST = [
+  "general_evaluation_view",
+  "general_evaluation_manage",
+  "general_evaluation_view_reports",
+  "general_evaluation_export",
+  "general_evaluation_manage_settings",
+  "general_evaluation_view_patient_details",
+  "general_evaluation_manage_complaints",
+  "general_evaluation_assign_complaints",
+  "general_evaluation_resolve_complaints",
+  "general_evaluation_manage_followups",
+  "general_evaluation_view_doctor_ratings",
+];
 
 function checkMockPermission(
   uid: string,
-  domain: "patient" | "staff_booking" | "accounting" | "patient_billing",
+  domain: "patient" | "staff_booking" | "accounting" | "patient_billing" | "general_evaluation",
   perm: string,
 ): boolean {
   if (!uid) return false;
@@ -307,6 +344,9 @@ function checkMockPermission(
   if (!profile || profile.is_active === false) return false;
   if (!tables.user_roles.some((r) => r.user_id === uid)) return false;
   const perms = Array.isArray(profile.permissions) ? (profile.permissions as string[]) : [];
+  if (domain === "general_evaluation" && perm === "*any*") {
+    return GENERAL_EVALUATION_PERMS_LIST.some((p) => perms.includes(p));
+  }
   if (perms.includes(perm)) return true;
   if (domain === "patient" && perms.includes("manage_bookings")) {
     return ["patients_view", "patients_search", "patients_view_history"].includes(perm);
@@ -316,6 +356,13 @@ function checkMockPermission(
   }
   if (domain === "accounting" && perms.includes("accounting_manage")) {
     return !["accounting_manage_opening_balances", "accounting_manage_settings", "accounting_view_sensitive_data"].includes(perm);
+  }
+  if (domain === "general_evaluation" && perms.includes("general_evaluation_manage")) {
+    return ![
+      "general_evaluation_manage_settings",
+      "general_evaluation_view_patient_details",
+      "general_evaluation_export",
+    ].includes(perm);
   }
   return false;
 }
@@ -777,6 +824,22 @@ function makeQueryBuilder(tableName: string) {
         }
       }
 
+      if (tableName === "complaints") {
+        for (const item of items) {
+          if (!item.reference_number) {
+            const stamp = new Date().toISOString().slice(0, 10).replace(/-/g, "");
+            item.reference_number = `CMP-${stamp}-${String(item.id).replace(/-/g, "").slice(-4).toUpperCase()}`;
+          }
+          if (!item.source) item.source = "contact_form";
+          if (!item.category) item.category = "أخرى";
+          if (!item.priority) item.priority = "medium";
+          if (!item.status) item.status = "جديدة";
+          if (!item.date) item.date = new Date().toISOString().slice(0, 10);
+          if (!item.updated_at) item.updated_at = new Date().toISOString();
+          item.patient_contacted = Boolean(item.patient_contacted);
+        }
+      }
+
       rows.push(...items);
       if (tableName === "profiles") syncProfilesToMockAuth(items);
       if (tableName === "patients") {
@@ -863,6 +926,21 @@ function makeQueryBuilder(tableName: string) {
             const normPhone = String(nextRow.phone).replace(/\D/g, "");
             if (rows.some((r, idx) => idx !== i && String(r.phone || "").replace(/\D/g, "") === normPhone)) {
               return { data: null, error: { code: "23505", message: "يوجد ملف مريض مسجل مسبقاً بنفس رقم الهاتف" } };
+            }
+          }
+          if (tableName === "complaints") {
+            if (nextRow.status === "تم الحل" && !String(nextRow.resolution_note || "").trim()) {
+              return { data: null, error: { code: "P0001", message: "يجب كتابة تفاصيل الحل قبل تغيير حالة الشكوى إلى تم الحل" } };
+            }
+            if (
+              nextRow.status === "مرفوضة مع توضيح السبب" &&
+              !String(nextRow.rejection_reason || "").trim() &&
+              !String(nextRow.resolution_note || "").trim()
+            ) {
+              return { data: null, error: { code: "P0001", message: "يجب توضيح سبب رفض الشكوى" } };
+            }
+            if ((nextRow.status === "تم الحل" || nextRow.status === "مغلقة") && !nextRow.resolved_at) {
+              nextRow.resolved_at = new Date().toISOString();
             }
           }
           rows[i] = nextRow;
@@ -1995,6 +2073,511 @@ export function createMockSupabaseClient(): SupabaseClient<Database> {
           }
           return { data: [], error: null };
         }
+        case "get_public_evaluation_config": {
+          const cfg = tables.patient_experience_settings[0] || {};
+          return {
+            data: {
+              public_form_enabled: cfg.public_form_enabled !== false,
+              allow_anonymous_submission: cfg.allow_anonymous_submission !== false,
+              require_phone_for_complaint: cfg.require_phone_for_complaint !== false,
+              show_non_return_question: cfg.show_non_return_question !== false,
+              show_waiting_time_section: cfg.show_waiting_time_section !== false,
+              welcome_message_ar: cfg.welcome_message_ar || "رأيك يهمنا لتطوير جودة الرعاية الطبية والخدمات المقدمة في مركز برادة للعيون",
+              welcome_message_en: cfg.welcome_message_en || "Your feedback helps us improve medical care and patient experience at Barada Eye Center",
+              thank_you_message_ar: cfg.thank_you_message_ar || "شكراً لمشاركتنا تقييمك. ملاحظاتك محل تقدير واهتمام إدارة المركز.",
+              thank_you_message_en: cfg.thank_you_message_en || "Thank you for sharing your evaluation with Barada Eye Center.",
+            },
+            error: null,
+          };
+        }
+        case "get_evaluation_booking_context": {
+          const bkId = String(params._booking_id || "");
+          const token = String(params._token || "").trim();
+          const bk = tables.bookings.find(
+            (b) => b.id === bkId && Boolean(b.cancellation_token) && String(b.cancellation_token) === token,
+          );
+          if (!bk) return { data: { valid: false }, error: null };
+          return {
+            data: {
+              valid: true,
+              booking_id: bk.id,
+              patient_name: bk.patient_name,
+              doctor_name: bk.doctor_name,
+              service_name: bk.service,
+              visit_date: bk.date,
+            },
+            error: null,
+          };
+        }
+        case "submit_patient_experience_evaluation": {
+          const payload = (params._payload || {}) as Record<string, unknown>;
+          const cfg = tables.patient_experience_settings[0] || {};
+          const channel = String(payload.submission_channel || "public_nav").trim() || "public_nav";
+          const feedbackType = String(payload.feedback_type || "evaluation").trim() || "evaluation";
+          const idem = String(payload.idempotency_key || "").trim() || null;
+          const uid = getActiveMockSession()?.user?.id || null;
+
+          if (channel !== "staff_entry" && cfg.public_form_enabled === false) {
+            return { data: null, error: { message: "نموذج التقييم العام متوقف مؤقتاً من إعدادات الإدارة" } };
+          }
+          if (channel === "staff_entry") {
+            if (
+              !uid ||
+              (!checkMockPermission(uid, "general_evaluation", "general_evaluation_manage") &&
+                !checkMockPermission(uid, "general_evaluation", "general_evaluation_manage_followups"))
+            ) {
+              return { data: null, error: { code: "42501", message: "غير مصرح بإدخال تقييم موظف" } };
+            }
+          }
+
+          if (idem) {
+            const existing = tables.patient_experience_evaluations.find((e) => e.idempotency_key === idem);
+            if (existing) {
+              const existingCmp = existing.complaint_id
+                ? tables.complaints.find((c) => c.id === existing.complaint_id)
+                : null;
+              return {
+                data: {
+                  ok: true,
+                  deduplicated: true,
+                  evaluation_id: existing.id,
+                  evaluation_code: existing.evaluation_code,
+                  complaint_id: existing.complaint_id || null,
+                  complaint_reference: existingCmp?.reference_number || null,
+                },
+                error: null,
+              };
+            }
+          }
+
+          const overall = Number(payload.overall_satisfaction);
+          if (!Number.isFinite(overall) || overall < 1 || overall > 5) {
+            return { data: null, error: { message: "يجب اختيار التقييم العام من 1 إلى 5" } };
+          }
+          const recommend = String(payload.recommendation_choice || "").trim();
+          if (!["definitely_yes", "probably_yes", "not_sure", "probably_no", "definitely_no"].includes(recommend)) {
+            return { data: null, error: { message: "يجب اختيار إجابة سؤال الترشيح" } };
+          }
+
+          const normalizeDigits = (val: unknown) =>
+            String(val || "")
+              .replace(/[٠-٩]/g, (d) => String("٠١٢٣٤٥٦٧٨٩".indexOf(d)))
+              .replace(/[^0-9]/g, "");
+
+          const normPhone = normalizeDigits(payload.patient_phone);
+          let patientName = String(payload.patient_name || "").trim().slice(0, 200);
+          const fileNumber = String(payload.patient_file_number || "").trim().slice(0, 60) || null;
+
+          if ((feedbackType === "complaint" || feedbackType === "suggestion") && cfg.require_phone_for_complaint !== false && normPhone.length < 8) {
+            return { data: null, error: { message: "يرجى إدخال رقم هاتف صحيح للتواصل بخصوص الشكوى أو الاقتراح" } };
+          }
+          if (!patientName) {
+            if (cfg.allow_anonymous_submission !== false && feedbackType !== "complaint" && feedbackType !== "suggestion") {
+              patientName = "مريض زائر";
+            } else {
+              return { data: null, error: { message: "يرجى إدخال الاسم" } };
+            }
+          }
+          let storedPhone = normPhone;
+          if (!normPhone) {
+            if (cfg.allow_anonymous_submission !== false && feedbackType !== "complaint" && feedbackType !== "suggestion") {
+              storedPhone = "غير مسجل";
+            } else {
+              return { data: null, error: { message: "يرجى إدخال رقم الهاتف" } };
+            }
+          }
+
+          const rateLimitMins = Number(cfg.rate_limit_minutes ?? 10);
+          if (channel !== "staff_entry" && rateLimitMins > 0 && normPhone) {
+            const cutoff = Date.now() - rateLimitMins * 60 * 1000;
+            const recent = tables.patient_experience_evaluations.some(
+              (e) => e.patient_phone === normPhone && new Date(String(e.created_at)).getTime() > cutoff,
+            );
+            if (recent) {
+              return { data: null, error: { message: "تم استلام تقييمك مؤخراً. يمكنك إرسال تقييم جديد بعد بضع دقائق." } };
+            }
+          }
+
+          // Safe booking & patient linking (NEVER creates a duplicate patient row)
+          let linkedBookingId: string | null = null;
+          let linkedPatientId: string | null = null;
+          if (payload.booking_id) {
+            const rawBkId = String(payload.booking_id);
+            const rawToken = String(payload.booking_token || "");
+            const matchedBk = tables.bookings.find((b) =>
+              channel === "staff_entry"
+                ? b.id === rawBkId
+                : b.id === rawBkId && Boolean(b.cancellation_token) && String(b.cancellation_token) === rawToken,
+            );
+            if (matchedBk) {
+              linkedBookingId = String(matchedBk.id);
+              linkedPatientId = matchedBk.patient_id ? String(matchedBk.patient_id) : null;
+            }
+          }
+          if (!linkedPatientId && (normPhone || fileNumber)) {
+            const matchedPatient = tables.patients.find((p) => {
+              if (fileNumber && p.file_number === fileNumber) return true;
+              const p1 = normalizeDigits(p.phone);
+              const p2 = normalizeDigits(p.phone2);
+              return Boolean(normPhone && (p1 === normPhone || p2 === normPhone));
+            });
+            if (matchedPatient) linkedPatientId = String(matchedPatient.id);
+          }
+
+          const doctorName = String(payload.doctor_name || "").trim() || null;
+          const matchedDoctor = doctorName ? tables.doctors.find((d) => d.name === doctorName) : null;
+
+          const avgOf = (vals: Array<unknown>): number | null => {
+            const nums = vals.map((v) => Number(v)).filter((n) => Number.isFinite(n) && n >= 1 && n <= 5);
+            if (nums.length === 0) return null;
+            return Math.round((nums.reduce((s, n) => s + n, 0) / nums.length) * 100) / 100;
+          };
+
+          const docOverall = avgOf([
+            payload.doctor_treatment_rating,
+            payload.doctor_explanation_rating,
+            payload.doctor_attention_rating,
+            payload.doctor_clarity_rating,
+          ]);
+          const srvOverall = avgOf([
+            payload.service_quality_rating,
+            payload.staff_cooperation_rating,
+            payload.procedures_ease_rating,
+          ]);
+          const recOverall = avgOf([
+            payload.reception_treatment_rating,
+            payload.reception_respect_rating,
+            payload.reception_speed_rating,
+            payload.reception_helpfulness_rating,
+          ]);
+
+          const evalId = crypto.randomUUID();
+          const nowIso = new Date().toISOString();
+          const stamp = nowIso.slice(0, 10).replace(/-/g, "");
+          const evalCode = `EVL-${stamp}-${evalId.replace(/-/g, "").slice(-4).toUpperCase()}`;
+          const staffProf = uid ? tables.profiles.find((p) => p.user_id === uid) : null;
+
+          const evalRow: Row = {
+            id: evalId,
+            evaluation_code: evalCode,
+            idempotency_key: idem,
+            submission_channel: channel,
+            feedback_type: feedbackType,
+            patient_id: linkedPatientId,
+            booking_id: linkedBookingId,
+            patient_name: patientName,
+            patient_phone: storedPhone,
+            patient_file_number: fileNumber,
+            doctor_id: matchedDoctor ? matchedDoctor.id : null,
+            doctor_name: doctorName,
+            service_name: String(payload.service_name || "").trim() || null,
+            visit_date: String(payload.visit_date || "").trim() || null,
+            appointment_ref: String(payload.appointment_ref || "").trim() || null,
+            doctor_treatment_rating: payload.doctor_treatment_rating ? Number(payload.doctor_treatment_rating) : null,
+            doctor_explanation_rating: payload.doctor_explanation_rating ? Number(payload.doctor_explanation_rating) : null,
+            doctor_attention_rating: payload.doctor_attention_rating ? Number(payload.doctor_attention_rating) : null,
+            doctor_clarity_rating: payload.doctor_clarity_rating ? Number(payload.doctor_clarity_rating) : null,
+            doctor_overall_rating: docOverall,
+            doctor_comment: String(payload.doctor_comment || "").trim() || null,
+            service_quality_rating: payload.service_quality_rating ? Number(payload.service_quality_rating) : null,
+            staff_cooperation_rating: payload.staff_cooperation_rating ? Number(payload.staff_cooperation_rating) : null,
+            procedures_ease_rating: payload.procedures_ease_rating ? Number(payload.procedures_ease_rating) : null,
+            service_overall_rating: srvOverall,
+            reception_treatment_rating: payload.reception_treatment_rating ? Number(payload.reception_treatment_rating) : null,
+            reception_respect_rating: payload.reception_respect_rating ? Number(payload.reception_respect_rating) : null,
+            reception_speed_rating: payload.reception_speed_rating ? Number(payload.reception_speed_rating) : null,
+            reception_helpfulness_rating: payload.reception_helpfulness_rating ? Number(payload.reception_helpfulness_rating) : null,
+            reception_overall_rating: recOverall,
+            waiting_time_range: String(payload.waiting_time_range || "").trim() || null,
+            actual_wait_minutes:
+              payload.actual_wait_minutes !== undefined && payload.actual_wait_minutes !== null && payload.actual_wait_minutes !== ""
+                ? Number(payload.actual_wait_minutes)
+                : null,
+            waiting_time_satisfied:
+              typeof payload.waiting_time_satisfied === "boolean" ? payload.waiting_time_satisfied : null,
+            waiting_time_rating: payload.waiting_time_rating ? Number(payload.waiting_time_rating) : null,
+            waiting_time_comment: String(payload.waiting_time_comment || "").trim() || null,
+            overall_satisfaction: overall,
+            overall_comment: String(payload.overall_comment || "").trim() || null,
+            recommendation_choice: recommend,
+            non_return_reason: String(payload.non_return_reason || "").trim() || null,
+            non_return_explanation: String(payload.non_return_explanation || "").trim() || null,
+            complaint_id: null,
+            complaint_category: String(payload.complaint_category || "أخرى").trim() || "أخرى",
+            complaint_priority: String(payload.complaint_priority || (feedbackType === "complaint" && overall <= 2 ? "high" : "medium")),
+            feedback_message: String(payload.feedback_message || "").trim() || null,
+            contact_consent: payload.contact_consent !== false,
+            is_anonymous_public: true,
+            client_fingerprint_hash: String(payload.client_fingerprint_hash || "").trim() || null,
+            review_status: "جديد",
+            internal_notes: null,
+            created_by_staff_id: uid,
+            created_by_staff_name: staffProf ? String(staffProf.name) : null,
+            created_at: nowIso,
+            updated_at: nowIso,
+          };
+
+          const detailSpecs: Array<[string, string, string, unknown]> = [
+            ["doctor", "doctor_treatment", "التعامل المهني للطبيب", evalRow.doctor_treatment_rating],
+            ["doctor", "doctor_explanation", "الشرح والتواصل", evalRow.doctor_explanation_rating],
+            ["doctor", "doctor_attention", "الاهتمام باستفسارات المريض", evalRow.doctor_attention_rating],
+            ["doctor", "doctor_clarity", "وضوح التعليمات الطبية", evalRow.doctor_clarity_rating],
+            ["service", "service_quality", "جودة الخدمة", evalRow.service_quality_rating],
+            ["service", "staff_cooperation", "تعاون فريق العمل", evalRow.staff_cooperation_rating],
+            ["service", "procedures_ease", "سهولة الإجراءات", evalRow.procedures_ease_rating],
+            ["reception", "reception_treatment", "تعامل موظفي الاستقبال", evalRow.reception_treatment_rating],
+            ["reception", "reception_respect", "الاحترام والمهنية", evalRow.reception_respect_rating],
+            ["reception", "reception_speed", "سرعة التسجيل", evalRow.reception_speed_rating],
+            ["reception", "reception_helpfulness", "المساعدة والتواصل", evalRow.reception_helpfulness_rating],
+            ["waiting", "waiting_time", "وقت الانتظار", evalRow.waiting_time_rating],
+            ["overall", "overall_satisfaction", "الرضا العام", evalRow.overall_satisfaction],
+          ];
+          for (const [section_key, criterion_key, criterion_label, score] of detailSpecs) {
+            if (typeof score === "number" && score >= 1 && score <= 5) {
+              tables.patient_experience_rating_details.push({
+                id: crypto.randomUUID(),
+                evaluation_id: evalId,
+                section_key,
+                criterion_key,
+                criterion_label,
+                score,
+                created_at: nowIso,
+              });
+            }
+          }
+
+          if (evalRow.non_return_reason) {
+            tables.patient_non_return_reasons.push({
+              id: crypto.randomUUID(),
+              evaluation_id: evalId,
+              patient_id: linkedPatientId,
+              booking_id: linkedBookingId,
+              doctor_name: doctorName,
+              reason_code: evalRow.non_return_reason,
+              explanation: evalRow.non_return_explanation,
+              source: channel === "staff_entry" ? "followup_call" : "patient_evaluation",
+              recorded_by_staff_id: uid,
+              recorded_by_staff_name: staffProf ? String(staffProf.name) : null,
+              recorded_at: nowIso,
+              created_at: nowIso,
+            });
+          }
+
+          const autoOnLow = Boolean(cfg.auto_create_complaint_on_low_rating) && overall <= Number(cfg.low_rating_threshold ?? 2);
+          let complaintId: string | null = null;
+          let complaintRef: string | null = null;
+          if (feedbackType === "complaint" || feedbackType === "suggestion" || autoOnLow) {
+            const cmpIdem = idem ? `eval_cmp:${idem}` : `eval_cmp:${evalId}`;
+            let existingCmp = tables.complaints.find((c) => c.idempotency_key === cmpIdem);
+            if (!existingCmp) {
+              complaintId = crypto.randomUUID();
+              complaintRef = `CMP-${stamp}-${complaintId.replace(/-/g, "").slice(-4).toUpperCase()}`;
+              existingCmp = {
+                id: complaintId,
+                reference_number: complaintRef,
+                name: patientName,
+                phone: storedPhone,
+                type: feedbackType === "suggestion" ? "suggestion" : "complaint",
+                message:
+                  (evalRow.feedback_message as string | null) ||
+                  (evalRow.overall_comment as string | null) ||
+                  `تقييم منخفض (${overall}/5)${doctorName ? ` - ${doctorName}` : ""}`,
+                date: String(evalRow.visit_date || nowIso.slice(0, 10)),
+                source: "evaluation",
+                category: evalRow.complaint_category,
+                priority: evalRow.complaint_priority,
+                status: "جديدة",
+                patient_id: linkedPatientId,
+                booking_id: linkedBookingId,
+                evaluation_id: evalId,
+                assigned_staff_id: null,
+                assigned_staff_name: null,
+                resolution_note: null,
+                rejection_reason: null,
+                internal_notes: null,
+                patient_contacted: false,
+                patient_contacted_at: null,
+                patient_resolution_satisfaction: null,
+                followup_date: null,
+                resolved_at: null,
+                idempotency_key: cmpIdem,
+                created_at: nowIso,
+                updated_at: nowIso,
+              };
+              tables.complaints.push(existingCmp);
+            } else {
+              complaintId = String(existingCmp.id);
+              complaintRef = String(existingCmp.reference_number || "");
+            }
+            evalRow.complaint_id = complaintId;
+          }
+
+          tables.patient_experience_evaluations.push(evalRow);
+
+          return {
+            data: {
+              ok: true,
+              deduplicated: false,
+              evaluation_id: evalId,
+              evaluation_code: evalCode,
+              complaint_id: complaintId,
+              complaint_reference: complaintRef,
+            },
+            error: null,
+          };
+        }
+        case "update_complaint_workflow": {
+          const uid = getActiveMockSession()?.user?.id || "";
+          if (!uid) return { data: null, error: { code: "42501", message: "يجب تسجيل الدخول أولاً" } };
+
+          const prof = tables.profiles.find((p) => p.user_id === uid);
+          const isLegacyMgr = Array.isArray(prof?.permissions) && (prof!.permissions as string[]).includes("manage_complaints");
+          const canUpdate =
+            isLegacyMgr ||
+            checkMockPermission(uid, "general_evaluation", "general_evaluation_manage_complaints") ||
+            checkMockPermission(uid, "general_evaluation", "general_evaluation_assign_complaints") ||
+            checkMockPermission(uid, "general_evaluation", "general_evaluation_resolve_complaints") ||
+            checkMockPermission(uid, "general_evaluation", "general_evaluation_manage_followups");
+
+          if (!canUpdate) {
+            return { data: null, error: { code: "42501", message: "ليس لديك صلاحية تحديث الشكوى أو متابعتها" } };
+          }
+
+          const cid = String(params._complaint_id || "");
+          const payload = (params._payload || {}) as Record<string, unknown>;
+          const idx = tables.complaints.findIndex((c) => c.id === cid);
+          if (idx < 0) return { data: null, error: { message: "الشكوى غير موجودة" } };
+          const oldCmp = tables.complaints[idx];
+
+          const newStatus = payload.status ? String(payload.status) : String(oldCmp.status || "جديدة");
+          const newAssignedId = "assigned_staff_id" in payload ? (payload.assigned_staff_id ? String(payload.assigned_staff_id) : null) : oldCmp.assigned_staff_id;
+          const newResNote = payload.resolution_note ? String(payload.resolution_note).trim() : (oldCmp.resolution_note || null);
+          const newRejReason = payload.rejection_reason ? String(payload.rejection_reason).trim() : (oldCmp.rejection_reason || null);
+
+          if ("assigned_staff_id" in payload && newAssignedId !== oldCmp.assigned_staff_id) {
+            if (
+              !isLegacyMgr &&
+              !checkMockPermission(uid, "general_evaluation", "general_evaluation_assign_complaints") &&
+              !checkMockPermission(uid, "general_evaluation", "general_evaluation_manage_complaints")
+            ) {
+              return { data: null, error: { code: "42501", message: "ليس لديك صلاحية تعيين مسؤول للشكوى" } };
+            }
+          }
+
+          if (["تم الحل", "مغلقة", "مرفوضة مع توضيح السبب"].includes(newStatus) && newStatus !== oldCmp.status) {
+            if (
+              !isLegacyMgr &&
+              !checkMockPermission(uid, "general_evaluation", "general_evaluation_resolve_complaints") &&
+              !checkMockPermission(uid, "general_evaluation", "general_evaluation_manage_complaints")
+            ) {
+              return { data: null, error: { code: "42501", message: "ليس لديك صلاحية حل أو إغلاق الشكاوى" } };
+            }
+          }
+
+          if (newStatus === "تم الحل" && !String(newResNote || "").trim()) {
+            return { data: null, error: { message: "يجب كتابة تفاصيل الحل قبل تغيير حالة الشكوى إلى تم الحل" } };
+          }
+          if (newStatus === "مرفوضة مع توضيح السبب" && !String(newRejReason || "").trim() && !String(newResNote || "").trim()) {
+            return { data: null, error: { message: "يجب توضيح سبب رفض الشكوى" } };
+          }
+
+          const nowIso = new Date().toISOString();
+          const patientContacted =
+            typeof payload.patient_contacted === "boolean" ? payload.patient_contacted : Boolean(oldCmp.patient_contacted);
+          const updatedCmp: Row = {
+            ...oldCmp,
+            status: newStatus,
+            priority: payload.priority ? String(payload.priority) : oldCmp.priority,
+            category: payload.category ? String(payload.category) : oldCmp.category,
+            assigned_staff_id: newAssignedId,
+            assigned_staff_name:
+              "assigned_staff_id" in payload
+                ? payload.assigned_staff_name
+                  ? String(payload.assigned_staff_name)
+                  : null
+                : oldCmp.assigned_staff_name,
+            resolution_note: newResNote,
+            rejection_reason: newRejReason,
+            internal_notes: "internal_notes" in payload ? (payload.internal_notes ? String(payload.internal_notes) : null) : oldCmp.internal_notes,
+            followup_date: "followup_date" in payload ? (payload.followup_date ? String(payload.followup_date) : null) : oldCmp.followup_date,
+            patient_contacted: patientContacted,
+            patient_contacted_at:
+              patientContacted && !oldCmp.patient_contacted ? nowIso : oldCmp.patient_contacted_at || null,
+            patient_resolution_satisfaction:
+              payload.patient_resolution_satisfaction !== undefined && payload.patient_resolution_satisfaction !== null
+                ? Number(payload.patient_resolution_satisfaction)
+                : oldCmp.patient_resolution_satisfaction || null,
+            resolved_at:
+              ["تم الحل", "مغلقة"].includes(newStatus) && !["تم الحل", "مغلقة"].includes(String(oldCmp.status || ""))
+                ? oldCmp.resolved_at || nowIso
+                : oldCmp.resolved_at || null,
+            updated_at: nowIso,
+          };
+          tables.complaints[idx] = updatedCmp;
+
+          const actorName = prof ? String(prof.name) : "موظف";
+          if (
+            payload.action_taken ||
+            payload.followup_note ||
+            newStatus !== oldCmp.status ||
+            ("assigned_staff_id" in payload && newAssignedId !== oldCmp.assigned_staff_id)
+          ) {
+            tables.patient_experience_followups.push({
+              id: crypto.randomUUID(),
+              complaint_id: cid,
+              evaluation_id: oldCmp.evaluation_id || null,
+              action_type: ["تم الحل", "مغلقة", "مرفوضة مع توضيح السبب"].includes(newStatus)
+                ? "resolution"
+                : "assigned_staff_id" in payload && newAssignedId !== oldCmp.assigned_staff_id
+                  ? "assignment"
+                  : "followup",
+              status_after: newStatus,
+              assigned_staff_id: updatedCmp.assigned_staff_id,
+              assigned_staff_name: updatedCmp.assigned_staff_name,
+              followup_date: updatedCmp.followup_date,
+              action_taken: payload.action_taken ? String(payload.action_taken) : null,
+              note:
+                (payload.followup_note ? String(payload.followup_note) : null) ||
+                newResNote ||
+                newRejReason ||
+                null,
+              patient_contacted: patientContacted,
+              patient_satisfaction: updatedCmp.patient_resolution_satisfaction,
+              created_by_staff_id: uid,
+              created_by_staff_name: actorName,
+              created_at: nowIso,
+            });
+          }
+
+          if (payload.non_return_reason) {
+            tables.patient_non_return_reasons.push({
+              id: crypto.randomUUID(),
+              evaluation_id: oldCmp.evaluation_id || null,
+              patient_id: oldCmp.patient_id || null,
+              booking_id: oldCmp.booking_id || null,
+              doctor_name: null,
+              reason_code: String(payload.non_return_reason),
+              explanation: payload.non_return_explanation ? String(payload.non_return_explanation) : null,
+              source: "followup_call",
+              recorded_by_staff_id: uid,
+              recorded_by_staff_name: actorName,
+              recorded_at: nowIso,
+              created_at: nowIso,
+            });
+          }
+
+          return { data: { ok: true, complaint_id: cid }, error: null };
+        }
+        case "has_general_evaluation_permission":
+          return {
+            data: checkMockPermission(String(params._uid || ""), "general_evaluation", String(params._perm || "")),
+            error: null,
+          };
+        case "has_any_general_evaluation_permission":
+          return {
+            data: checkMockPermission(String(params._uid || ""), "general_evaluation", "*any*"),
+            error: null,
+          };
         case "backup_export":
           return {
             data: { format: "barrada-backup-v1", exported_at: new Date().toISOString(), tables },

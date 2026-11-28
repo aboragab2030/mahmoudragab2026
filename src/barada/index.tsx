@@ -49,19 +49,21 @@ import { InstapaySubmittedDialog, submitInstapay, type InstapaySubmissionInput, 
 import { INSTAPAY_STATUS_LABELS, type InstapayStatus } from './instapayRules';
 import { usePaymobEnabled, startPaymobCheckout, PaymobResultDialog, PaymobSettingsPanel } from './PaymobFeature';
 import { StaffManagement } from './StaffManagement';
-import { canAccessSection, firstAccessibleSection, hasPatientPermission, hasStaffBookingPermission } from './permissions';
+import { canAccessSection, firstAccessibleSection, hasPatientPermission, hasStaffBookingPermission, type DashboardSection } from './permissions';
 import { AccountingHub } from './AccountingHub';
 import { PatientManagementModal } from './PatientManagementModal';
 import { StaffBookingModal, type StaffBookingSubmitPayload } from './StaffBookingModal';
 import { ensureClinicErpSchemaReady, listPatients, recordClinicAudit, type PatientRecord } from './patientsService';
 import OverviewDashboard from './OverviewDashboard';
-import { createOperation, updateOperation, setOperationFields, deleteOperation, submitComplaint, deleteComplaint, markBookingReminderSent, mapOperationRow, mapComplaintRow, numericId, readLocalOperations, readLocalComplaints, importLocalRecords } from './clinicRecords';
+import { createOperation, updateOperation, setOperationFields, deleteOperation, submitComplaint, markBookingReminderSent, mapOperationRow, mapComplaintRow, numericId, readLocalOperations, readLocalComplaints, importLocalRecords } from './clinicRecords';
 import { OffersSection } from './OffersSection';
 import { OffersManagement } from './OffersManagement';
 import { mapOfferRow, type OfferRecord } from './offers';
 import { MedicalVideosManagement } from './MedicalVideosManagement';
 import { MedicalVideosPublicView } from './MedicalVideosPublicView';
 import { mapCategoryRow, mapMedicalVideoRow } from './medicalVideos';
+import { PublicEvaluationView } from './PublicEvaluationView';
+import { GeneralEvaluationHub } from './GeneralEvaluationHub';
 
 // Constants for input validation
 const MAX_AI_MESSAGE_LENGTH = 500;
@@ -274,6 +276,13 @@ interface Complaint {
   message: string;
   date: string;
   dbId?: string;
+  referenceNumber?: string;
+  source?: string;
+  category?: string;
+  priority?: string;
+  status?: string;
+  assignedStaffName?: string;
+  resolutionNote?: string;
 }
 
 interface HeroImage {
@@ -365,6 +374,7 @@ const TRANSLATIONS = {
     offers: "عروضنا",
     medicalVideos: "فيديوهات طبية",
     myBookings: "حجوزاتي",
+    generalEvaluation: "التقييم العام",
     contact: "تواصل معنا",
     login: "دخول الموظفين",
     logout: "تسجيل الخروج",
@@ -398,6 +408,7 @@ const TRANSLATIONS = {
     offers: "Offers",
     medicalVideos: "Medical Videos",
     myBookings: "My Bookings",
+    generalEvaluation: "General Evaluation",
     contact: "Contact Us",
     login: "Staff Login",
     logout: "Logout",
@@ -1727,7 +1738,7 @@ const Navbar = ({
   const navItems = settings.patientMode ? [
     { name: t.home, id: 'home' },
     { name: t.myBookings, id: 'my-bookings' },
-    { name: t.contact, id: 'contact' },
+    { name: t.generalEvaluation, id: 'general-evaluation' },
   ] : [
     { name: t.home, id: 'home' },
     { name: t.about, id: 'about' },
@@ -1736,7 +1747,7 @@ const Navbar = ({
     { name: t.offers, id: 'offers' },
     { name: t.medicalVideos, id: 'medical-videos' },
     { name: t.myBookings, id: 'my-bookings' },
-    { name: t.contact, id: 'contact' },
+    { name: t.generalEvaluation, id: 'general-evaluation' },
   ];
 
   return (
@@ -2131,7 +2142,7 @@ const AdminPanel = ({
     await Promise.all([refreshPanelRealtime(), Promise.resolve(onRefresh?.())]);
   };
   
-  const [activeTab, setActiveTab] = useState<'overview' | 'doctors' | 'users' | 'bookings' | 'reports' | 'hero-images' | 'partners' | 'settings' | 'services' | 'offers' | 'medical-videos' | 'complaints' | 'reminders' | 'backup' | 'operations' | 'patient-stats' | 'intelligence' | 'payments' | 'accounting' | 'contact-logs' | 'paymob-settings'>('overview');
+  const [activeTab, setActiveTab] = useState<DashboardSection>('overview');
   const [contactLogs, setContactLogs] = useState<any[]>([]);
   const [contactLogsLoading, setContactLogsLoading] = useState(false);
   const [contactStaffFilter, setContactStaffFilter] = useState('');
@@ -2195,10 +2206,6 @@ const AdminPanel = ({
   const [reportEnd, setReportEnd] = useState('');
   const [reportSortBy, setReportSortBy] = useState<'total' | 'bookings' | 'operations'>('total');
   const [backupFileName, setBackupFileName] = useState(`barada_backup_${new Date().toISOString().split('T')[0]}`);
-
-  const [complaintSearch, setComplaintSearch] = useState('');
-  const [complaintStart, setComplaintStart] = useState('');
-  const [complaintEnd, setComplaintEnd] = useState('');
   
   const [deletingBookingId, setDeletingBookingId] = useState<number | null>(null);
   const [deletingDoctorId, setDeletingDoctorId] = useState<number | null>(null);
@@ -2537,12 +2544,6 @@ const handlePrint = (title: string, contentHtml: string) => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   };
 
-  const handleDeleteComplaint = async (id: number) => {
-    if (!confirm('هل أنت متأكد من حذف هذه الرسالة؟')) return;
-    const target = complaints.find(c => c.id === id);
-    if (target?.dbId && !(await deleteComplaint(target.dbId))) return;
-    setComplaints(prev => prev.filter(c => c.id !== id));
-  };
   const handleSaveSettings = async () => {
     const nextSettings = { ...tempSettings, phones: phonesInput.split('\n').filter(Boolean), addresses: addressesInput.split('\n').filter(Boolean) };
     setSettings(nextSettings);
@@ -2727,17 +2728,6 @@ const handlePrint = (title: string, contentHtml: string) => {
     setTempSettings({ ...tempSettings, stats: newStats });
   };
 
-  const filteredComplaints = complaints.filter(c => {
-    let matches = true; 
-    if (complaintSearch) {
-      const search = complaintSearch.toLowerCase();
-      matches = matches && (c.name.toLowerCase().includes(search) || c.phone.includes(search));
-    }
-    if (complaintStart) matches = matches && (c.date >= complaintStart);
-    if (complaintEnd) matches = matches && (c.date <= complaintEnd);
-    return matches;
-  }).sort((a, b) => b.date.localeCompare(a.date));
-
   const getPatientAnalytics = () => {
     const patientMap: Record<string, { name: string, phone: string, count: number, totalCost: number }> = {};
     const filteredBookingsForAnalytics = allBookings.filter(b => b.status === 'confirmed' && (!analyticsStart || b.date >= analyticsStart) && (!analyticsEnd || b.date <= analyticsEnd));
@@ -2804,7 +2794,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                     {canAccessSection(currentUser, 'offers') && (<button onClick={() => setActiveTab('offers')} className={tabClass('offers')}><Tag size={18} /> إدارة العروض</button>)}
                     {canAccessSection(currentUser, 'medical-videos') && (<button onClick={() => setActiveTab('medical-videos')} className={tabClass('medical-videos')}><Video size={18} /> مكتبة الفيديوهات الطبية</button>)}
                     {canAccessSection(currentUser, 'hero-images') && (<button onClick={() => setActiveTab('hero-images')} className={tabClass('hero-images')}><ImageIcon size={18} /> الصور</button>)}
-                    {canAccessSection(currentUser, 'complaints') && (<button onClick={() => setActiveTab('complaints')} className={tabClass('complaints')}><MessageSquare size={18} /> الشكاوى</button>)}
+                    {canAccessSection(currentUser, 'general-evaluation') && (<button onClick={() => setActiveTab('general-evaluation')} className={tabClass('general-evaluation')}><Star size={18} /> التقييم العام</button>)}
                     <div className="h-px bg-[#DFEAF0] mx-3 my-3"></div>
                     {canAccessSection(currentUser, 'users') && (<button onClick={() => setActiveTab('users')} className={tabClass('users')}><UserCog size={18} /> المستخدمين</button>)}
                     {canAccessSection(currentUser, 'settings') && (<button onClick={() => setActiveTab('settings')} className={tabClass('settings')}><Settings size={18} /> {t.settings}</button>)}
@@ -3349,36 +3339,19 @@ const handlePrint = (title: string, contentHtml: string) => {
                     }}
                   />
                 )}
-                {activeTab === 'complaints' && (
-                  <div className="space-y-6 animate-in fade-in duration-300">
-                    <div className={cardClass}>
-                       <div className="flex justify-between items-center mb-6">
-                          <h3 className="text-lg font-black text-[#172B3A]">صندوق الشكاوى والمقترحات (<span className="fv-num">{filteredComplaints.length}</span>)</h3>
-                          <button onClick={() => {
-                              const esc = (v: string) => String(v ?? '').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
-                              handlePrint('تقرير الشكاوى والمقترحات', `<table><thead><tr><th>النوع</th><th>الاسم</th><th>الهاتف</th><th>التاريخ</th><th>الرسالة</th></tr></thead><tbody>${filteredComplaints.map(c => `<tr><td>${c.type === 'complaint' ? 'شكوى' : 'اقتراح'}</td><td>${esc(c.name)}</td><td>${esc(c.phone)}</td><td>${esc(c.date)}</td><td>${esc(c.message)}</td></tr>`).join('')}</tbody></table>`);
-                          }} className="text-[#087F8C] bg-[#087F8C]/10 hover:bg-[#087F8C]/20 px-4 py-2 rounded-xl flex items-center gap-2 font-bold text-xs transition-colors"><Printer size={15}/> طباعة التقرير</button>
-                       </div>
-                       <div className="flex gap-4 mb-6">
-                          <input type="text" placeholder="بحث بالاسم أو الهاتف..." value={complaintSearch} onChange={e => setComplaintSearch(e.target.value)} className={inputClass} />
-                          <input type="date" value={complaintStart} onChange={e => setComplaintStart(e.target.value)} className={inputClass} />
-                       </div>
-                       <div className="grid grid-cols-1 gap-4">
-                          {filteredComplaints.length === 0 && <p className="text-[#718394] text-center py-8 font-medium">لا توجد رسائل</p>}
-                          {filteredComplaints.map(c => (
-                            <div key={c.id} className={`p-5 rounded-2xl border ${c.type === 'complaint' ? 'bg-red-50/70 border-red-200' : 'bg-[#F5FAFC] border-[#DFEAF0]'} relative`}>
-                               <button onClick={() => handleDeleteComplaint(c.id)} className="absolute top-4 left-4 text-[#718394] hover:text-red-600"><Trash2 size={17}/></button>
-                               <div className="flex items-center gap-3 mb-2">
-                                  <span className={`px-3 py-0.5 rounded-full text-[10px] font-black ${c.type === 'complaint' ? 'bg-red-100 text-red-700' : 'bg-[#087F8C]/10 text-[#087F8C]'}`}>{c.type === 'complaint' ? 'شكوى' : 'اقتراح'}</span>
-                                  <span className="text-xs font-bold text-[#718394] fv-num">{c.date}</span>
-                               </div>
-                               <h4 className="font-black text-[#172B3A] mb-1">{c.name} <span className="text-[#718394] text-xs mx-2 fv-num">{c.phone}</span></h4>
-                               <p className="text-[#172B3A] text-sm mt-2 leading-relaxed bg-white p-3.5 rounded-xl border border-[#DFEAF0]">{c.message}</p>
-                            </div>
-                          ))}
-                       </div>
-                    </div>
-                  </div>
+                {activeTab === 'general-evaluation' && (
+                  <GeneralEvaluationHub
+                    currentUser={currentUser}
+                    currentUserUuid={currentUserUuid}
+                    currentUserName={currentUser.name}
+                    doctors={doctors}
+                    services={services}
+                    staffMembers={realtimeData.staffMembers}
+                    cardClass={cardClass}
+                    inputClass={inputClass}
+                    onComplaintsSynced={refreshPanelRealtime}
+                    onPrintReport={handlePrint}
+                  />
                 )}
                 {activeTab === 'reminders' && (
                   <div className="space-y-6 animate-in fade-in duration-300">
@@ -4250,7 +4223,24 @@ const App = () => {
   // Supabase Auth hook
   const { baradaUser, signIn, signOut, isLoading: authLoading } = useBaradaAuth();
   
-  const [activeSection, setActiveSection] = useState('home');
+  const [evalBookingParam] = useState<{ bookingId?: string; token?: string }>(() => {
+    if (typeof window === 'undefined') return {};
+    const params = new URLSearchParams(window.location.search);
+    return {
+      bookingId: params.get('eval_booking') || undefined,
+      token: params.get('token') || undefined,
+    };
+  });
+
+  const [activeSection, setActiveSection] = useState<string>(() => {
+    if (typeof window === 'undefined') return 'home';
+    const params = new URLSearchParams(window.location.search);
+    const sec = params.get('section') || params.get('page');
+    if (sec === 'general-evaluation' || sec === 'evaluation' || params.get('eval_booking')) {
+      return 'general-evaluation';
+    }
+    return 'home';
+  });
   const [isBookingModalOpen, setIsBookingModalOpen] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<Doctor | null>(null);
   const [selectedOffer, setSelectedOffer] = useState<OfferRecord | null>(null);
@@ -4417,6 +4407,11 @@ const App = () => {
         settings.language === 'ar'
           ? `فيديوهات طبية | ${settings.appName}`
           : `Medical Videos | ${settings.appName}`;
+    } else if (activeSection === 'general-evaluation') {
+      document.title =
+        settings.language === 'ar'
+          ? `التقييم العام | ${settings.appName}`
+          : `General Evaluation | ${settings.appName}`;
     } else if (defaultDocTitleRef.current) {
       document.title = defaultDocTitleRef.current;
     }
@@ -5073,6 +5068,17 @@ const handleNavigate = (sectionId: string) => {
             categories={videoCategories}
             language={settings.language}
             isLoading={medicalVideosLoading}
+          />
+      )}
+
+      {activeSection === 'general-evaluation' && (
+          <PublicEvaluationView
+            doctors={doctors}
+            services={services}
+            language={settings.language}
+            initialBookingId={evalBookingParam.bookingId}
+            initialBookingToken={evalBookingParam.token}
+            onNavigate={handleNavigate}
           />
       )}
 

@@ -36,6 +36,31 @@ export const mapComplaintRow = (c: any) => ({
   type: (c.type === 'complaint' ? 'complaint' : 'suggestion') as 'suggestion' | 'complaint',
   message: c.message,
   date: c.date,
+  createdAt: c.created_at || undefined,
+  referenceNumber: c.reference_number || `CMP-${String(c.id || '').slice(-6).toUpperCase()}`,
+  source: (c.source || 'contact_form') as 'contact_form' | 'evaluation' | 'staff',
+  category: c.category || 'أخرى',
+  priority: (c.priority || 'medium') as 'low' | 'medium' | 'high' | 'urgent',
+  status: c.status || 'جديدة',
+  patientId: c.patient_id || undefined,
+  bookingId: c.booking_id || undefined,
+  evaluationId: c.evaluation_id || undefined,
+  assignedStaffId: c.assigned_staff_id || undefined,
+  assignedStaffName: c.assigned_staff_name || undefined,
+  resolutionNote: c.resolution_note || undefined,
+  rejectionReason: c.rejection_reason || undefined,
+  internalNotes: c.internal_notes || undefined,
+  patientContacted: Boolean(c.patient_contacted),
+  patientContactedAt: c.patient_contacted_at || undefined,
+  patientResolutionSatisfaction:
+    typeof c.patient_resolution_satisfaction === 'number'
+      ? c.patient_resolution_satisfaction
+      : c.patient_resolution_satisfaction
+        ? Number(c.patient_resolution_satisfaction)
+        : undefined,
+  followupDate: c.followup_date || undefined,
+  resolvedAt: c.resolved_at || undefined,
+  updatedAt: c.updated_at || undefined,
 });
 
 const operationToRow = (op: any) => ({
