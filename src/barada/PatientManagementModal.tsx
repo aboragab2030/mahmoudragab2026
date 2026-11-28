@@ -5,6 +5,7 @@ import {
   Edit2,
   FileText,
   Phone,
+  RefreshCw,
   Search,
   User,
   UserCheck,
@@ -13,6 +14,7 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { withMinSpin } from '@/lib/refreshSpin';
 import { EGYPT_CENTERS } from './egyptData';
 import {
   isValidEgyptianPhone,
@@ -137,16 +139,38 @@ export const PatientManagementModal: React.FC<PatientManagementModalProps> = ({
     canViewPatientBalances;
   const canViewAllAccounts = hasPatientBillingPermission(currentUser, 'patient_accounts_view_all');
 
-  const loadAllPatients = async () => {
+  const [refreshing, setRefreshing] = useState(false);
+
+  const loadAllPatients = async (manual = false) => {
+    if (manual) setRefreshing(true);
     setLoading(true);
     try {
-      const list = await listPatients();
-      setPatients(list);
+      const work = async () => {
+        const list = await listPatients();
+        setPatients(list);
+        if (selectedPatient && (canViewPatientBalances || canViewPaymentHistory)) {
+          const [recs, txns] = await Promise.all([
+            loadPatientBillingRecords({
+              onlyOwnForStaffId:
+                !canViewAllAccounts && !canViewPatientBalances && actor.userId ? actor.userId : undefined,
+            }),
+            loadPatientBillingTransactions(),
+          ]);
+          setBillingRecords(recs);
+          setBillingTxns(txns);
+        }
+      };
+      if (manual) {
+        await withMinSpin(work);
+      } else {
+        await work();
+      }
     } catch (err) {
       console.error('Error loading patients:', err);
       toast.error('تعذر تحميل سجل المرضى');
     } finally {
       setLoading(false);
+      if (manual) setRefreshing(false);
     }
   };
 
@@ -365,9 +389,11 @@ export const PatientManagementModal: React.FC<PatientManagementModalProps> = ({
                 </div>
                 <button
                   type="button"
-                  onClick={() => void loadAllPatients()}
-                  className="px-4 py-2.5 bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl text-xs font-bold text-[#172B3A] hover:bg-white transition-colors"
+                  onClick={() => void loadAllPatients(true)}
+                  disabled={loading || refreshing}
+                  className="px-4 py-2.5 bg-[#F5FAFC] border border-[#DFEAF0] rounded-xl text-xs font-bold text-[#172B3A] hover:bg-white transition-colors flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
                 >
+                  <RefreshCw size={14} className={loading || refreshing ? 'animate-spin text-[#087F8C]' : 'text-[#087F8C]'} />
                   تحديث القائمة
                 </button>
               </div>

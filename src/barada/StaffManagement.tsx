@@ -3,6 +3,7 @@ import { supabase } from '@/integrations/supabase/client';
 import { invokeBackend } from '@/lib/backend';
 import { UserCog, Edit2, Save, X, User, Shield, RefreshCw, Crown, UserCheck, Trash2, AlertTriangle, Power, Key, Lock, Eye, EyeOff } from 'lucide-react';
 import { toast } from 'sonner';
+import { withMinSpin } from '@/lib/refreshSpin';
 import type { StaffMember } from '@/hooks/useRealtimeSync';
 import type { RealtimeChannel, RealtimePostgresChangesPayload } from '@supabase/supabase-js';
 
@@ -30,6 +31,7 @@ interface StaffManagementProps {
 export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffManagementProps) {
   const [staffMembers, setStaffMembers] = useState<StaffMember[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editForm, setEditForm] = useState({ 
     name: '', 
@@ -97,6 +99,15 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
       setLoading(false);
     }
   }, []);
+
+  const handleManualRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await withMinSpin(() => fetchStaffMembers());
+    } finally {
+      setRefreshing(false);
+    }
+  }, [fetchStaffMembers]);
 
   // Set up realtime subscriptions for profiles and user_roles
   useEffect(() => {
@@ -509,11 +520,11 @@ export function StaffManagement({ inputClass, cardClass, currentUserId }: StaffM
             </button>
             <button
               type="button"
-              onClick={fetchStaffMembers}
-              disabled={loading}
-              className="flex items-center gap-2 bg-[#F5FAFC] border border-[#DFEAF0] hover:border-[#087F8C] text-[#172B3A] px-4 py-2 rounded-xl text-sm font-bold transition-colors cursor-pointer"
+              onClick={() => void handleManualRefresh()}
+              disabled={loading || refreshing}
+              className="flex items-center gap-2 bg-[#F5FAFC] border border-[#DFEAF0] hover:border-[#087F8C] text-[#172B3A] px-4 py-2 rounded-xl text-sm font-bold transition-colors disabled:opacity-60 cursor-pointer"
             >
-              <RefreshCw size={16} className={loading ? 'animate-spin text-[#087F8C]' : 'text-[#087F8C]'} />
+              <RefreshCw size={16} className={loading || refreshing ? 'animate-spin text-[#087F8C]' : 'text-[#087F8C]'} />
               تحديث
             </button>
           </div>

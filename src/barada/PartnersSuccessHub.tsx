@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useMemo, useCallback } from 'react';
 import DOMPurify from 'dompurify';
 import { toast } from 'sonner';
+import { withMinSpin } from '@/lib/refreshSpin';
 import {
   Activity,
   AlertTriangle,
@@ -384,6 +385,7 @@ export const PartnersSuccessHub: React.FC<PartnersSuccessHubProps> = ({
 
   // Core loaded state
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [organizations, setOrganizations] = useState<PartnerOrganization[]>([]);
   const [contacts, setContacts] = useState<PartnerContact[]>([]);
   const [activities, setActivities] = useState<PartnerActivity[]>([]);
@@ -413,6 +415,15 @@ export const PartnersSuccessHub: React.FC<PartnersSuccessHubProps> = ({
       setLoading(false);
     }
   }, []);
+
+  const handleManualRefresh = useCallback(async () => {
+    setRefreshing(true);
+    try {
+      await withMinSpin(() => Promise.all([reloadAll(), Promise.resolve(onRefresh?.())]));
+    } finally {
+      setRefreshing(false);
+    }
+  }, [reloadAll, onRefresh]);
 
   useEffect(() => {
     reloadAll();
@@ -1282,11 +1293,11 @@ export const PartnersSuccessHub: React.FC<PartnersSuccessHubProps> = ({
             )}
             <button
               type="button"
-              onClick={() => void Promise.all([reloadAll(), Promise.resolve(onRefresh?.())])}
-              disabled={loading}
-              className="px-3.5 py-2 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] text-xs font-bold flex items-center gap-1.5 hover:border-[#087F8C] cursor-pointer"
+              onClick={() => void handleManualRefresh()}
+              disabled={loading || refreshing}
+              className="px-3.5 py-2 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] text-xs font-bold flex items-center gap-1.5 hover:border-[#087F8C] disabled:opacity-60 cursor-pointer"
             >
-              <RefreshCw size={14} className={loading ? 'animate-spin text-[#087F8C]' : 'text-[#087F8C]'} />
+              <RefreshCw size={14} className={loading || refreshing ? 'animate-spin text-[#087F8C]' : 'text-[#087F8C]'} />
               تحديث
             </button>
           </div>

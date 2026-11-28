@@ -8,6 +8,7 @@ import {
   CalendarDays, ArrowUpDown, RefreshCw, Filter, ChevronDown, ChevronUp,
   Bell, Shield, Flame, Star
 } from 'lucide-react';
+import { withMinSpin } from '@/lib/refreshSpin';
 
 // Types matching parent component
 interface Booking {
@@ -151,7 +152,7 @@ const OverviewDashboard: React.FC<OverviewDashboardProps> = ({
   const handleRefreshAll = async () => {
     setIsRefreshing(true);
     try {
-      await Promise.all([fetchLogs(), Promise.resolve(onRefresh?.())]);
+      await withMinSpin(() => Promise.all([fetchLogs(), Promise.resolve(onRefresh?.())]));
     } finally {
       setIsRefreshing(false);
     }

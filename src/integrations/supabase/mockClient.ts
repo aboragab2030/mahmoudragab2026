@@ -573,6 +573,66 @@ function syncPaidPaymentToMockBillingAndAccounting(p: Row) {
   recalculateMockBillingRecord(String(bookingRow.id));
 }
 
+function pushMockPatientAddedNotice(patientName: string, amount: number, detailMessage: string) {
+  const cleanName = String(patientName || "").trim();
+  if (!cleanName) return;
+  const cutoff = Date.now() - 15000;
+  const duplicate = tables.payment_notifications.some(
+    (n) =>
+      n.is_read === false &&
+      String(n.patient_name || "").trim() === cleanName &&
+      String(n.message || "").startsWith("تم إضافة ") &&
+      new Date(String(n.created_at || 0)).getTime() >= cutoff,
+  );
+  if (duplicate) return;
+  tables.payment_notifications.push({
+    id: crypto.randomUUID(),
+    payment_id: null,
+    patient_name: cleanName,
+    amount: Math.max(Number(amount || 0), 0),
+    message: detailMessage,
+    is_read: false,
+    created_at: new Date().toISOString(),
+  });
+}
+
+function pushMockBookingCancelledNotice(bookingRow: Row) {
+  const bookingId = String(bookingRow.id || "");
+  const detail = ` - ${String(bookingRow.service || "")} - د. ${String(bookingRow.doctor_name || "")} - ${String(bookingRow.date || "")} ${String(bookingRow.time || "")}`;
+  const due = computeMockBookingExpectedAmount(
+    String(bookingRow.service || ""),
+    bookingRow.doctor_id,
+    String(bookingRow.doctor_name || ""),
+  );
+  const paidPayments = tables.payments.filter(
+    (p) => String(p.booking_id || "") === bookingId && p.status === "paid",
+  );
+  if (paidPayments.length > 0) {
+    for (const p of paidPayments) {
+      tables.payment_notifications.push({
+        id: crypto.randomUUID(),
+        payment_id: String(p.id),
+        patient_name: String(bookingRow.patient_name || ""),
+        amount: Number(p.amount || due || 0),
+        message: `تم إلغاء إجراء مدفوع${detail}`,
+        is_read: false,
+        created_at: new Date().toISOString(),
+      });
+    }
+    return;
+  }
+  const isPaidBooking = bookingRow.payment_status === "paid";
+  tables.payment_notifications.push({
+    id: crypto.randomUUID(),
+    payment_id: null,
+    patient_name: String(bookingRow.patient_name || ""),
+    amount: due,
+    message: `${isPaidBooking ? "تم إلغاء إجراء مدفوع" : "تم إلغاء خدمة"}${detail}`,
+    is_read: false,
+    created_at: new Date().toISOString(),
+  });
+}
+
 const tables: Record<string, Row[]> = createInitialTables();
 
 function getTable(name: string): Row[] {
@@ -719,8 +779,29 @@ function makeQueryBuilder(tableName: string) {
 
       rows.push(...items);
       if (tableName === "profiles") syncProfilesToMockAuth(items);
+      if (tableName === "patients") {
+        for (const item of items) {
+          pushMockPatientAddedNotice(
+            String(item.full_name || ""),
+            0,
+            `تم إضافة مريض جديد: ${String(item.full_name || "")}${item.phone ? ` (${String(item.phone)})` : ""}`,
+          );
+        }
+      }
       if (tableName === "bookings") {
-        for (const item of items) syncBookingToMockPatientBilling(item);
+        for (const item of items) {
+          syncBookingToMockPatientBilling(item);
+          const amt = computeMockBookingExpectedAmount(
+            String(item.service || ""),
+            item.doctor_id,
+            String(item.doctor_name || ""),
+          );
+          pushMockPatientAddedNotice(
+            String(item.patient_name || ""),
+            amt,
+            `تم إضافة مريض / حجز جديد: ${String(item.service || "")}${item.doctor_name ? ` - د. ${String(item.doctor_name)}` : ""}`,
+          );
+        }
       }
       if (tableName === "payments") {
         for (const item of items) syncPaidPaymentToMockBillingAndAccounting(item);
@@ -750,8 +831,10 @@ function makeQueryBuilder(tableName: string) {
 
     if (op === "update") {
       const updated: Row[] = [];
+      const newlyCancelledBookings: Row[] = [];
       for (let i = 0; i < rows.length; i++) {
         if (filters.every((fn) => fn(rows[i]))) {
+          const prevStatus = rows[i].status;
           const nextRow: Row = { ...rows[i], ...(payload as Row), updated_at: new Date().toISOString() };
           if (tableName === "bookings" && nextRow.payment_status !== rows[i].payment_status) {
             const hasPaidPayment = tables.payments.some((p) => p.booking_id === rows[i].id && p.status === "paid");
@@ -784,11 +867,15 @@ function makeQueryBuilder(tableName: string) {
           }
           rows[i] = nextRow;
           updated.push(rows[i]);
+          if (tableName === "bookings" && nextRow.status === "cancelled" && prevStatus !== "cancelled") {
+            newlyCancelledBookings.push(nextRow);
+          }
         }
       }
       if (tableName === "profiles") syncProfilesToMockAuth(updated);
       if (tableName === "bookings") {
         for (const row of updated) syncBookingToMockPatientBilling(row);
+        for (const row of newlyCancelledBookings) pushMockBookingCancelledNotice(row);
       }
       if (tableName === "payments") {
         for (const row of updated) syncPaidPaymentToMockBillingAndAccounting(row);
@@ -1144,9 +1231,13 @@ export function createMockSupabaseClient(): SupabaseClient<Database> {
             (b) => b.id === params._booking_id && b.cancellation_token === params._token,
           );
           if (!target) return { data: false, error: null };
+          const wasCancelled = target.status === "cancelled";
           target.status = "cancelled";
           target.updated_at = new Date().toISOString();
           syncBookingToMockPatientBilling(target);
+          if (!wasCancelled) {
+            pushMockBookingCancelledNotice(target);
+          }
           return { data: true, error: null };
         }
         case "instapay_amount_due": {
@@ -1341,9 +1432,49 @@ export function createMockSupabaseClient(): SupabaseClient<Database> {
             (r) => r.user_id === uid && r.role === "admin",
           );
           if (!isAdminRole) return { data: null, error: { message: "not allowed" } };
-          const idx = tables.payments.findIndex((p) => p.id === params._payment_id);
+          const pid = String(params._payment_id || "");
+          const idx = tables.payments.findIndex((p) => p.id === pid);
           if (idx < 0) return { data: false, error: null };
+          const removedPayment = tables.payments[idx];
+          const bookingId = removedPayment?.booking_id ? String(removedPayment.booking_id) : "";
+
+          for (const sub of tables.instapay_submissions) {
+            if (sub.payment_id === pid) sub.payment_id = null;
+          }
+          for (const pm of tables.paymob_payments) {
+            if (pm.payment_id === pid) pm.payment_id = null;
+          }
+
+          const linkedRevIds = new Set(
+            tables.accounting_revenues
+              .filter((r) => r.source_table === "payments" && r.source_id === pid)
+              .map((r) => String(r.id)),
+          );
+          tables.accounting_account_transactions = tables.accounting_account_transactions.filter(
+            (t) => !(t.reference_table === "accounting_revenues" && linkedRevIds.has(String(t.reference_id))),
+          );
+          tables.accounting_revenues = tables.accounting_revenues.filter(
+            (r) => !(r.source_table === "payments" && r.source_id === pid),
+          );
+          tables.patient_billing_transactions = tables.patient_billing_transactions.filter(
+            (t) => t.payment_id !== pid,
+          );
+          tables.payment_notifications = tables.payment_notifications.filter(
+            (n) => n.payment_id !== pid,
+          );
           tables.payments.splice(idx, 1);
+
+          if (isUuidLike(bookingId)) {
+            if (tables.patient_billing_records.some((r) => r.booking_id === bookingId)) {
+              recalculateMockBillingRecord(bookingId);
+            } else if (!tables.payments.some((p) => p.booking_id === bookingId && p.status === "paid")) {
+              const bk = tables.bookings.find((b) => b.id === bookingId);
+              if (bk && bk.payment_status === "paid") {
+                bk.payment_status = "pending";
+                bk.updated_at = new Date().toISOString();
+              }
+            }
+          }
           return { data: true, error: null };
         }
         case "has_role":
@@ -1615,6 +1746,16 @@ export function createMockSupabaseClient(): SupabaseClient<Database> {
           };
           tables.patient_billing_transactions.push(txnRow);
           recalculateMockBillingRecord(bookingId);
+
+          tables.payment_notifications.push({
+            id: crypto.randomUUID(),
+            payment_id: paymentId,
+            patient_name: String(bookingRow.patient_name || ""),
+            amount,
+            message: `تم استلام دفعة بنجاح من ${String(bookingRow.patient_name || "")} بقيمة ${amount} ج.م - رقم العملية: ${txRef}`,
+            is_read: false,
+            created_at: new Date().toISOString(),
+          });
 
           tables.clinic_audit_logs.push({
             id: crypto.randomUUID(),

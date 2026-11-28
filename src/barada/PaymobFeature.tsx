@@ -1,6 +1,7 @@
 import React, { useCallback, useEffect, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { invokeBackend } from '@/lib/backend';
+import { withMinSpin } from '@/lib/refreshSpin';
 import { CheckCircle, XCircle, Loader2, AlertTriangle, Copy, KeyRound, ShieldCheck, RefreshCw, X } from 'lucide-react';
 
 // ---------------------------------------------------------------------------
@@ -163,7 +164,9 @@ export const PaymobSettingsPanel = ({ cardClass, inputClass }: { cardClass: stri
       setLoading(true);
     }
     try {
-      const res = await callSettings('GET');
+      const res = isManualRefresh
+        ? await withMinSpin(() => callSettings('GET'))
+        : await callSettings('GET');
       if (res.error) setMessage({ type: 'error', text: res.error });
       else applyResponse(res.data);
     } finally {
@@ -334,25 +337,29 @@ export const PaymobPaymentsList = ({ cardClass }: { cardClass: string }) => {
   const [bookings, setBookings] = useState<Record<string, any>>({});
   const [refreshing, setRefreshing] = useState(false);
 
-  const load = useCallback(async () => {
+  const load = useCallback(async (manualSpin = false) => {
     setRefreshing(true);
     try {
-      const { data, error } = await supabase.from('paymob_payments' as any).select('*').order('created_at', { ascending: false }).limit(200);
-      if (error) { setRows([]); return; }
-      const list = (data || []) as any[];
-      setRows(list);
-      const ids = Array.from(new Set(list.map(r => r.booking_id).filter(Boolean)));
-      if (ids.length) {
-        const { data: bk } = await supabase.from('bookings').select('id, patient_name, phone').in('id', ids);
-        setBookings(Object.fromEntries((bk || []).map((b: any) => [b.id, b])));
-      } else {
-        setBookings({});
-      }
+      const work = async () => {
+        const { data, error } = await supabase.from('paymob_payments' as any).select('*').order('created_at', { ascending: false }).limit(200);
+        if (error) { setRows([]); return; }
+        const list = (data || []) as any[];
+        setRows(list);
+        const ids = Array.from(new Set(list.map(r => r.booking_id).filter(Boolean)));
+        if (ids.length) {
+          const { data: bk } = await supabase.from('bookings').select('id, patient_name, phone').in('id', ids);
+          setBookings(Object.fromEntries((bk || []).map((b: any) => [b.id, b])));
+        } else {
+          setBookings({});
+        }
+      };
+      if (manualSpin) await withMinSpin(work);
+      else await work();
     } finally {
       setRefreshing(false);
     }
   }, []);
-  useEffect(() => { void load(); }, [load]);
+  useEffect(() => { void load(false); }, [load]);
 
   if (rows === null || rows.length === 0) return null;
 
@@ -360,7 +367,7 @@ export const PaymobPaymentsList = ({ cardClass }: { cardClass: string }) => {
     <div className={`${cardClass} overflow-x-auto`} dir="rtl">
       <div className="flex items-center justify-between mb-6">
         <h3 className="text-xl font-black text-[#172B3A]">مدفوعات Paymob</h3>
-        <button type="button" onClick={() => void load()} disabled={refreshing} className="px-3.5 py-2 rounded-xl border border-[#DFEAF0] bg-[#EBF8FA] hover:bg-[#087F8C] text-[#087F8C] hover:text-white flex items-center gap-2 font-bold text-xs transition-colors disabled:opacity-60"><RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> تحديث</button>
+        <button type="button" onClick={() => void load(true)} disabled={refreshing} className="px-3.5 py-2 rounded-xl border border-[#DFEAF0] bg-[#EBF8FA] hover:bg-[#087F8C] text-[#087F8C] hover:text-white flex items-center gap-2 font-bold text-xs transition-colors disabled:opacity-60 cursor-pointer"><RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> تحديث</button>
       </div>
       <div className="overflow-x-auto rounded-2xl border border-[#DFEAF0]">
         <table className="w-full text-right text-sm">

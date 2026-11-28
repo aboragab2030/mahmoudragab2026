@@ -2,9 +2,17 @@
 
 /** Text the database puts at the start of the notice when a paid booking is cancelled. */
 export const CANCELLED_PAID_NOTICE = 'تم إلغاء إجراء مدفوع';
+export const CANCELLED_SERVICE_NOTICE = 'تم إلغاء خدمة';
 
 export const isCancelledPaidNotice = (message: string | null | undefined) =>
   !!message && message.startsWith(CANCELLED_PAID_NOTICE);
+
+export const isCancellationNotice = (message: string | null | undefined) =>
+  !!message &&
+  (message.startsWith(CANCELLED_PAID_NOTICE) ||
+    message.startsWith(CANCELLED_SERVICE_NOTICE) ||
+    message.startsWith('تم إلغاء حجز') ||
+    message.startsWith('تم إلغاء عملية'));
 
 /** Calendar day (YYYY-MM-DD) of a timestamp in the viewer's local time. */
 export const localDay = (iso: string) => {

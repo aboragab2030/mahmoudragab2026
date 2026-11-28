@@ -16,6 +16,7 @@ import {
   Trash2,
   Upload,
 } from 'lucide-react';
+import { withMinSpin } from '@/lib/refreshSpin';
 import { exportFullBackup, restoreFullBackup } from '@/lib/backup.functions';
 import {
   deleteDriveFile,
@@ -69,7 +70,7 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
   const [confirmRestoreFile, setConfirmRestoreFile] = useState<DriveFileItem | null>(null);
 
   const loadFiles = useCallback(
-    async (explicitToken?: string) => {
+    async (explicitToken?: string, manualSpin = false) => {
       const token = explicitToken ?? getGoogleDriveAccessToken();
       if (!token) {
         setNeedsAuth(true);
@@ -77,7 +78,8 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
       }
       setIsLoadingFiles(true);
       try {
-        const items = await listDriveFiles(token, { search: searchTerm, onlyJson });
+        const work = () => listDriveFiles(token, { search: searchTerm, onlyJson });
+        const items = manualSpin ? await withMinSpin(work) : await work();
         setFiles(items);
         setNeedsAuth(false);
       } catch (err) {
@@ -488,10 +490,10 @@ export const GoogleDrivePanel: React.FC<GoogleDrivePanelProps> = ({
               type="button"
               onClick={() => {
                 setFeedback(null);
-                void loadFiles();
+                void loadFiles(undefined, true);
               }}
               disabled={isLoadingFiles || isBusy}
-              className="bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] px-4 py-3 rounded-xl font-bold text-xs hover:bg-white transition-all flex items-center gap-2 disabled:opacity-60"
+              className="bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] px-4 py-3 rounded-xl font-bold text-xs hover:bg-white transition-all flex items-center gap-2 disabled:opacity-60 cursor-pointer"
             >
               <RefreshCw size={15} className={`text-[#087F8C] ${isLoadingFiles ? 'animate-spin' : ''}`} /> تحديث الملفات
             </button>

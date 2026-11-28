@@ -32,6 +32,7 @@ import {
 } from 'lucide-react';
 import DOMPurify from 'dompurify';
 import { toast } from 'sonner';
+import { withMinSpin } from '@/lib/refreshSpin';
 import { addDaysStr, cairoTodayStr } from './dateUtils';
 import {
   hasAccountingPermission,
@@ -246,6 +247,7 @@ export const AccountingHub: React.FC<AccountingHubProps> = ({
   const [bundle, setBundle] = useState<AccountingBundle | null>(null);
   const [externalPayments, setExternalPayments] = useState<ExternalPaymentSourceRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshingAll, setRefreshingAll] = useState(false);
   const [busy, setBusy] = useState(false);
 
   const today = cairoTodayStr();
@@ -283,6 +285,17 @@ export const AccountingHub: React.FC<AccountingHubProps> = ({
       setLoading(false);
     }
   }, []);
+
+  const handleManualRefresh = useCallback(async () => {
+    setRefreshingAll(true);
+    try {
+      await withMinSpin(() =>
+        Promise.all([refreshAccounting(), Promise.resolve(onRefresh?.())]),
+      );
+    } finally {
+      setRefreshingAll(false);
+    }
+  }, [refreshAccounting, onRefresh]);
 
   useEffect(() => {
     void refreshAccounting();
@@ -1039,14 +1052,11 @@ export const AccountingHub: React.FC<AccountingHubProps> = ({
           </div>
           <button
             type="button"
-            onClick={() => {
-              void refreshAccounting();
-              void onRefresh?.();
-            }}
-            disabled={loading || busy}
-            className="px-4 py-2.5 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] text-[#087F8C] text-xs font-black flex items-center gap-2 hover:bg-white transition-all"
+            onClick={() => void handleManualRefresh()}
+            disabled={loading || refreshingAll || busy}
+            className="px-4 py-2.5 rounded-xl bg-[#F5FAFC] border border-[#DFEAF0] text-[#087F8C] text-xs font-black flex items-center gap-2 hover:bg-white transition-all disabled:opacity-60 cursor-pointer"
           >
-            <RefreshCw size={15} className={loading ? 'animate-spin' : ''} />
+            <RefreshCw size={15} className={loading || refreshingAll ? 'animate-spin' : ''} />
             تحديث الحسابات
           </button>
         </div>
@@ -1313,14 +1323,16 @@ export const AccountingHub: React.FC<AccountingHubProps> = ({
                   onClick={async () => {
                     setBusy(true);
                     try {
-                      await syncBookingsToPatientBilling();
-                      await refreshAccounting();
+                      await withMinSpin(async () => {
+                        await syncBookingsToPatientBilling();
+                        await Promise.all([refreshAccounting(), Promise.resolve(onRefresh?.())]);
+                      });
                       toast.success('تمت مزامنة الحجوزات والمستحقات بنجاح');
                     } finally {
                       setBusy(false);
                     }
                   }}
-                  className="px-3.5 py-2 rounded-xl bg-[#087F8C]/10 text-[#087F8C] text-xs font-black flex items-center gap-1.5 hover:bg-[#087F8C]/20"
+                  className="px-3.5 py-2 rounded-xl bg-[#087F8C]/10 text-[#087F8C] text-xs font-black flex items-center gap-1.5 hover:bg-[#087F8C]/20 disabled:opacity-60 cursor-pointer"
                 >
                   <RefreshCw size={14} className={busy ? 'animate-spin' : ''} />
                   مزامنة الحجوزات

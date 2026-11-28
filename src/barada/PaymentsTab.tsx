@@ -1,15 +1,16 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { supabase } from "@/integrations/supabase/client";
 import DOMPurify from 'dompurify';
-import { 
-  CreditCard, Search, Phone, Hash, Filter, Banknote, 
+import {
+  CreditCard, Search, Phone, Hash, Filter, Banknote,
   CheckCircle, Clock, XCircle, RefreshCw, Printer, Wallet,
-  FileText, Trash2, Plus, X
+  FileText, Trash2, Plus, X, AlertTriangle
 } from 'lucide-react';
 import { toast } from 'sonner';
 import { InstapayReviewPanel } from './InstapayFeature';
 import { PaymobPaymentsList } from './PaymobFeature';
-import { isBookingUuid, isCancelledPaidNotice } from './paymentsLog';
+import { isBookingUuid, isCancellationNotice } from './paymentsLog';
+import { withMinSpin } from '@/lib/refreshSpin';
 import { hasPatientBillingPermission, type PermissionUser } from './permissions';
 import {
   PATIENT_FINANCIAL_STATUS_BADGE,
@@ -93,9 +94,11 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({
   const [payments, setPayments] = useState<Payment[]>([]);
   const [notifications, setNotifications] = useState<PaymentNotification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cancelledBookingIds, setCancelledBookingIds] = useState<Set<string>>(new Set());
   const [deletingId, setDeletingId] = useState<string | null>(null);
+  const [confirmDeletePayment, setConfirmDeletePayment] = useState<Payment | null>(null);
 
   // Unified booking payment confirmation permissions
   const canConfirmFull =
@@ -167,18 +170,34 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({
   };
 
   // Delete a payment record (admins only — also enforced by the database)
-  const deletePayment = async (p: Payment) => {
-    if (!isAdmin) return;
-    if (!window.confirm(`هل أنت متأكد من حذف عملية الدفع ${p.transaction_id} للمريض ${p.patient_name} نهائياً؟`)) return;
-    setDeletingId(p.id);
-    const { error: delError } = await supabase.rpc('delete_payment_record' as any, { _payment_id: p.id } as any);
-    setDeletingId(null);
-    if (delError) {
-      alert('تعذر حذف العملية. هذه الصلاحية للمدير فقط.');
+  const requestDeletePayment = (p: Payment) => {
+    if (!isAdmin) {
+      toast.error('تعذر حذف العملية. هذه الصلاحية للمدير فقط.');
       return;
     }
-    setPayments(prev => prev.filter(x => x.id !== p.id));
-    setNotifications(prev => prev.filter(n => n.payment_id !== p.id));
+    setConfirmDeletePayment(p);
+  };
+
+  const executeDeletePayment = async () => {
+    const p = confirmDeletePayment;
+    if (!p || !isAdmin) return;
+    setDeletingId(p.id);
+    try {
+      const { error: delError } = await supabase.rpc('delete_payment_record' as any, { _payment_id: p.id } as any);
+      if (delError) {
+        toast.error('تعذر حذف العملية. هذه الصلاحية للمدير فقط.');
+        return;
+      }
+      setConfirmDeletePayment(null);
+      setPayments(prev => prev.filter(x => x.id !== p.id));
+      setNotifications(prev => prev.filter(n => n.payment_id !== p.id));
+      toast.success(`تم حذف عملية الدفع (${p.transaction_id}) بنجاح`);
+      await Promise.all([fetchPayments(), fetchNotifications(), Promise.resolve(onSyncedPayment?.())]);
+    } catch (err: any) {
+      toast.error(err?.message || 'تعذر حذف عملية الدفع');
+    } finally {
+      setDeletingId(null);
+    }
   };
 
   // Fetch notifications
@@ -189,7 +208,7 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({
         .select('*')
         .eq('is_read', false)
         .order('created_at', { ascending: false })
-        .limit(10);
+        .limit(20);
 
       if (fetchError) {
         throw fetchError;
@@ -215,7 +234,16 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({
     }
   };
 
-  const handleRefresh = () => Promise.all([fetchPayments(), fetchNotifications()]);
+  const handleRefresh = async () => {
+    setRefreshing(true);
+    try {
+      await withMinSpin(() =>
+        Promise.all([fetchPayments(), fetchNotifications(), Promise.resolve(onSyncedPayment?.())]),
+      );
+    } finally {
+      setRefreshing(false);
+    }
+  };
 
   const openCollectModal = async () => {
     if (!canCollectBookingPayment) {
@@ -343,8 +371,22 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({
   };
 
   useEffect(() => {
-    fetchPayments();
-    fetchNotifications();
+    void fetchPayments();
+    void fetchNotifications();
+
+    const channel = supabase
+      .channel(`payments-tab-sync-${Math.random().toString(36).slice(2)}`)
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payment_notifications' }, () => {
+        void fetchNotifications();
+      })
+      .on('postgres_changes', { event: '*', schema: 'public', table: 'payments' }, () => {
+        void fetchPayments();
+      })
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
   }, []);
 
   // Filter payments based on search criteria
@@ -429,25 +471,44 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({
           </h3>
           <div className="space-y-3">
             {notifications.map(notif => {
-              const cancelled = isCancelledPaidNotice(notif.message);
+              const cancelled = isCancellationNotice(notif.message);
+              const amt = Number(notif.amount || 0);
               return (
               <div 
                 key={notif.id} 
-                className={cancelled ? 'paid-cancellation-notice border rounded-xl p-4 flex items-center justify-between' : 'bg-emerald-50/70 border border-emerald-200/80 rounded-xl p-4 flex items-center justify-between'}
+                className={
+                  cancelled
+                    ? 'paid-cancellation-notice bg-red-50/90 border border-red-300 text-red-700 rounded-xl p-4 flex items-center justify-between gap-3'
+                    : 'bg-emerald-50/80 border border-emerald-300/80 text-emerald-800 rounded-xl p-4 flex items-center justify-between gap-3'
+                }
               >
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 bg-emerald-600 text-white rounded-xl flex items-center justify-center shadow-xs">
-                    <Banknote size={20} />
+                  <div
+                    className={`w-10 h-10 text-white rounded-xl flex items-center justify-center shadow-xs shrink-0 ${
+                      cancelled ? 'bg-red-600' : 'bg-emerald-600'
+                    }`}
+                  >
+                    {cancelled ? <XCircle size={20} /> : amt > 0 ? <Banknote size={20} /> : <CheckCircle size={20} />}
                   </div>
                   <div>
-                    {cancelled && <p className="text-sm font-bold mb-1">{notif.message}</p>}
-                    <h4 className="font-bold text-[#172B3A]">{notif.patient_name}</h4>
-                    <p className="text-xs text-emerald-700 font-bold fv-num">{notif.amount} ج.م - {new Date(notif.created_at).toLocaleString('ar-EG')}</p>
+                    {notif.message && (
+                      <p className={`text-sm font-black mb-1 ${cancelled ? 'text-red-700' : 'text-emerald-800'}`}>
+                        {notif.message}
+                      </p>
+                    )}
+                    <h4 className={`font-bold ${cancelled ? 'text-red-900' : 'text-[#172B3A]'}`}>{notif.patient_name}</h4>
+                    <p className={`text-xs font-bold fv-num ${cancelled ? 'text-red-600' : 'text-emerald-700'}`}>
+                      {amt > 0 ? `${amt} ج.م - ` : ''}
+                      {new Date(notif.created_at).toLocaleString('ar-EG')}
+                    </p>
                   </div>
                 </div>
                 <button 
+                  type="button"
                   onClick={() => markNotificationRead(notif.id)}
-                  className="bg-emerald-600 text-white px-3.5 py-2 rounded-xl text-xs font-bold hover:bg-emerald-700 cursor-pointer transition-colors"
+                  className={`text-white px-3.5 py-2 rounded-xl text-xs font-bold cursor-pointer transition-colors shrink-0 ${
+                    cancelled ? 'bg-red-600 hover:bg-red-700' : 'bg-emerald-600 hover:bg-emerald-700'
+                  }`}
                 >
                   تم الاطلاع
                 </button>
@@ -476,12 +537,12 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({
             )}
             <button 
               type="button"
-              onClick={handleRefresh}
-              disabled={loading}
+              onClick={() => void handleRefresh()}
+              disabled={loading || refreshing}
               className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] p-2.5 rounded-xl hover:bg-[#087F8C]/10 disabled:opacity-60 cursor-pointer transition-colors"
               title="تحديث"
             >
-              <RefreshCw size={18} className={loading ? 'animate-spin' : ''} />
+              <RefreshCw size={18} className={loading || refreshing ? 'animate-spin' : ''} />
             </button>
             <button 
               onClick={handlePrintPayments}
@@ -699,7 +760,8 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({
                       {isAdmin && (
                         <td className="p-3.5">
                           <button
-                            onClick={() => deletePayment(payment)}
+                            type="button"
+                            onClick={() => requestDeletePayment(payment)}
                             disabled={deletingId === payment.id}
                             className="p-2 bg-[#F5FAFC] text-[#718394] border border-[#DFEAF0] rounded-lg hover:bg-red-600 hover:text-white hover:border-red-600 transition-all disabled:opacity-60 cursor-pointer"
                             title="حذف العملية نهائياً"
@@ -934,6 +996,49 @@ export const PaymentsTab: React.FC<PaymentsTabProps> = ({
                 </div>
               </form>
             )}
+          </div>
+        </div>
+      )}
+
+      {/* Delete Payment Confirmation Modal */}
+      {confirmDeletePayment && (
+        <div
+          className="fixed inset-0 z-[120] flex items-center justify-center p-4 bg-[#0B1F35]/65 backdrop-blur-xs"
+          role="dialog"
+          aria-modal="true"
+        >
+          <div className="bg-white rounded-3xl border border-[#DFEAF0] shadow-2xl max-w-md w-full p-7 text-center" dir="rtl">
+            <div className="w-16 h-16 bg-red-50 border border-red-200 text-red-600 rounded-2xl flex items-center justify-center mx-auto mb-5">
+              <AlertTriangle size={32} />
+            </div>
+            <h4 className="text-xl font-black text-[#172B3A] mb-2">تأكيد حذف عملية الدفع</h4>
+            <p className="text-sm text-[#718394] font-semibold mb-4 leading-relaxed">
+              هل أنت متأكد من حذف عملية الدفع{' '}
+              <span className="font-black text-red-600 fv-mono">{confirmDeletePayment.transaction_id}</span>{' '}
+              للمريض <span className="font-black text-[#172B3A]">{confirmDeletePayment.patient_name}</span>{' '}
+              بقيمة <span className="font-black text-[#172B3A] fv-num">{confirmDeletePayment.amount} ج.م</span> نهائياً؟
+            </p>
+            <p className="text-xs text-amber-700 bg-amber-50 border border-amber-200/80 rounded-xl p-2.5 font-bold mb-6">
+              لا يمكن التراجع عن الحذف، وسيتم تحديث رصيد المريض والحسابات تلقائياً.
+            </p>
+            <div className="flex gap-3">
+              <button
+                type="button"
+                onClick={() => void executeDeletePayment()}
+                disabled={deletingId === confirmDeletePayment.id}
+                className="flex-1 bg-red-600 text-white font-black py-3 rounded-xl hover:bg-red-700 transition-all disabled:opacity-60 cursor-pointer"
+              >
+                {deletingId === confirmDeletePayment.id ? 'جاري الحذف...' : 'تأكيد الحذف'}
+              </button>
+              <button
+                type="button"
+                onClick={() => setConfirmDeletePayment(null)}
+                disabled={deletingId === confirmDeletePayment.id}
+                className="flex-1 bg-[#F5FAFC] border border-[#DFEAF0] text-[#172B3A] font-bold py-3 rounded-xl hover:bg-white transition-all cursor-pointer"
+              >
+                إلغاء
+              </button>
+            </div>
           </div>
         </div>
       )}

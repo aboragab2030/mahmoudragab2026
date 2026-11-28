@@ -27,6 +27,7 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { withMinSpin } from '@/lib/refreshSpin';
 import { cairoTodayStr } from './dateUtils';
 import {
   autoYouTubeThumbnailUrl,
@@ -132,6 +133,7 @@ export const MedicalVideosManagement: React.FC<MedicalVideosManagementProps> = (
   const [videos, setVideos] = useState<MedicalVideoRecord[]>([]);
   const [categories, setCategories] = useState<MedicalVideoCategoryRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [usingFallbackStore, setUsingFallbackStore] = useState<boolean>(false);
   const schemaSyncAttemptedRef = useRef<boolean>(false);
@@ -337,8 +339,12 @@ export const MedicalVideosManagement: React.FC<MedicalVideosManagementProps> = (
   }, [fetchLibrary]);
 
   const handleRefreshLibrary = useCallback(async () => {
-    await fetchLibrary();
-    onVideosChanged?.();
+    setRefreshing(true);
+    try {
+      await withMinSpin(() => Promise.all([fetchLibrary(), Promise.resolve(onVideosChanged?.())]));
+    } finally {
+      setRefreshing(false);
+    }
   }, [fetchLibrary, onVideosChanged]);
 
   useEffect(() => {
@@ -1141,10 +1147,10 @@ export const MedicalVideosManagement: React.FC<MedicalVideosManagementProps> = (
             <button
               type="button"
               onClick={() => void handleRefreshLibrary()}
-              disabled={loading}
-              className="bg-[#F5FAFC] hover:bg-white text-[#172B3A] border border-[#DFEAF0] px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer"
+              disabled={loading || refreshing}
+              className="bg-[#F5FAFC] hover:bg-white text-[#172B3A] border border-[#DFEAF0] px-3.5 py-2 rounded-xl text-xs font-bold flex items-center gap-1.5 disabled:opacity-60 cursor-pointer"
             >
-              <RefreshCw size={14} className={loading ? 'animate-spin text-[#087F8C]' : 'text-[#087F8C]'} />
+              <RefreshCw size={14} className={loading || refreshing ? 'animate-spin text-[#087F8C]' : 'text-[#087F8C]'} />
               تحديث
             </button>
           </div>

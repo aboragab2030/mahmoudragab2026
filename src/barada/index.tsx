@@ -6,6 +6,7 @@ import { canCancelPatientBooking } from './paymentsLog';
 import { createRoot } from 'react-dom/client';
 import { supabase } from "@/integrations/supabase/client";
 import { invokeBackend } from '@/lib/backend';
+import { withMinSpin } from '@/lib/refreshSpin';
 import DOMPurify from 'dompurify';
 import { useBaradaAuth, BaradaUser } from '@/hooks/useBaradaAuth';
 import { useRealtimeSync } from '@/hooks/useRealtimeSync';
@@ -2212,17 +2213,24 @@ const AdminPanel = ({
 
   const [doctorSearchTerm, setDoctorSearchTerm] = useState('');
 
-  const fetchContactLogs = async () => {
+  const fetchContactLogs = async (manualSpin = false) => {
     setContactLogsLoading(true);
     setContactLogsNotice(null);
     try {
-      const { data, error } = await supabase.from('contact_logs').select('*').order('created_at', { ascending: false }).limit(200);
-      if (error) {
-        console.error('Error fetching contact logs:', error);
-        setContactLogsNotice({ type: 'error', message: 'تعذر تحديث سجل الاتصالات والتذكيرات.' });
-        return;
+      const work = async () => {
+        const { data, error } = await supabase.from('contact_logs').select('*').order('created_at', { ascending: false }).limit(200);
+        if (error) {
+          console.error('Error fetching contact logs:', error);
+          setContactLogsNotice({ type: 'error', message: 'تعذر تحديث سجل الاتصالات والتذكيرات.' });
+          return;
+        }
+        setContactLogs(data || []);
+      };
+      if (manualSpin) {
+        await withMinSpin(work);
+      } else {
+        await work();
       }
-      setContactLogs(data || []);
     } catch (err) {
       console.error('Error fetching contact logs:', err);
       setContactLogsNotice({ type: 'error', message: 'تعذر تحديث سجل الاتصالات والتذكيرات.' });
@@ -3445,7 +3453,7 @@ const handlePrint = (title: string, contentHtml: string) => {
                                const esc = (v: unknown) => String(v ?? '-').replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
                                handlePrint('تقرير سجل الاتصالات والتذكيرات', `<table><thead><tr><th>الموظف</th><th>المريض</th><th>الهاتف</th><th>النوع</th><th>القسم</th><th>الطبيب</th><th>التاريخ</th></tr></thead><tbody>${filteredContactLogs.map(log => `<tr><td>${esc(log.staff_name)}</td><td>${esc(log.patient_name)}</td><td>${esc(log.patient_phone)}</td><td>${log.contact_type === 'whatsapp' ? 'واتساب' : 'SMS'}</td><td>${log.item_type === 'booking' ? 'حجز' : 'عملية'}</td><td>${esc(log.doctor_name)}</td><td>${esc(new Date(log.created_at).toLocaleString('ar-EG'))}</td></tr>`).join('')}</tbody></table>`);
                              }} className="bg-[#F5FAFC] text-[#087F8C] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#087F8C]/10 cursor-pointer transition-colors"><Printer size={15}/> طباعة</button>
-                             <button type="button" onClick={fetchContactLogs} disabled={contactLogsLoading} className="bg-[#F5FAFC] text-[#1769AA] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#1769AA]/10 disabled:opacity-60 cursor-pointer transition-colors"><RotateCcw size={15} className={contactLogsLoading ? 'animate-spin' : ''}/> تحديث</button>
+                             <button type="button" onClick={() => void fetchContactLogs(true)} disabled={contactLogsLoading} className="bg-[#F5FAFC] text-[#1769AA] border border-[#DFEAF0] px-4 py-2 rounded-xl font-bold text-xs flex items-center gap-2 hover:bg-[#1769AA]/10 disabled:opacity-60 cursor-pointer transition-colors"><RotateCcw size={15} className={contactLogsLoading ? 'animate-spin' : ''}/> تحديث</button>
                              {currentUser?.role === 'admin' && (
                                <button
                                  onClick={() => setClearingContactLogsModal(true)}
@@ -5022,8 +5030,8 @@ const handleNavigate = (sectionId: string) => {
            t={t}
            handleSmsReminder={handleSmsReminder}
            handleWhatsAppReminder={handleWhatsAppReminder}
-           onOffersChanged={() => { void Promise.all([refreshData(), refreshPublicData('offers')]); }}
-           onVideosChanged={() => { void Promise.all([refreshData(), refreshPublicData('medicalVideos'), refreshPublicData('medicalVideoCategories')]); }}
+           onOffersChanged={() => Promise.all([refreshData(), refreshPublicData('offers')]).then(() => undefined)}
+           onVideosChanged={() => Promise.all([refreshData(), refreshPublicData('medicalVideos'), refreshPublicData('medicalVideoCategories')]).then(() => undefined)}
            onRefresh={async () => {
              await Promise.all([
                refreshData(),

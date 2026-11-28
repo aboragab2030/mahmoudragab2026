@@ -2,6 +2,7 @@ import React, { useCallback, useEffect, useMemo, useState } from 'react';
 import { supabase } from '@/integrations/supabase/client';
 import { Search, CheckCircle, XCircle, AlertTriangle, FileText, History, RefreshCw, X, Printer, Trash2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { withMinSpin } from '@/lib/refreshSpin';
 import { INSTAPAY_STATUS_LABELS, InstapayStatus, duplicateTransactionRefs, isDuplicateRef, reviewOutcome, ReviewAction } from './instapayRules';
 
 export interface InstapaySubmissionInput { transactionRef: string; declaredAmount?: number; file?: File | null }
@@ -135,27 +136,34 @@ export const InstapayReviewPanel = ({ cardClass, inputClass, onPrint, isAdmin = 
 
   const [refreshing, setRefreshing] = useState(false);
   const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
-  const load = useCallback(async () => {
+  const load = useCallback(async (manualSpin = false) => {
     setRefreshing(true);
     try {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) { setAllowed(false); return; }
-      const { data: ok, error: permError } = await supabase.rpc('can_review_instapay', { _uid: user.id } as any);
-      const canAccess = permError ? isAdmin : Boolean(ok || isAdmin);
-      setAllowed(canAccess);
-      if (!canAccess) return;
-      const { data, error } = await supabase.from('instapay_submissions' as any).select('*').order('created_at', { ascending: false });
-      if (error) { setListMsg('تعذر تحديث القائمة. حاول مرة أخرى.'); return; }
-      const list = (data || []) as unknown as Submission[];
-      setRows(list);
-      const ids = [...new Set(list.map(r => r.booking_id).filter(Boolean))];
-      if (ids.length) {
-        const { data: bk } = await supabase.from('bookings').select('id, patient_name, phone, doctor_name, service, date, time').in('id', ids);
-        setBookings(Object.fromEntries((bk || []).map((b: any) => [b.id, b])));
+      const work = async () => {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) { setAllowed(false); return; }
+        const { data: ok, error: permError } = await supabase.rpc('can_review_instapay', { _uid: user.id } as any);
+        const canAccess = permError ? isAdmin : Boolean(ok || isAdmin);
+        setAllowed(canAccess);
+        if (!canAccess) return;
+        const { data, error } = await supabase.from('instapay_submissions' as any).select('*').order('created_at', { ascending: false });
+        if (error) { setListMsg('تعذر تحديث القائمة. حاول مرة أخرى.'); return; }
+        const list = (data || []) as unknown as Submission[];
+        setRows(list);
+        const ids = [...new Set(list.map(r => r.booking_id).filter(Boolean))];
+        if (ids.length) {
+          const { data: bk } = await supabase.from('bookings').select('id, patient_name, phone, doctor_name, service, date, time').in('id', ids);
+          setBookings(Object.fromEntries((bk || []).map((b: any) => [b.id, b])));
+        } else {
+          setBookings({});
+        }
+        setLastUpdated(new Date());
+      };
+      if (manualSpin) {
+        await withMinSpin(work);
       } else {
-        setBookings({});
+        await work();
       }
-      setLastUpdated(new Date());
     } finally {
       setRefreshing(false);
     }
@@ -255,7 +263,7 @@ export const InstapayReviewPanel = ({ cardClass, inputClass, onPrint, isAdmin = 
         <h3 className="text-xl font-black text-[#172B3A]">مراجعة مدفوعات إنستاباي (<span className="fv-num">{filtered.length}</span>)</h3>
         <div className="flex items-center gap-2.5">
           {onPrint && <button onClick={printList} className="px-3.5 py-2 rounded-xl border border-[#DFEAF0] bg-[#F5FAFC] hover:bg-white text-[#172B3A] flex items-center gap-2 text-xs font-bold transition-colors whitespace-nowrap"><Printer size={15} className="text-[#087F8C]" /> طباعة</button>}
-          <button onClick={() => { setListMsg(''); load(); }} disabled={refreshing} title={lastUpdated ? `آخر تحديث: ${lastUpdated.toLocaleTimeString('ar-EG')}` : undefined} className="px-3.5 py-2 rounded-xl border border-[#DFEAF0] bg-[#EBF8FA] hover:bg-[#087F8C] text-[#087F8C] hover:text-white flex items-center gap-2 text-xs font-bold transition-colors disabled:opacity-60 whitespace-nowrap"><RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> {refreshing ? 'جاري التحديث...' : 'تحديث'}</button>
+          <button type="button" onClick={() => { setListMsg(''); void load(true); }} disabled={refreshing} title={lastUpdated ? `آخر تحديث: ${lastUpdated.toLocaleTimeString('ar-EG')}` : undefined} className="px-3.5 py-2 rounded-xl border border-[#DFEAF0] bg-[#EBF8FA] hover:bg-[#087F8C] text-[#087F8C] hover:text-white flex items-center gap-2 text-xs font-bold transition-colors disabled:opacity-60 whitespace-nowrap cursor-pointer"><RefreshCw size={15} className={refreshing ? 'animate-spin' : ''} /> {refreshing ? 'جاري التحديث...' : 'تحديث'}</button>
         </div>
       </div>
       <p className="text-xs text-[#718394] font-bold mb-5">يتم التأكيد يدوياً فقط بعد التحقق من وصول المبلغ في كشف حساب المركز. صورة الإيصال وحدها ليست إثباتاً للدفع.</p>

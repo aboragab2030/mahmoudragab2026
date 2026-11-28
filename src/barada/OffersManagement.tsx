@@ -19,6 +19,7 @@ import {
   X,
 } from 'lucide-react';
 import { toast } from 'sonner';
+import { withMinSpin } from '@/lib/refreshSpin';
 import { cairoTodayStr } from './dateUtils';
 import { invokeBackend } from '@/lib/backend';
 import {
@@ -87,6 +88,7 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
 
   const [offers, setOffers] = useState<OfferRecord[]>([]);
   const [loading, setLoading] = useState<boolean>(true);
+  const [refreshing, setRefreshing] = useState<boolean>(false);
   const [loadError, setLoadError] = useState<string | null>(null);
   const [usingFallbackStore, setUsingFallbackStore] = useState<boolean>(false);
   const schemaSyncAttemptedRef = useRef<boolean>(false);
@@ -231,8 +233,12 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
   }, [fetchOffers]);
 
   const handleRefreshOffers = useCallback(async () => {
-    await fetchOffers();
-    onOffersChanged?.();
+    setRefreshing(true);
+    try {
+      await withMinSpin(() => Promise.all([fetchOffers(), Promise.resolve(onOffersChanged?.())]));
+    } finally {
+      setRefreshing(false);
+    }
   }, [fetchOffers, onOffersChanged]);
 
   // Keep list in sync when realtime offers arrive
@@ -1052,10 +1058,10 @@ export const OffersManagement: React.FC<OffersManagementProps> = ({
             <button
               type="button"
               onClick={() => void handleRefreshOffers()}
-              disabled={loading}
-              className="bg-[#F5FAFC] border border-[#DFEAF0] hover:border-[#087F8C] text-[#172B3A] px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors cursor-pointer"
+              disabled={loading || refreshing}
+              className="bg-[#F5FAFC] border border-[#DFEAF0] hover:border-[#087F8C] text-[#172B3A] px-4 py-2 rounded-xl text-xs font-bold flex items-center gap-2 transition-colors disabled:opacity-60 cursor-pointer"
             >
-              <RefreshCw size={15} className={loading ? 'animate-spin text-[#087F8C]' : 'text-[#087F8C]'} />
+              <RefreshCw size={15} className={loading || refreshing ? 'animate-spin text-[#087F8C]' : 'text-[#087F8C]'} />
               تحديث القائمة
             </button>
           </div>

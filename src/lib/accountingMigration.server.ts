@@ -6,6 +6,7 @@ let migrationInFlight: Promise<{ ok: boolean; migrated: boolean }> | null = null
 const MIGRATION_FILES = [
   "0023_staff_bookings_patients_accounting.sql",
   "0024_unified_patient_billing_and_payment_sync.sql",
+  "0025_payment_delete_and_notifications.sql",
 ];
 
 function loadMigrationSqlList(): string[] {
