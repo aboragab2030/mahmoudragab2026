@@ -405,6 +405,7 @@ describe('Patient Experience & General Evaluation System (التقييم الع�
     expect(indexSrc).not.toContain("activeTab === 'complaints'");
     expect(indexSrc).not.toContain("setActiveTab('complaints')");
     expect(indexSrc).not.toContain("{ name: t.contact, id: 'contact' }");
+    expect(indexSrc).not.toContain('روابط سريعة');
 
     const staffSrc = fs.readFileSync(path.resolve(process.cwd(), 'src/barada/StaffManagement.tsx'), 'utf8');
     expect(staffSrc).toContain('GENERAL_EVALUATION_PERMISSIONS');

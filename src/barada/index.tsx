@@ -3844,7 +3844,7 @@ const Footer = ({ settings, t, onNavigate }: { settings: AppSettings, t: any, on
         <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-[#087F8C] via-[#25B8C7] to-[#1769AA]"></div>
         <div className="absolute inset-0 fv-grid-pattern opacity-25 pointer-events-none"></div>
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 relative z-10">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10 mb-14">
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10 mb-14">
                 <div>
                     <div className="flex items-center gap-2.5 mb-5">
                         <div className="w-10 h-10 bg-white/10 border border-white/15 rounded-xl flex items-center justify-center overflow-hidden p-1">
@@ -3857,19 +3857,6 @@ const Footer = ({ settings, t, onNavigate }: { settings: AppSettings, t: any, on
                         <a href={settings.facebookUrl} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 hover:bg-[#1769AA] flex items-center justify-center transition-all hover:-translate-y-0.5"><Facebook size={18} /></a>
                         <a href={`https://wa.me/${settings.whatsappNumber.replace(/[^0-9]/g, '')}`} target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-xl bg-white/10 border border-white/10 hover:bg-[#087F8C] flex items-center justify-center transition-all hover:-translate-y-0.5"><MessageCircle size={18} /></a>
                     </div>
-                </div>
-                <div>
-                    <h4 className="text-base font-black mb-5 flex items-center gap-2 text-white"><List size={17} className="text-[#25B8C7]"/> {settings.language === 'ar' ? 'روابط سريعة' : 'Quick Links'}</h4>
-                    <ul className="space-y-2.5 text-slate-300 font-semibold text-sm">
-                        <li><button onClick={() => onNavigate('home')} className="hover:text-[#25B8C7] transition-colors">{t.home}</button></li>
-                        <li><button onClick={() => onNavigate('about')} className="hover:text-[#25B8C7] transition-colors">{t.about}</button></li>
-                        <li><button onClick={() => onNavigate('partners')} className="hover:text-[#25B8C7] transition-colors">{t.partners}</button></li>
-                        <li><button onClick={() => onNavigate('doctors')} className="hover:text-[#25B8C7] transition-colors">{t.doctors}</button></li>
-                        <li><button onClick={() => onNavigate('services')} className="hover:text-[#25B8C7] transition-colors">{t.services}</button></li>
-                        <li><button onClick={() => onNavigate('my-bookings')} className="hover:text-[#25B8C7] transition-colors">{t.myBookings}</button></li>
-                        <li><button onClick={() => onNavigate('contact')} className="hover:text-[#25B8C7] transition-colors">{t.contact}</button></li>
-                        <li><button onClick={() => onNavigate('terms')} className="hover:text-[#25B8C7] transition-colors">{t.terms}</button></li>
-                    </ul>
                 </div>
                 <div>
                     <h4 className="text-base font-black mb-5 flex items-center gap-2 text-white"><Phone size={17} className="text-[#25B8C7]"/> {settings.language === 'ar' ? 'أرقام التواصل والعناوين' : 'Contact & Address'}</h4>
